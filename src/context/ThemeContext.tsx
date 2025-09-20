@@ -6,6 +6,7 @@ type Theme = 'light' | 'dark';
 interface ThemeContextType {
     theme: Theme;
     toggleTheme: () => void;
+    mounted: boolean;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -23,38 +24,56 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>(() => {
-        // Check localStorage first
-        const savedTheme = localStorage.getItem('theme') as Theme;
-        if (savedTheme) {
-            return savedTheme;
-        }
-
-        // Check system preference
-        if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-            return 'dark';
-        }
-
-        return 'light';
-    });
+    const [theme, setTheme] = useState<Theme>('light');
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        // Save theme to localStorage
-        localStorage.setItem('theme', theme);
+        const initializeTheme = () => {
+            let initialTheme: Theme = 'light';
 
-        // Apply theme to document
-        document.documentElement.setAttribute('data-theme', theme);
+            try {
+                // Check localStorage first
+                const savedTheme = localStorage.getItem('theme') as Theme;
+                if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+                    initialTheme = savedTheme;
+                } else {
+                    // Check system preference
+                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                    initialTheme = systemPrefersDark ? 'dark' : 'light';
+                }
+            } catch (error) {
+                console.warn('Error accessing localStorage or matchMedia:', error);
+            }
 
-        // Update body class for additional styling if needed
-        document.body.className = theme;
-    }, [theme]);
+            setTheme(initialTheme);
+            setMounted(true);
+
+            // Apply theme immediately
+            document.documentElement.setAttribute('data-theme', initialTheme);
+            document.body.className = initialTheme;
+        };
+
+        initializeTheme();
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
+
+        try {
+            localStorage.setItem('theme', theme);
+            document.documentElement.setAttribute('data-theme', theme);
+            document.body.className = theme;
+        } catch (error) {
+            console.warn('Error saving theme:', error);
+        }
+    }, [theme, mounted]);
 
     const toggleTheme = () => {
         setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
     };
 
     return (
-        <ThemeContext.Provider value={{ theme, toggleTheme }}>
+        <ThemeContext.Provider value={{ theme, toggleTheme, mounted }}>
             {children}
         </ThemeContext.Provider>
     );
