@@ -1,0 +1,479 @@
+.filter-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+}
+
+.filter-modal {
+    width: 100%;
+    max-width: 680px;
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    max-height: 90vh;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--card);
+    }
+
+    &__title {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        color: var(--card-foreground);
+    }
+
+    &__close {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 10px 12px;
+        border: none;
+        border-radius: var(--radius-xl);
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    &__body {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        background: var(--card);
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    &__section {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        border-radius: var(--radius-md);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    &__row {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+
+        &--align-start {
+            align-items: flex-start;
+        }
+    }
+
+    &__label {
+        width: 140px;
+        font-size: 14px;
+        color: var(--secondary-foreground);
+        font-weight: 500;
+        flex-shrink: 0;
+    }
+
+    &__input {
+        flex: 1;
+        background: var(--input);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        padding: 10px 12px;
+        font-size: 14px;
+        color: var(--foreground);
+        outline: none;
+        transition: border-color 0.2s ease;
+
+        &:focus {
+            border-color: var(--primary);
+        }
+
+        &::placeholder {
+            color: var(--muted-foreground);
+        }
+
+        &--multi {
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            padding: 6px 12px;
+        }
+    }
+
+
+    &__row-split {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        flex: 1;
+    }
+
+    &__pills {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+    }
+
+    &__token {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 8px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        user-select: none;
+
+        &:hover {
+            opacity: 0.8;
+        }
+
+        &--active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: transparent;
+        }
+    }
+
+    &__token-remove {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 50%;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+    }
+
+    &__type-icon {
+        &--deposit {
+            color: var(--success);
+        }
+
+        &--withdraw {
+            color: var(--destructive);
+        }
+    }
+
+    &__multi {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        flex: 1;
+    }
+
+    &__add-token {
+        position: relative;
+    }
+
+    &__dropdown {
+        position: absolute;
+        top: 110%;
+        left: 0;
+        right: 0;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        z-index: 10;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    &__dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--foreground);
+        transition: background 0.15s;
+
+        &:hover {
+            background: var(--muted);
+        }
+    }
+
+    &__token-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        color: var(--foreground);
+        font-size: 14px;
+        min-width: 120px;
+
+        &::placeholder {
+            color: var(--muted-foreground);
+        }
+    }
+
+    &__add-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border: none;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+
+        &:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+
+        &:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        svg {
+            width: 14px;
+            height: 14px;
+        }
+    }
+
+    &__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--card);
+    }
+
+    &__clear {
+        color: var(--muted-foreground);
+        font-size: 13px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: color 0.2s ease;
+
+        &:hover {
+            color: var(--foreground);
+        }
+    }
+
+    &__actions {
+        display: inline-flex;
+        gap: 8px;
+    }
+
+    &__reset {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 10px 12px;
+        border: none;
+        border-radius: var(--radius-xl);
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    &__apply {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        padding: 10px 14px;
+        border: none;
+        border-radius: var(--radius-xl);
+        font-size: 14px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            opacity: 0.9;
+        }
+    }
+}
+
+/* Hide number input arrows for all browsers */
+input[type="number"].filter-modal__input {
+    -moz-appearance: textfield;
+}
+
+input[type="number"].filter-modal__input::-webkit-outer-spin-button,
+input[type="number"].filter-modal__input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Calendar icon color for date picker */
+.filter-modal__input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0);
+}
+
+[data-theme="dark"] .filter-modal__input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* For Firefox */
+.filter-modal__input[type="date"] {
+    color-scheme: light;
+}
+
+[data-theme="dark"] .filter-modal__input[type="date"] {
+    color-scheme: dark;
+}
+
+.filter-modal__pills {
+    display: flex;
+    gap: 12px;
+
+    .filter-modal__pill-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--foreground); // <-- Ensure consistent text color
+        transition:
+            background 0.18s,
+            border-color 0.18s,
+            color 0.18s;
+
+        input[type="checkbox"] {
+            display: none;
+        }
+
+        .filter-modal__custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--muted-foreground);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--card);
+            transition: border-color 0.2s;
+            margin-right: 2px;
+
+            svg {
+                display: none;
+                width: 14px;
+                height: 14px;
+                color: var(--primary-foreground);
+            }
+        }
+
+        input[type="checkbox"]:checked+.filter-modal__custom-checkbox {
+            border-color: var(--primary);
+            background: var(--primary);
+
+            svg {
+                display: block;
+            }
+        }
+
+        // Keep text color same in both states
+        span {
+            color: var(--foreground);
+        }
+
+        &:hover {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .filter-modal-overlay {
+        padding: 16px;
+    }
+
+    .filter-modal {
+        max-width: 100%;
+
+        &__row {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+
+            &--align-start {
+                align-items: stretch;
+            }
+        }
+
+        &__label {
+            width: auto;
+        }
+
+        &__row-split {
+            grid-template-columns: 1fr;
+        }
+
+        &__footer {
+            flex-direction: column;
+            gap: 12px;
+            align-items: stretch;
+        }
+
+        &__actions {
+            justify-content: center;
+        }
+    }
+}

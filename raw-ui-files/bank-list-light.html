@@ -1,0 +1,477 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-width: 220px;
+            }
+
+            .chips {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .chip {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* Card grid for banks */
+            .banks-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .bank-card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 16px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .bank-left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .bank-title {
+                font-size: 15px;
+                font-weight: 600;
+            }
+
+            .bank-sub {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .bank-meta {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .meta-block {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+            }
+
+            .meta-label {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+
+            .meta-value {
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .row-actions {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+            }
+
+            /* Detail edit panel */
+            .detail {
+                width: 360px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .detail .header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .detail .name {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .detail .sub {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .form {
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .label {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .control {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+
+            .inline-actions {
+                display: inline-flex;
+                gap: 8px;
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="users"></i>
+                        Clients</div>
+                    <div class="item" data-active="true" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="calculator"></i> Charge Calculator</div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Banks</div>
+                    <div class="right">
+                        <div class="button" data-media-type="banani-button"><i
+                                data-lucide="plus"></i> Add New Bank</div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="title-row">
+                            <div class="search-row">
+                                <div class="input" style="min-width:320px;">Search banks</div>
+                                <div class="chips">
+                                    <div class="chip" data-media-type="banani-button"><i
+                                            data-lucide="sliders-horizontal"></i> Filter</div>
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="edit"></i> Edit</div>
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="trash"></i> Delete</div>
+                            </div>
+                        </div>
+
+                        <div class="banks-grid">
+                            <div class="bank-card" data-media-type="banani-button">
+                                <div class="bank-left">
+                                    <i data-lucide="building-2"></i>
+                                    <div>
+                                        <div class="bank-title">HDFC Bank</div>
+                                        <div class="bank-sub">Created: Jan 10, 2024</div>
+                                    </div>
+                                </div>
+                                <div class="bank-meta">
+                                    <div class="meta-block">
+                                        <div class="meta-label">Transactions</div>
+                                        <div class="meta-value">1,204</div>
+                                    </div>
+                                    <div class="row-actions" data-media-type="banani-button"><i
+                                            data-lucide="more-horizontal"></i> Manage</div>
+                                </div>
+                            </div>
+
+                            <div class="bank-card" data-media-type="banani-button">
+                                <div class="bank-left">
+                                    <i data-lucide="building-2"></i>
+                                    <div>
+                                        <div class="bank-title">Axis Bank</div>
+                                        <div class="bank-sub">Created: Feb 02, 2024</div>
+                                    </div>
+                                </div>
+                                <div class="bank-meta">
+                                    <div class="meta-block">
+                                        <div class="meta-label">Transactions</div>
+                                        <div class="meta-value">836</div>
+                                    </div>
+                                    <div class="row-actions" data-media-type="banani-button"><i
+                                            data-lucide="more-horizontal"></i> Manage</div>
+                                </div>
+                            </div>
+
+                            <div class="bank-card" data-media-type="banani-button">
+                                <div class="bank-left">
+                                    <i data-lucide="building-2"></i>
+                                    <div>
+                                        <div class="bank-title">ICICI Bank</div>
+                                        <div class="bank-sub">Created: Mar 18, 2023</div>
+                                    </div>
+                                </div>
+                                <div class="bank-meta">
+                                    <div class="meta-block">
+                                        <div class="meta-label">Transactions</div>
+                                        <div class="meta-value">652</div>
+                                    </div>
+                                    <div class="row-actions" data-media-type="banani-button"><i
+                                            data-lucide="more-horizontal"></i> Manage</div>
+                                </div>
+                            </div>
+
+                            <div class="bank-card" data-media-type="banani-button">
+                                <div class="bank-left">
+                                    <i data-lucide="building-2"></i>
+                                    <div>
+                                        <div class="bank-title">State Bank of India</div>
+                                        <div class="bank-sub">Created: Jul 05, 2022</div>
+                                    </div>
+                                </div>
+                                <div class="bank-meta">
+                                    <div class="meta-block">
+                                        <div class="meta-label">Transactions</div>
+                                        <div class="meta-value">2,014</div>
+                                    </div>
+                                    <div class="row-actions" data-media-type="banani-button"><i
+                                            data-lucide="more-horizontal"></i> Manage</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="detail">
+                        <div class="header">
+                            <i data-lucide="building-2"></i>
+                            <div>
+                                <div class="name">Edit Bank</div>
+                                <div class="sub">Update bank details or delete</div>
+                            </div>
+                        </div>
+                        <div class="form">
+                            <div>
+                                <div class="label">Bank Name</div>
+                                <div class="control">HDFC Bank</div>
+                            </div>
+                            <div>
+                                <div class="label">Created On</div>
+                                <div class="control">Jan 10, 2024</div>
+                            </div>
+                            <div>
+                                <div class="label">Transactions</div>
+                                <div class="control">1,204</div>
+                            </div>
+                            <div class="inline-actions">
+                                <div class="button" data-media-type="banani-button"><i
+                                        data-lucide="save"></i> Save</div>
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="trash"></i> Delete</div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

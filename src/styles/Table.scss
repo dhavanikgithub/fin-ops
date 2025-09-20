@@ -1,0 +1,279 @@
+// Table.scss - Common table styles for TransactionTable and ClientTable
+
+.table-wrap{
+    width: 100%;
+    background: var(--card);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 1px 3px var(--box-shadow-table-wrap);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    font-family: var(--font-family-body);
+}
+
+.table__container{
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    min-height: 0;
+    height: calc(100vh - var(--table-offset, 200px));
+    max-height: calc(100vh - var(--table-offset, 200px));
+    background: var(--background);
+}
+
+.table{
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    position: relative;
+    font-family: var(--font-family-body);
+    background: var(--card);
+
+    thead {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: var(--muted);
+        border-bottom: 1px solid var(--border);
+
+        th {
+            padding: 16px 20px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--foreground);
+            white-space: nowrap;
+            background: var(--muted);
+            font-family: var(--font-family-body);
+
+            &:first-child {
+                border-top-left-radius: var(--radius-lg);
+            }
+
+            &:last-child {
+                border-top-right-radius: var(--radius-lg);
+            }
+
+            &::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                right: 0;
+                height: 1px;
+                background: linear-gradient(to right, transparent, var(--border) 20%, var(--border) 80%, transparent);
+                opacity: 0;
+                transition: opacity 0.2s ease;
+            }
+        }
+
+        &.table__header--shadow th::after{
+            opacity: 1;
+        }
+    }
+
+    tbody {
+        background: var(--card);
+
+        tr {
+            border-bottom: 1px solid var(--border);
+            transition: background-color 0.15s ease;
+            background: var(--card);
+
+            &:hover {
+                background: var(--muted);
+            }
+
+            &:last-child {
+                border-bottom: none;
+            }
+        }
+
+        td {
+            padding: 16px 20px;
+            vertical-align: middle;
+            color: var(--card-foreground);
+            font-family: var(--font-family-body);
+        }
+    }
+}
+
+.table__sort-header{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    user-select: none;
+    color: var(--foreground);
+    transition: color 0.15s ease;
+
+    &:hover {
+        color: var(--primary);
+
+        .table__sort-icon{
+            opacity: 1;
+            color: var(--primary);
+        }
+    }
+}
+
+.table__sort-icon {
+    opacity: 0.5;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    color: var(--muted-foreground);
+}
+
+.table__client{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.table__client-avatar{
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-foreground);
+    font-weight: 600;
+    font-size: 15px;
+    flex-shrink: 0;
+    font-family: var(--font-family-body);
+    border: 2px solid var(--border);
+    user-select: none;
+    margin-right: 2px;
+}
+
+.table__client-name{
+    font-weight: 600;
+    color: var(--foreground);
+    font-family: var(--font-family-body);
+}
+
+.table__client-email{
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-family: var(--font-family-body);
+}
+
+.table__row-actions{
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    color: var(--muted-foreground);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-weight: 500;
+    font-family: var(--font-family-body);
+
+    &:hover {
+        background: var(--muted);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 3px var(--primary);
+        border-color: var(--primary);
+        color: var(--primary);
+    }
+
+    &:active {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+    }
+}
+
+.table__no-results{
+    text-align: center;
+    padding: 48px 20px;
+    color: var(--muted-foreground);
+    font-style: italic;
+    font-family: var(--font-family-body);
+    background: var(--card);
+}
+
+.table__load-trigger{
+    padding: 20px;
+    text-align: center;
+    min-height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+}
+
+.table__loading{
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--muted-foreground);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: var(--font-family-body);
+}
+
+.table__spinner{
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border);
+    border-top: 2px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { 
+        transform: rotate(0deg); 
+    }
+    100% { 
+        transform: rotate(360deg); 
+    }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .table__container{
+        height: calc(100vh - var(--table-offset, 180px));
+        max-height: calc(100vh - var(--table-offset, 180px));
+    }
+
+    .table{
+        font-size: 13px;
+
+        thead th {
+            padding: 12px 16px;
+        }
+
+        tbody td {
+            padding: 12px 16px;
+        }
+    }
+
+    .table__client{
+        gap: 8px;
+    }
+
+    .table__client-avatar{
+        width: 28px;
+        height: 28px;
+        font-size: 13px;
+    }
+
+    .table__client-name{
+        font-size: 13px;
+    }
+}

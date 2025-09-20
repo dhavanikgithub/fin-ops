@@ -1,0 +1,307 @@
+@import url('https://rsms.me/inter/inter.css');
+@import '../styles/variables';
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', 'Inter Fallback', sans-serif;
+}
+
+// ========================================
+// GLOBAL SCROLLBAR STYLES
+// ========================================
+
+// For Webkit browsers (Chrome, Safari, Edge)
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+    border-radius: var(--radius-sm);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: var(--radius-sm);
+    transition: background-color 0.2s ease;
+
+    &:hover {
+        background: var(--scrollbar-thumb-hover);
+    }
+
+    &:active {
+        background: var(--primary);
+    }
+}
+
+::-webkit-scrollbar-corner {
+    background: var(--scrollbar-track);
+}
+
+// For thin scrollbars on modern browsers
+* {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+// ========================================
+// CUSTOM SCROLLBAR VARIANTS
+// ========================================
+
+// Thin scrollbar variant
+.scrollbar-thin {
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    scrollbar-width: thin;
+}
+
+// Hidden scrollbar but still scrollable
+.scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
+
+// Large scrollbar for touch devices
+.scrollbar-large {
+    &::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        border-radius: var(--radius-md);
+    }
+
+    &::-webkit-scrollbar-track {
+        border-radius: var(--radius-md);
+    }
+}
+
+// Primary colored scrollbar
+.scrollbar-primary {
+    &::-webkit-scrollbar-thumb {
+        background: var(--primary);
+        
+        &:hover {
+            background: var(--accent);
+        }
+    }
+
+    scrollbar-color: var(--primary) var(--scrollbar-track);
+}
+
+// Success colored scrollbar
+.scrollbar-success {
+    &::-webkit-scrollbar-thumb {
+        background: var(--success);
+        
+        &:hover {
+            background: var(--success);
+            opacity: 0.8;
+        }
+    }
+
+    scrollbar-color: var(--success) var(--scrollbar-track);
+}
+
+// ========================================
+// OVERLAY SCROLLBAR (for floating elements)
+// ========================================
+.scrollbar-overlay {
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: var(--radius-lg);
+        border: 2px solid transparent;
+        background-clip: content-box;
+
+        &:hover {
+            background: var(--scrollbar-thumb-hover);
+            background-clip: content-box;
+        }
+    }
+
+    &::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+}
+
+// ========================================
+// RESPONSIVE SCROLLBAR
+// ========================================
+@media (max-width: 768px) {
+    // Larger scrollbars on mobile for better touch interaction
+    ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+        border-radius: var(--radius-md);
+    }
+
+    ::-webkit-scrollbar-track {
+        border-radius: var(--radius-md);
+    }
+}
+
+@media (pointer: coarse) {
+    // Even larger for touch devices
+    ::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+}
+
+// ========================================
+// SPECIFIC COMPONENT SCROLLBARS
+// ========================================
+
+// Table container scrollbar
+.table__container {
+    &::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted-foreground);
+        border-radius: var(--radius-sm);
+
+        &:hover {
+            background: var(--primary);
+        }
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--muted);
+        border-radius: var(--radius-sm);
+    }
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--muted-foreground) var(--muted);
+}
+
+// Sidebar scrollbar
+.sidebar {
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--sidebar-primary);
+        border-radius: var(--radius-sm);
+
+        &:hover {
+            background: var(--sidebar-primary-foreground);
+        }
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-primary) transparent;
+}
+
+// Modal/Dialog scrollbar
+.modal, .dialog {
+    &::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--scrollbar-thumb);
+        border-radius: var(--radius-md);
+
+        &:hover {
+            background: var(--primary);
+        }
+    }
+
+    &::-webkit-scrollbar-track {
+        background: var(--card);
+        border-radius: var(--radius-md);
+    }
+}
+
+// ========================================
+// ACCESSIBILITY IMPROVEMENTS
+// ========================================
+
+// High contrast mode support
+@media (prefers-contrast: high) {
+    ::-webkit-scrollbar-thumb {
+        background: var(--foreground);
+        border: 1px solid var(--border);
+
+        &:hover {
+            background: var(--primary);
+        }
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--background);
+        border: 1px solid var(--border);
+    }
+}
+
+// Reduced motion support
+@media (prefers-reduced-motion: reduce) {
+    ::-webkit-scrollbar-thumb {
+        transition: none;
+    }
+
+    * {
+        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    }
+}
+
+// ========================================
+// UTILITY CLASSES
+// ========================================
+
+// Force show scrollbar
+.scrollbar-always {
+    overflow: auto !important;
+    
+    &::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+}
+
+// Smooth scrolling
+.scroll-smooth {
+    scroll-behavior: smooth;
+}
+
+// Scroll margin for better navigation
+.scroll-mt {
+    scroll-margin-top: 2rem;
+}
+
+.scroll-mb {
+    scroll-margin-bottom: 2rem;
+}

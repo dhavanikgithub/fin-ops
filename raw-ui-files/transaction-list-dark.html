@@ -1,0 +1,554 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+
+<body>
+    <div class="" style="
+            --background: #0f1724;
+            --foreground: #ffffff;
+            --border: #273446;
+            --input: #1e293b;
+            --primary: #0B99FF;
+            --primary-foreground: #ffffff;
+            --secondary: #1e2a38;
+            --secondary-foreground: #60a5fa;
+            --muted: #1f2937;
+            --muted-foreground: #94a3b8;
+            --success: #22c55e;
+            --success-foreground: #dcfce7;
+            --accent: #0B99FF;
+            --accent-foreground: #ffffff;
+            --destructive: #ef4444;
+            --destructive-foreground: #fee2e2;
+            --warning: #f97316;
+            --warning-foreground: #ffe4b5;
+            --card: #1a2332;
+            --card-foreground: #ffffff;
+            --sidebar: #1e293b;
+            --sidebar-foreground: #cbd5e1;
+            --sidebar-primary: #334155;
+            --sidebar-primary-foreground: #38bdf8;
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 24px;
+            --font-family-body: 'Inter', 'Inter Fallback';
+            font-family: var(--font-family-body);
+        ">
+        <style>
+            * {
+                box-sizing: border-box;
+                
+            }
+
+            body {
+                margin: 0;
+            }
+
+            .app {
+                width: 100%;
+                height: 100%;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                /* background: var(--sidebar-primary); */
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item .iconify-icon {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-width: 220px;
+            }
+
+            .chips {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .chip {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .table-wrap {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+            }
+
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .table td {
+                color: var(--foreground);
+            }
+
+            .table th,
+            .table td {
+                text-align: left;
+                padding: 12px;
+                border-bottom: 1px solid var(--border);
+                font-size: 14px;
+            }
+
+            .table th {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                font-weight: 600;
+            }
+
+            .row-actions {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+            }
+
+            .amount {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+            }
+
+            .amount .amt {
+                font-weight: 600;
+                color: var(--muted-foreground);
+            }
+
+            .method-bank {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            /* Single bubble: bank • card */
+            .method-bank .pill {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .sep {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: var(--muted-foreground);
+            }
+
+            .time {
+                color: var(--muted-foreground);
+                font-size: 13px;
+            }
+
+            /* Pagination */
+            .pagination {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                /* border-top: none; */
+                border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            }
+
+            .page-info {
+                color: var(--muted-foreground);
+                font-size: 13px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+            }
+
+            .page-info i {
+                color: var(--secondary-foreground);
+                font-size: 16px;
+            }
+
+            .page-highlight {
+                color: var(--foreground);
+                font-weight: 600;
+            }
+
+            .page-controls {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .page-btn {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                cursor: default;
+            }
+
+            .page-number {
+                background: var(--input);
+                color: var(--foreground);
+                padding: 8px 10px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+            }
+
+            .page-number[data-active="true"] {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                border-color: transparent;
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-active="true" data-media-type="banani-button"><i class="iconify-icon"
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i class="iconify-icon" data-lucide="users"></i>
+                        Clients</div>
+                    <div class="item" data-media-type="banani-button"><i class="iconify-icon"
+                            data-lucide="banknote"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i class="iconify-icon"
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i class="iconify-icon"
+                            data-lucide="calculator"></i> Charge Calculator
+                    </div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Transactions</div>
+                    <div class="right">
+                        <div class="icon-button" data-media-type="banani-button">
+                            <i class="iconify-icon" data-lucide="download"></i> Export
+                        </div>
+                        <div class="button" data-media-type="banani-button">
+                            <i class="iconify-icon" data-lucide="arrow-down-left"></i> Deposit
+                        </div>
+                        <div class="button" data-media-type="banani-button">
+                            <i class="iconify-icon" data-lucide="arrow-up-right"></i> Withdraw
+                        </div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="title-row">
+                            <div class="search-row">
+                                <div class="input" style="min-width: 320px;">Search transactions</div>
+                            </div>
+                            <div class="actions">
+                                <div class="icon-button" data-media-type="banani-button">
+                                    <i class="iconify-icon" data-lucide="sliders-horizontal"></i> Filters
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Bank • Card</th>
+                                        <th>Amount</th>
+                                        <th>Date &amp; Time</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Akash Patel</td>
+                                        <td>
+                                            <div class="method-bank">
+                                                <div class="pill">HDFC Bank • VISA</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="amount">
+                                                <i class="iconify-icon" data-lucide="arrow-down-left"
+                                                    style="color: var(--success);"></i>
+                                                <span class="amt">₹ 24,500</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            Sep 02, 2025 <span class="time">• 02:15 PM</span>
+                                        </td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button">
+                                                <i class="iconify-icon" data-lucide="eye"></i> View
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Jia Lee</td>
+                                        <td>
+                                            <div class="method-bank">
+                                                <div class="pill">Axis Bank • Mastercard</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="amount">
+                                                <i class="iconify-icon" data-lucide="arrow-up-right"
+                                                    style="color: var(--destructive);"></i>
+                                                <span class="amt">₹ 8,999</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            Sep 02, 2025 <span class="time">• 09:40 AM</span>
+                                        </td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button">
+                                                <i class="iconify-icon" data-lucide="eye"></i> View
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Maria Gomez</td>
+                                        <td>
+                                            <div class="method-bank">
+                                                <div class="pill">ICICI Bank • RuPay</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="amount">
+                                                <i class="iconify-icon" data-lucide="arrow-down-left"
+                                                    style="color: var(--success);"></i>
+                                                <span class="amt">₹ 12,100</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            Sep 01, 2025 <span class="time">• 06:05 PM</span>
+                                        </td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button">
+                                                <i class="iconify-icon" data-lucide="eye"></i> View
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <div class="page-info">
+                                <!-- <i class="iconify-icon" data-lucide="list-checks"></i> -->
+                                <!-- <span>Showing</span> -->
+                                <span class="page-highlight">1 - 10</span>
+                                <span>of</span>
+                                <span class="page-highlight">248</span>
+                            </div>
+                            <div class="page-controls">
+                                <div class="page-btn" data-media-type="banani-button">
+                                    <i class="iconify-icon" data-lucide="chevrons-left"></i> First
+                                </div>
+                                <div class="page-btn" data-media-type="banani-button">
+                                    <i class="iconify-icon" data-lucide="chevron-left"></i>Prev
+                                </div>
+                                <div class="page-number" data-media-type="banani-button" data-active="true">1</div>
+                                <div class="page-number" data-media-type="banani-button">2</div>
+                                <div class="page-number" data-media-type="banani-button">3</div>
+                                <div class="page-number" data-media-type="banani-button">...</div>
+                                <div class="page-number" data-media-type="banani-button">25</div>
+                                <div class="page-btn" data-media-type="banani-button">
+                                    Next <i class="iconify-icon" data-lucide="chevron-right"></i>
+                                </div>
+                                <div class="page-btn" data-media-type="banani-button">
+                                    Last <i class="iconify-icon" data-lucide="chevrons-right"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

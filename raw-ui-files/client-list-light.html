@@ -1,0 +1,588 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-width: 220px;
+            }
+
+            .chips {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .chip {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .table-wrap {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+            }
+
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .table th,
+            .table td {
+                text-align: left;
+                padding: 12px;
+                border-bottom: 1px solid var(--border);
+                font-size: 14px;
+            }
+
+            .table th {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                font-weight: 600;
+            }
+
+            .row-actions {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+            }
+
+            /* Clients list avatar + meta */
+            .client {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            }
+
+            .client img {
+                width: 28px;
+                height: 28px;
+                border-radius: 50%;
+            }
+
+            .client .meta {
+                display: flex;
+                flex-direction: column;
+            }
+
+            .client .name {
+                font-weight: 600;
+            }
+
+            .client .sub {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+
+            /* Pagination (reuse) */
+            .pagination {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 12px 16px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-top: none;
+                border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            }
+
+            .page-info {
+                color: var(--muted-foreground);
+                font-size: 13px;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+            }
+
+            .page-info i {
+                color: var(--secondary-foreground);
+                font-size: 16px;
+            }
+
+            .page-highlight {
+                color: var(--foreground);
+                font-weight: 600;
+            }
+
+            .page-controls {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .page-btn {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                cursor: default;
+            }
+
+            .page-number {
+                background: var(--input);
+                color: var(--foreground);
+                padding: 8px 10px;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+            }
+
+            .page-number[data-active="true"] {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                border-color: transparent;
+            }
+
+            /* Right panel: Client details preview */
+            .detail {
+                width: 360px;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .detail .header {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                border-bottom: none;
+                padding: 0;
+                background: transparent;
+            }
+
+            .detail .header .name {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .badge {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .divider {
+                height: 1px;
+                background: var(--border);
+            }
+
+            /* New Transaction quick actions for selected client */
+            .quick-actions {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .quick-btn {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+            }
+
+            .quick-btn.deposit {
+                background: var(--success);
+                color: var(--success-foreground);
+            }
+
+            .quick-btn.withdraw {
+                background: var(--destructive);
+                color: var(--destructive-foreground);
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-active="true" data-media-type="banani-button"><i
+                            data-lucide="users"></i> Clients</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="calculator"></i> Charge Calculator</div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Clients</div>
+                    <div class="right">
+                        <div class="icon-button" data-media-type="banani-button"><i
+                                data-lucide="user-plus"></i> New Client</div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="title-row">
+                            <div class="search-row">
+                                <div class="input" style="min-width: 320px;">Search clients</div>
+                            </div>
+                            <div class="actions">
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="sliders-horizontal"></i> Filters</div>
+                            </div>
+                        </div>
+
+                        <div class="table-wrap">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Client</th>
+                                        <th>Primary Bank</th>
+                                        <th>Cards</th>
+                                        <th>Last Transaction</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <div class="client">
+                                                <img src="https://app.banani.co/avatar1.jpeg" alt="Alice">
+                                                <div class="meta">
+                                                    <div class="name">Alice Cooper</div>
+                                                    <div class="sub">alice@example.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>HDFC Bank</td>
+                                        <td>VISA • RuPay</td>
+                                        <td>Sep 02, 2025 <span class="sub">• 02:15 PM</span></td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button"><i
+                                                    data-lucide="eye"></i> View</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="client">
+                                                <img src="https://app.banani.co/avatar2.jpg" alt="Rahul">
+                                                <div class="meta">
+                                                    <div class="name">Rahul Shah</div>
+                                                    <div class="sub">rahul@acme.co</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>Axis Bank</td>
+                                        <td>Mastercard</td>
+                                        <td>Sep 02, 2025 <span class="sub">• 09:40 AM</span></td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button"><i
+                                                    data-lucide="eye"></i> View</div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="client">
+                                                <img src="https://app.banani.co/avatar3.jpeg" alt="Maria">
+                                                <div class="meta">
+                                                    <div class="name">Maria Gomez</div>
+                                                    <div class="sub">maria@globex.com</div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>ICICI Bank</td>
+                                        <td>RuPay</td>
+                                        <td>Sep 01, 2025 <span class="sub">• 06:05 PM</span></td>
+                                        <td>
+                                            <div class="row-actions" data-media-type="banani-button"><i
+                                                    data-lucide="eye"></i> View</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="pagination">
+                            <div class="page-info"><i data-lucide="list-checks"></i>
+                                <span>Showing</span> <span class="page-highlight">1–10</span> <span>of</span> <span
+                                    class="page-highlight">128</span></div>
+                            <div class="page-controls">
+                                <div class="page-btn" data-media-type="banani-button"><i
+                                        data-lucide="chevrons-left"></i> First</div>
+                                <div class="page-btn" data-media-type="banani-button"><i
+                                        data-lucide="chevron-left"></i> Prev</div>
+                                <div class="page-number" data-media-type="banani-button" data-active="true">1</div>
+                                <div class="page-number" data-media-type="banani-button">2</div>
+                                <div class="page-number" data-media-type="banani-button">3</div>
+                                <div class="page-number" data-media-type="banani-button">...</div>
+                                <div class="page-number" data-media-type="banani-button">13</div>
+                                <div class="page-btn" data-media-type="banani-button">Next <i
+                                        data-lucide="chevron-right"></i></div>
+                                <div class="page-btn" data-media-type="banani-button">Last <i
+                                        data-lucide="chevrons-right"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="detail">
+                        <div class="header">
+                            <img src="https://app.banani.co/avatar1.jpeg" alt="Alice"
+                                style="width:36px;height:36px;border-radius:50%;">
+                            <div>
+                                <div class="name">Alice Cooper</div>
+                                <div class="sub">Client since Jan 2023</div>
+                            </div>
+                        </div>
+                        <div class="badges">
+                            <div class="badge"><i data-lucide="banknote"></i> HDFC Bank</div>
+                            <div class="badge"><i data-lucide="credit-card"></i> VISA</div>
+                            <div class="badge"><i data-lucide="mail"></i> alice@example.com</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="quick-actions">
+                            <div class="quick-btn deposit" data-media-type="banani-button"><i
+                                    data-lucide="arrow-down-circle"></i> Deposit</div>
+                            <div class="quick-btn withdraw" data-media-type="banani-button"><i
+                                    data-lucide="arrow-up-circle"></i> Withdraw</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div>
+                            <div style="font-weight:600; margin-bottom:8px;">Recent Transactions</div>
+                            <div style="display:flex; flex-direction:column; gap:8px;">
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i data-lucide="arrow-down-circle"
+                                            style="color: var(--success-foreground);"></i>
+                                        <div>₹ 24,500</div>
+                                    </div>
+                                    <div class="sub">Sep 02, 2025 • 02:15 PM</div>
+                                </div>
+                                <div style="display:flex; align-items:center; justify-content:space-between;">
+                                    <div style="display:flex; align-items:center; gap:8px;">
+                                        <i data-lucide="arrow-up-circle"
+                                            style="color: var(--destructive-foreground);"></i>
+                                        <div>₹ 3,200</div>
+                                    </div>
+                                    <div class="sub">Aug 30, 2025 • 11:05 AM</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

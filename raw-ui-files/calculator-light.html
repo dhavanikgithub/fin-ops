@@ -1,0 +1,471 @@
+<html>
+<html>
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-width: 220px;
+            }
+
+            .chips {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .chip {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .panel {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .two-col {
+                display: grid;
+                grid-template-columns: 1.2fr 1fr;
+                gap: 16px;
+            }
+
+            .section-title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .label {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .control {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+
+            .row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+            }
+
+            .inline {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .pill {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .summary {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .total {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                font-size: 16px;
+                font-weight: 600;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .breakdown {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 12px;
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .line {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+            }
+
+            .badges {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .badge {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .note {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+
+            .grid-3 {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 12px;
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="users"></i>
+                        Clients</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-active="true" data-media-type="banani-button"><i
+                            data-lucide="calculator"></i> Charge Calculator</div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Charge Calculator</div>
+                    <div class="right">
+                        <div class="icon-button" data-media-type="banani-button"><i
+                                data-lucide="download"></i> Export</div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view" style="gap:12px;">
+                        <div class="title-row">
+                            <div class="search-row">
+                                <div class="input" style="min-width: 320px;">Search fee profiles</div>
+                                <div class="chips">
+
+                                </div>
+                            </div>
+                            <div class="actions">
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="sliders-horizontal"></i> Presets</div>
+                            </div>
+                        </div>
+
+                        <div class="two-col">
+                            <div class="panel">
+                                <div class="section-title">Inputs</div>
+                                <div class="row">
+                                    <div>
+                                        <div class="label">Amount (₹)</div>
+                                        <div class="control">₹ 10,000</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Bank Charge (%)</div>
+                                        <div class="control">1.80</div>
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div>
+                                        <div class="label">Our Charge (%)</div>
+                                        <div class="control">2.20</div>
+                                    </div>
+                                    <div>
+                                        <div class="label">Platform Charge (₹)</div>
+                                        <div class="control">25</div>
+                                    </div>
+                                </div>
+                                <div class="inline">
+                                    <div class="pill">GST: 18% (fixed)</div>
+                                    <div class="icon-button" data-media-type="banani-button"><i
+                                            data-lucide="refresh-ccw"></i> Recalculate</div>
+                                    <div class="button" data-media-type="banani-button"><i
+                                            data-lucide="save"></i> Save Scenario</div>
+                                </div>
+                            </div>
+
+                            <div class="panel">
+                                <div class="section-title">Results</div>
+                                <div class="summary">
+                                    <div class="line"><span>Total Amount</span><span>₹ 10,000.00</span></div>
+                                    <div class="line"><span>Payable Amount</span><span>₹ 9,780.00</span></div>
+                                    <div class="line" style="font-weight:600;"><span>Profit</span><span>₹ -7.60</span>
+                                    </div>
+                                </div>
+                                <div class="breakdown">
+                                    <div class="line"><span>Bank Rate</span><span>1.80%</span></div>
+                                    <div class="line"><span>GST on Bank</span><span>0.32% (of amount)</span></div>
+                                    <div class="line"><span>Total Bank w/ GST</span><span>2.12%</span></div>
+                                    <div class="line"><span>Our Charge</span><span>2.20%</span></div>
+                                    <div class="line"><span>Markup (Our − Bank w/ GST)</span><span>0.08%</span></div>
+                                    <div class="line"><span>Earned (amount × markup)</span><span>₹ 8.00</span></div>
+                                    <div class="line"><span>Platform Charge</span><span>₹ 25.00</span></div>
+                                    <div class="line" style="font-weight:600;"><span>Profit</span><span>₹ -17.00</span>
+                                    </div>
+                                    <div class="note">Payable = Amount − (Amount × Our Charge)</div>
+                                </div>
+                                <div class="total">
+                                    <div>Net Receivable</div>
+                                    <div>₹ 9,780.00</div>
+                                </div>
+                                <div class="badges">
+                                    <div class="badge"><i data-lucide="percent"></i> Bank + GST:
+                                        2.12%</div>
+                                    <div class="badge"><i data-lucide="wallet"></i> Platform: ₹ 25
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="panel">
+                            <div class="section-title">Saved Scenarios</div>
+                            <div class="grid-3">
+                                <div class="panel">
+                                    <div class="line" style="font-weight:600;">₹ 50,000 • Our 2.5% • Bank 1.8%</div>
+                                    <div class="line"><span>Platform</span><span>₹ 25</span></div>
+                                    <div class="inline" style="justify-content: space-between; margin-top: 4px;">
+                                        <div class="pill">GST 18%</div>
+                                        <div class="icon-button" data-media-type="banani-button"><i
+                                                data-lucide="play"></i> Apply</div>
+                                    </div>
+                                </div>
+                                <div class="panel">
+                                    <div class="line" style="font-weight:600;">₹ 15,000 • Our 2.0% • Bank 1.5%</div>
+                                    <div class="line"><span>Platform</span><span>₹ 10</span></div>
+                                    <div class="inline" style="justify-content: space-between; margin-top: 4px;">
+                                        <div class="pill">GST 18%</div>
+                                        <div class="icon-button" data-media-type="banani-button"><i
+                                                data-lucide="play"></i> Apply</div>
+                                    </div>
+                                </div>
+                                <div class="panel">
+                                    <div class="line" style="font-weight:600;">₹ 8,000 • Our 2.2% • Bank 1.6%</div>
+                                    <div class="line"><span>Platform</span><span>₹ 15</span></div>
+                                    <div class="inline" style="justify-content: space-between; margin-top: 4px;">
+                                        <div class="pill">GST 18%</div>
+                                        <div class="icon-button" data-media-type="banani-button"><i
+                                                data-lucide="play"></i> Apply</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

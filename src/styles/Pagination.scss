@@ -1,0 +1,93 @@
+.pagination {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    border-top: none;
+
+    &__info {
+        color: var(--muted-foreground);
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--secondary);
+        padding: 6px 10px;
+        border-radius: var(--radius-xl);
+
+        svg {
+            color: var(--secondary-foreground);
+            font-size: 16px;
+        }
+    }
+
+    &__highlight {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+
+    &__controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    &__button {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 8px 10px;
+        border: none;
+        border-radius: var(--radius-xl);
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover:not(:disabled) {
+            opacity: 0.8;
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        svg {
+            width: 16px;
+            height: 16px;
+        }
+    }
+
+    &__page-number {
+        background: var(--input);
+        color: var(--foreground);
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-xl);
+        font-size: 13px;
+        min-width: 36px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            border-color: var(--primary);
+        }
+
+        &--active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: transparent;
+
+            &:hover {
+                border-color: transparent;
+            }
+        }
+    }
+}
