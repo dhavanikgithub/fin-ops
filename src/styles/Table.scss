@@ -106,6 +106,10 @@
             &:last-child {
                 border-bottom: none;
             }
+
+            &.table__row--selected {
+                border-left: 3px solid var(--primary);
+            }
         }
 
         td {

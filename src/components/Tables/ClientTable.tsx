@@ -17,6 +17,8 @@ export interface Client {
 interface ClientTableProps {
     clients: Client[];
     search?: string;
+    selectedClient?: Client | null;
+    onClientSelect?: (client: Client) => void;
 }
 
 const getInitials = (name: string): string => {
@@ -43,7 +45,7 @@ const getAvatarColor = (name: string): string => {
     return colors[index];
 };
 
-const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
+const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selectedClient, onClientSelect }) => {
     const [visibleItems, setVisibleItems] = useState(10);
     const [itemsPerPage, setItemsPerPage] = useState(10);
     const [isLoading, setIsLoading] = useState(false);
@@ -196,7 +198,10 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
                             </tr>
                         ) : (
                             displayedClients.map((client, idx) => (
-                                <tr key={client.id}>
+                                <tr 
+                                    key={client.id} 
+                                    className={selectedClient?.id === client.id ? 'table__row--selected' : ''}
+                                >
                                     <td>
                                         <div className="table__client">
                                             <div
@@ -228,7 +233,10 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
                                                 <Eye size={16} />
                                                 View
                                             </button>
-                                            <button className="row-actions">
+                                            <button 
+                                                className="row-actions"
+                                                onClick={() => onClientSelect && onClientSelect(client)}
+                                            >
                                                 <MoreHorizontal size={16} />
                                                 Manage
                                             </button>

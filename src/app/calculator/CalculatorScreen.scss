@@ -1,17 +1,5 @@
 @use '../../styles/Main.scss';
 
-.main {
-    &__content {
-        @extend .main__content;
-        flex: 1;                // added: lets this section take remaining height under header
-        overflow: hidden;
-    }
-
-    &__view {
-        @extend .main__view;
-        min-height: 0;
-    }
-}
 .calculator-two-col {
     display: grid;
     grid-template-columns: 1.2fr 1fr;

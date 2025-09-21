@@ -1,0 +1,114 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+
+<body>
+    <div class="" style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);"><style>* { box-sizing: border-box; }
+
+.app { min-height: 644px; background: var(--background); display: flex; }
+
+/* Backdrop to simulate modal */
+.backdrop { position: relative; width: 100%; height: 800px; background: #111; opacity: 0.8; }
+
+.modal { position: absolute; top: 60px; left: 50%; transform: translateX(-50%); width: 720px; background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: 0 10px 30px rgba(0,0,0,0.25); display: flex; flex-direction: column; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-title { font-size: 18px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+
+.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+.form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 13px; color: var(--muted-foreground); }
+.input, .select { background: var(--input); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; font-size: 14px; color: var(--foreground); }
+.full { grid-column: 1 / -1; }
+
+.badge-row { display: flex; align-items: center; gap: 8px; }
+.badge { background: var(--secondary); color: var(--secondary-foreground); padding: 8px 10px; border-radius: var(--radius-xl); font-size: 13px; font-weight: 500; }
+.hint { font-size: 12px; color: var(--muted-foreground); }
+
+.summary { background: var(--secondary); color: var(--secondary-foreground); border-radius: var(--radius-md); padding: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.item { background: var(--card); color: var(--card-foreground); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; }
+.item .label { font-size: 13px; color: var(--muted-foreground); }
+.item .value { font-size: 14px; font-weight: 600; }
+
+.actions { margin-top: 4px; display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 20px 20px; }
+.button { background: var(--primary); color: var(--primary-foreground); padding: 10px 14px; border-radius: var(--radius-xl); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: default; }
+.button.secondary { background: var(--secondary); color: var(--secondary-foreground); }
+
+</style>
+<div class="app">
+  <div class="backdrop"></div>
+
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i data-lucide="download"></i> Export Transactions</div>
+      <div class="button secondary" data-media-type="banani-button"><i data-lucide="x"></i> Close</div>
+    </div>
+
+    <div class="modal-body">
+      <div class="form">
+        <div class="field">
+          <div class="label">Format</div>
+          <div class="select">CSV</div>
+        </div>
+        <div class="field">
+          <div class="label">Include</div>
+          <div class="select">All transactions</div>
+        </div>
+        <div class="field">
+          <div class="label">Date range</div>
+          <div class="input">Sep 01, 2025 — Sep 30, 2025</div>
+        </div>
+        <div class="field">
+          <div class="label">Client</div>
+          <div class="select">Any client</div>
+        </div>
+        <div class="field full">
+          <div class="label">Fields</div>
+          <div class="badge-row">
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Client</div>
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Bank</div>
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Card</div>
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Amount</div>
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Type</div>
+            <div class="badge" data-media-type="banani-button"><i data-lucide="check"></i> Date</div>
+          </div>
+          <div class="hint">Selected fields will appear as columns in the exported file.</div>
+        </div>
+      </div>
+
+      <div class="summary">
+        <div class="item">
+          <div>
+            <div class="label">Rows to export</div>
+            <div class="value">248</div>
+          </div>
+          <i data-lucide="list"></i>
+        </div>
+        <div class="item">
+          <div>
+            <div class="label">Estimated size</div>
+            <div class="value">~120 KB</div>
+          </div>
+          <i data-lucide="file-down"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <div class="button secondary" data-media-type="banani-button"><i data-lucide="undo-2"></i> Cancel</div>
+      <div class="button" data-media-type="banani-button"><i data-lucide="download"></i> Start Export</div>
+    </div>
+  </div>
+</div>
+</div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
