@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { UserPlus, SlidersHorizontal } from 'lucide-react';
+import { UserPlus, SlidersHorizontal, Edit, Trash, User2, Search, UserMinus, ArrowDownCircle, ArrowUpCircle, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import './ClientsScreen.scss';
 import ClientTable, { Client } from '../../components/Tables/ClientTable';
 
@@ -9,9 +9,9 @@ const mockClients: Client[] = [
         id: 1,
         name: 'Alice Cooper',
         email: 'alice@example.com',
+        contact: '+1 555-123-4567',
+        address: '123 Main St, Springfield',
         avatar: 'https://app.banani.co/avatar1.jpeg',
-        bank: 'HDFC Bank',
-        cards: 'VISA • RuPay',
         lastTransaction: 'Sep 02, 2025',
         lastTransactionTime: '02:15 PM',
     },
@@ -19,9 +19,9 @@ const mockClients: Client[] = [
         id: 2,
         name: 'Rahul Shah',
         email: 'rahul@acme.co',
+        contact: '+91 98765-43210',
+        address: '22 Residency Rd, Mumbai',
         avatar: 'https://app.banani.co/avatar2.jpg',
-        bank: 'Axis Bank',
-        cards: 'Mastercard',
         lastTransaction: 'Sep 02, 2025',
         lastTransactionTime: '09:40 AM',
     },
@@ -29,9 +29,9 @@ const mockClients: Client[] = [
         id: 3,
         name: 'Maria Gomez',
         email: 'maria@globex.com',
+        contact: '+34 600-123-456',
+        address: 'Calle Mayor 5, Madrid',
         avatar: 'https://app.banani.co/avatar3.jpeg',
-        bank: 'ICICI Bank',
-        cards: 'RuPay',
         lastTransaction: 'Sep 01, 2025',
         lastTransactionTime: '06:05 PM',
     },
@@ -58,20 +58,23 @@ const ClientsScreen: React.FC = () => {
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
+                            <span className="main__search-icon">
+                                <Search size={16} />
+                            </span>
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search clients"
+                                placeholder="Search"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                             />
                         </div>
-                        <div className="main__actions">
+                        {/* <div className="main__actions">
                             <button className="main__icon-button">
                                 <SlidersHorizontal size={16} />
                                 Filters
                             </button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <ClientTable clients={mockClients} search={search} />
@@ -92,14 +95,18 @@ const ClientsScreen: React.FC = () => {
                         </div>
                     </div>
                     <div className="detail__badges">
-                        <div className="badge">HDFC Bank</div>
-                        <div className="badge">VISA</div>
                         <div className="badge">alice@example.com</div>
                     </div>
                     <div className="detail__divider" />
                     <div className="detail__quick-actions">
-                        <button className="quick-btn deposit">Deposit</button>
-                        <button className="quick-btn withdraw">Withdraw</button>
+                        <button className="quick-btn quick-btn--outlined deposit">
+                            <ArrowDownLeft size={16} />
+                            Deposit
+                        </button>
+                        <button className="quick-btn quick-btn--outlined withdraw">
+                            <ArrowUpRight size={16} />
+                            Withdraw
+                        </button>
                     </div>
                     <div className="detail__divider" />
                     <div>
@@ -115,7 +122,40 @@ const ClientsScreen: React.FC = () => {
                             </div>
                         </div>
                     </div>
+                    <div className="detail__divider" />
+                    <div className="client-edit">
+                        <div className="client-edit__title">Edit Client</div>
+                        <div className="client-edit__form">
+                            <div>
+                                <div className="label">Client Name</div>
+                                <input className="control" value="Alice Cooper" readOnly />
+                            </div>
+                            <div>
+                                <div className="label">Email</div>
+                                <input className="control" value="alice@example.com" readOnly />
+                            </div>
+                            <div>
+                                <div className="label">Contact Number</div>
+                                <input className="control" value="+1 555-123-4567" readOnly />
+                            </div>
+                            <div>
+                                <div className="label">Address</div>
+                                <textarea className="control" rows={4} value="123 Main St, Springfield" readOnly />
+                            </div>
+                            <div className="inline-actions">
+                                <button className="main__button">
+                                    <Edit size={16} />
+                                    Save
+                                </button>
+                                <button className="main__icon-button">
+                                    <UserMinus size={16} />
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
             </div>
         </div>
     );

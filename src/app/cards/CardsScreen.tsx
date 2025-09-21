@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, CreditCard } from 'lucide-react';
+import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, CreditCard, Search } from 'lucide-react';
 import './CardsScreen.scss';
 
 interface Card {
@@ -49,7 +49,7 @@ const CardsScreen: React.FC = () => {
                     <h1>Cards</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__button">
+                    <button className="main__icon-button">
                         <Plus size={16} />
                         New Card
                     </button>
@@ -60,21 +60,23 @@ const CardsScreen: React.FC = () => {
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
+                            <span className="main__search-icon">
+                                <Search size={16} />
+                            </span>
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search cards"
+                                placeholder="Search"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                style={{ minWidth: 220 }}
                             />
                         </div>
-                        <div className="main__actions">
+                        {/* <div className="main__actions">
                             <button className="main__icon-button">
                                 <SlidersHorizontal size={16} />
                                 Filters
                             </button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="cards-grid">
@@ -122,11 +124,11 @@ const CardsScreen: React.FC = () => {
                     <div className="form">
                         <div>
                             <div className="label">Card Name</div>
-                            <div className="control">Visa Platinum</div>
+                            <input className="control" value="Visa Platinum" readOnly />
                         </div>
                         <div>
                             <div className="label">Created On</div>
-                            <div className="control">Jan 11, 2024</div>
+                            <input className="control" value="Jan 11, 2024" readOnly />
                         </div>
                         <div className="inline-actions">
                             <button className="main__button">

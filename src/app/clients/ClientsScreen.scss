@@ -1,5 +1,16 @@
 @use '../../styles/Main.scss';
+.main {
+    &__content {
+        @extend .main__content;
+        flex: 1;                // added: lets this section take remaining height under header
+        overflow: hidden;
+    }
 
+    &__view {
+        @extend .main__view;
+        min-height: 0;
+    }
+}
 .client {
     display: flex;
     align-items: center;
@@ -152,22 +163,38 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 10px 12px;
+            padding: 10px 16px;
             border-radius: var(--radius-xl);
             font-size: 14px;
             font-weight: 500;
-            border: none;
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--foreground);
             cursor: pointer;
+            transition: all 0.18s cubic-bezier(.4,0,.2,1);
+
+            svg {
+                color: inherit;
+            }
         }
 
-        .deposit {
+        .quick-btn--outlined.deposit {
+            border-color: var(--success);
+            color: var(--success);
+        }
+        .quick-btn--outlined.withdraw {
+            border-color: var(--destructive);
+            color: var(--destructive);
+        }
+        .quick-btn--outlined.deposit:hover {
             background: var(--success);
-            color: var(--success-foreground);
+            color: var(--primary-foreground);
+            border-color: var(--success);
         }
-
-        .withdraw {
+        .quick-btn--outlined.withdraw:hover {
             background: var(--destructive);
-            color: var(--destructive-foreground);
+            color: var(--primary-foreground);
+            border-color: var(--destructive);
         }
     }
 
@@ -257,5 +284,60 @@
         background: var(--primary);
         color: var(--primary-foreground);
         border-color: transparent;
+    }
+}
+
+// Reusable form styles (mirroring banks/cards screens)
+.label {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.control {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--primary);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+}
+
+.label + .control {
+    margin-top: 4px;
+}
+
+.inline-actions {
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.client-edit {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__title {
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
     }
 }

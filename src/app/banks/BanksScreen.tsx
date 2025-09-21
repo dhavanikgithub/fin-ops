@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2 } from 'lucide-react';
+import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search } from 'lucide-react';
 import './BanksScreen.scss';
 
 interface Bank {
@@ -51,7 +51,7 @@ const BanksScreen: React.FC = () => {
                     <h1>Banks</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__button">
+                    <button className="main__icon-button">
                         <Plus size={16} />
                         Add New Bank
                     </button>
@@ -62,21 +62,23 @@ const BanksScreen: React.FC = () => {
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
+                            <span className="main__search-icon">
+                                <Search size={16} />
+                            </span>
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search banks"
+                                placeholder="Search"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                style={{ minWidth: 220 }}
                             />
                         </div>
-                        <div className="main__actions">
+                        {/* <div className="main__actions">
                             <button className="main__icon-button">
                                 <SlidersHorizontal size={16} />
-                                Filter
+                                Filters
                             </button>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="banks-grid">
@@ -120,15 +122,15 @@ const BanksScreen: React.FC = () => {
                     <div className="form">
                         <div>
                             <div className="label">Bank Name</div>
-                            <div className="control">HDFC Bank</div>
+                            <input className="control" value="HDFC Bank" readOnly />
                         </div>
                         <div>
                             <div className="label">Created On</div>
-                            <div className="control">Jan 10, 2024</div>
+                            <input className="control" value="Jan 10, 2024" readOnly />
                         </div>
                         <div>
                             <div className="label">Transactions</div>
-                            <div className="control">1,204</div>
+                            <input className="control" value="1,204" readOnly />
                         </div>
                         <div className="inline-actions">
                             <button className="main__button">

@@ -1,3 +1,19 @@
+
+.table__address-pill {
+    display: inline-block;
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    margin-left: 4px;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: middle;
+}
 // Table.scss - Common table styles for TransactionTable and ClientTable
 
 .table-wrap{

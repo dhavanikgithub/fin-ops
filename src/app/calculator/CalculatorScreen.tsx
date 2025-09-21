@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { Download, SlidersHorizontal, RefreshCcw, Save, Percent, Wallet, Play } from 'lucide-react';
+import { Download, SlidersHorizontal, RefreshCcw, Save, Percent, Wallet, Play, Search } from 'lucide-react';
 import './CalculatorScreen.scss';
 
 const savedScenarios = [
@@ -71,10 +71,13 @@ const CalculatorScreen: React.FC = () => {
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
+                            <span className="main__search-icon">
+                                <Search size={16} />
+                            </span>
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search fee profiles"
+                                placeholder="Search"
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
                                 style={{ minWidth: 320 }}

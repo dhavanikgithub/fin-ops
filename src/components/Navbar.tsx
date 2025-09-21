@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { Banknote, Users, CreditCard, Calculator, Moon, Sun } from 'lucide-react';
+import { Banknote, Users, CreditCard, Calculator, Moon, Sun, Wallet, Building, Building2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/Navbar.scss';
 
@@ -18,9 +18,9 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
     const { theme, toggleTheme } = useTheme();
 
     const navItems: NavItem[] = [
-        { icon: <Banknote size={20} />, label: 'Transactions', href: '/transactions' },
+        { icon: <Wallet size={20} />, label: 'Transactions', href: '/transactions' },
         { icon: <Users size={20} />, label: 'Clients', href: '/clients' },
-        { icon: <Banknote size={20} />, label: 'Banks', href: '/banks' },
+        { icon: <Building2 size={20} />, label: 'Banks', href: '/banks' },
         { icon: <CreditCard size={20} />, label: 'Cards', href: '/cards' },
         { icon: <Calculator size={20} />, label: 'Charge Calculator', href: '/calculator' },
     ];
@@ -30,8 +30,9 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
             <div className="navbar__logo">
                 <div className="navbar__badge">FinOps</div>
                 <button className="navbar__theme-toggle" onClick={toggleTheme}>
-                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-                    <span>{theme === 'light' ? 'Dark Mode' : 'Light Mode'}</span>
+                    <span style={{ marginLeft: 'auto', display: 'flex' }}>
+                        {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                    </span>
                 </button>
             </div>
             <nav className="navbar__nav">

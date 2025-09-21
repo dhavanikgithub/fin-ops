@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal } from 'lucide-react';
+import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search } from 'lucide-react';
 import Table from '../../components/Tables/TransactionTable';
 import TransactionFilterModal, { FilterValues } from '../../components/TransactionFilterModal';
 import './TransactionsScreen.scss';
@@ -65,10 +65,13 @@ const TransactionScreen: React.FC = () => {
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
+                            <span className="main__search-icon">
+                                <Search size={16} />
+                            </span>
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search transactions"
+                                placeholder="Search"
                             />
                         </div>
                         <div className="main__actions">

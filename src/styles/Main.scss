@@ -126,15 +126,31 @@
 
     &__search-row {
         display: flex;
+        position: relative;
         align-items: center;
         gap: 8px;
     }
+
+    
+
+    &__search-icon {
+        position: absolute;
+        left: 12px;
+        top: 0;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        color: var(--muted-foreground);
+        pointer-events: none;
+        z-index: 2;
+    }
+
 
     &__input {
         background: var(--input);
         border: 1px solid var(--border);
         border-radius: var(--radius-xl);
-        padding: 10px 12px;
+        padding: 10px 12px 10px 36px;
         font-size: 14px;
         color: var(--foreground);
         min-width: 320px;

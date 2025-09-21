@@ -14,6 +14,8 @@ interface Transaction {
     date: string;
     time: string;
     dateObj: Date;
+    chargesPct: number;
+    notes: string;
 }
 
 interface TableProps {
@@ -40,7 +42,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Sep 02, 2025',
             time: '02:15 PM',
-            dateObj: new Date('2025-09-02T14:15:00')
+            dateObj: new Date('2025-09-02T14:15:00'),
+            chargesPct: 2.5,
+            notes: 'Salary credited for the month of August. Includes bonus and incentives.'
         },
         {
             id: '2',
@@ -51,7 +55,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Sep 02, 2025',
             time: '09:40 AM',
-            dateObj: new Date('2025-09-02T09:40:00')
+            dateObj: new Date('2025-09-02T09:40:00'),
+            chargesPct: 1.5,
+            notes: 'ATM withdrawal for rent payment.'
         },
         {
             id: '3',
@@ -62,7 +68,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Sep 01, 2025',
             time: '06:05 PM',
-            dateObj: new Date('2025-09-01T18:05:00')
+            dateObj: new Date('2025-09-01T18:05:00'),
+            chargesPct: 2.5,
+            notes: 'Freelance project payment received.'
         },
         {
             id: '4',
@@ -73,7 +81,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 31, 2025',
             time: '11:30 AM',
-            dateObj: new Date('2025-08-31T11:30:00')
+            dateObj: new Date('2025-08-31T11:30:00'),
+            chargesPct: 1.5,
+            notes: 'Online shopping payment for electronics and accessories.'
         },
         {
             id: '5',
@@ -84,7 +94,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 30, 2025',
             time: '03:45 PM',
-            dateObj: new Date('2025-08-30T15:45:00')
+            dateObj: new Date('2025-08-30T15:45:00'),
+            chargesPct: 2.5,
+            notes: 'Refund from travel agency for cancelled trip.'
         },
         {
             id: '6',
@@ -95,7 +107,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 29, 2025',
             time: '10:20 AM',
-            dateObj: new Date('2025-08-29T10:20:00')
+            dateObj: new Date('2025-08-29T10:20:00'),
+            chargesPct: 2.5,
+            notes: 'Bonus payout for Q2 performance.'
         },
         {
             id: '7',
@@ -106,7 +120,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 28, 2025',
             time: '04:15 PM',
-            dateObj: new Date('2025-08-28T16:15:00')
+            dateObj: new Date('2025-08-28T16:15:00'),
+            chargesPct: 1.5,
+            notes: 'Cash withdrawal for home repairs.'
         },
         {
             id: '8',
@@ -117,7 +133,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 27, 2025',
             time: '01:30 PM',
-            dateObj: new Date('2025-08-27T13:30:00')
+            dateObj: new Date('2025-08-27T13:30:00'),
+            chargesPct: 2.5,
+            notes: 'Stock dividends credited.'
         },
         {
             id: '9',
@@ -128,7 +146,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 26, 2025',
             time: '08:45 AM',
-            dateObj: new Date('2025-08-26T08:45:00')
+            dateObj: new Date('2025-08-26T08:45:00'),
+            chargesPct: 1.5,
+            notes: 'Utility bill payment.'
         },
         {
             id: '10',
@@ -139,7 +159,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 25, 2025',
             time: '05:10 PM',
-            dateObj: new Date('2025-08-25T17:10:00')
+            dateObj: new Date('2025-08-25T17:10:00'),
+            chargesPct: 2.5,
+            notes: 'Consulting fee for August.'
         },
         {
             id: '11',
@@ -150,7 +172,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 24, 2025',
             time: '11:55 AM',
-            dateObj: new Date('2025-08-24T11:55:00')
+            dateObj: new Date('2025-08-24T11:55:00'),
+            chargesPct: 1.5,
+            notes: 'Tuition fee payment.'
         },
         {
             id: '12',
@@ -161,7 +185,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 23, 2025',
             time: '02:40 PM',
-            dateObj: new Date('2025-08-23T14:40:00')
+            dateObj: new Date('2025-08-23T14:40:00'),
+            chargesPct: 2.5,
+            notes: 'Project milestone payment.'
         },
         {
             id: '13',
@@ -172,7 +198,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 22, 2025',
             time: '09:25 AM',
-            dateObj: new Date('2025-08-22T09:25:00')
+            dateObj: new Date('2025-08-22T09:25:00'),
+            chargesPct: 1.5,
+            notes: 'Medical expenses.'
         },
         {
             id: '14',
@@ -183,7 +211,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 21, 2025',
             time: '06:30 PM',
-            dateObj: new Date('2025-08-21T18:30:00')
+            dateObj: new Date('2025-08-21T18:30:00'),
+            chargesPct: 2.5,
+            notes: 'Royalty payment for book sales.'
         },
         {
             id: '15',
@@ -194,9 +224,10 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 20, 2025',
             time: '12:15 PM',
-            dateObj: new Date('2025-08-20T12:15:00')
+            dateObj: new Date('2025-08-20T12:15:00'),
+            chargesPct: 1.5,
+            notes: 'Travel expenses for business trip.'
         },
-        // Add more transactions for testing infinite scroll...
         {
             id: '16',
             client: 'Amy Davis',
@@ -206,7 +237,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 19, 2025',
             time: '03:50 PM',
-            dateObj: new Date('2025-08-19T15:50:00')
+            dateObj: new Date('2025-08-19T15:50:00'),
+            chargesPct: 2.5,
+            notes: 'Performance bonus.'
         },
         {
             id: '17',
@@ -217,7 +250,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 18, 2025',
             time: '10:05 AM',
-            dateObj: new Date('2025-08-18T10:05:00')
+            dateObj: new Date('2025-08-18T10:05:00'),
+            chargesPct: 1.5,
+            notes: 'Cash withdrawal for vacation.'
         },
         {
             id: '18',
@@ -228,7 +263,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 17, 2025',
             time: '04:20 PM',
-            dateObj: new Date('2025-08-17T16:20:00')
+            dateObj: new Date('2025-08-17T16:20:00'),
+            chargesPct: 2.5,
+            notes: 'Consulting project payment.'
         },
         {
             id: '19',
@@ -239,7 +276,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'withdraw',
             date: 'Aug 16, 2025',
             time: '11:10 AM',
-            dateObj: new Date('2025-08-16T11:10:00')
+            dateObj: new Date('2025-08-16T11:10:00'),
+            chargesPct: 1.5,
+            notes: 'Loan EMI payment.'
         },
         {
             id: '20',
@@ -250,7 +289,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             type: 'deposit',
             date: 'Aug 15, 2025',
             time: '07:35 PM',
-            dateObj: new Date('2025-08-15T19:35:00')
+            dateObj: new Date('2025-08-15T19:35:00'),
+            chargesPct: 2.5,
+            notes: 'Dividend from mutual funds.'
         }
     ];
 
@@ -443,9 +484,19 @@ const Table: React.FC<TableProps> = ({ filters }) => {
 
     const hasMoreItems = visibleItems < filteredTransactions.length;
 
+    // Modal state for viewing full notes with position
+    const [notesModal, setNotesModal] = useState<{ 
+        open: boolean; 
+        text: string; 
+        position: { x: number; y: number } 
+    }>({ 
+        open: false, 
+        text: '', 
+        position: { x: 0, y: 0 } 
+    });
+
     return (
         <div className="table-wrap">
-
             {/* Scrollable container */}
             <div className="table__container" ref={tableContainerRef}>
                 <table className="table">
@@ -472,6 +523,16 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                             </th>
                             <th>
                                 <div className="table__sort-header">
+                                    Charges
+                                </div>
+                            </th>
+                            <th>
+                                <div className="table__sort-header">
+                                    Notes
+                                </div>
+                            </th>
+                            <th>
+                                <div className="table__sort-header">
                                     Date & Time
                                 </div>
                             </th>
@@ -481,7 +542,7 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                     <tbody>
                         {displayedTransactions.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="table__no-results">
+                                <td colSpan={7} className="table__no-results">
                                     No transactions found matching your filters.
                                 </td>
                             </tr>
@@ -521,6 +582,43 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                                         </div>
                                     </td>
                                     <td>
+                                        <div className="table__charges">
+                                            <span className="table__charges-value">{transaction.chargesPct.toFixed(2)}%</span>
+                                            <div className="table__charges-amount">
+                                                ₹ {(transaction.amount * transaction.chargesPct / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div className="table__notes">
+                                            {transaction.notes.length > 30 ? (
+                                                <span className="table__notes-text">
+                                                    {transaction.notes.slice(0, 30)}
+                                                    <button 
+                                                        className="table__notes-viewmore" 
+                                                        onClick={(e) => {
+                                                            const rect = e.currentTarget.getBoundingClientRect();
+                                                            setNotesModal({ 
+                                                                open: true, 
+                                                                text: transaction.notes,
+                                                                position: { 
+                                                                    x: rect.left + rect.width / 2, 
+                                                                    y: rect.top - 8 
+                                                                }
+                                                            });
+                                                        }}
+                                                    >
+                                                        ...
+                                                    </button>
+                                                </span>
+                                            ) : (
+                                                <span className="table__notes-text">
+                                                    {transaction.notes}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td>
                                         {transaction.date} <span className="table__time">• {transaction.time}</span>
                                     </td>
                                     <td>
@@ -548,6 +646,28 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                 )}
 
             </div>
+
+            {/* Notes Popup */}
+            {notesModal.open && (
+                <div 
+                    className="notes-popup-overlay" 
+                    onClick={() => setNotesModal({ open: false, text: '', position: { x: 0, y: 0 } })}
+                >
+                    <div 
+                        className="notes-popup" 
+                        style={{
+                            left: notesModal.position.x,
+                            top: notesModal.position.y,
+                            transform: 'translate(-50%, -100%)'
+                        }}
+                        onClick={e => e.stopPropagation()}
+                    >
+                        <div className="notes-popup__content">
+                            {notesModal.text}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

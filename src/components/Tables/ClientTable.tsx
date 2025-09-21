@@ -1,15 +1,15 @@
 'use client';
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown } from 'lucide-react';
+import { Eye, ChevronDown, MoreHorizontal, MapPin } from 'lucide-react';
 import '../../styles/ClientTable.scss';
 
 export interface Client {
     id: number;
     name: string;
     email: string;
+    contact: string;
+    address: string;
     avatar: string;
-    bank: string;
-    cards: string;
     lastTransaction: string;
     lastTransactionTime: string;
 }
@@ -98,8 +98,8 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
             c =>
                 c.name.toLowerCase().includes(s) ||
                 c.email.toLowerCase().includes(s) ||
-                c.bank.toLowerCase().includes(s) ||
-                c.cards.toLowerCase().includes(s)
+                c.contact.toLowerCase().includes(s) ||
+                c.address.toLowerCase().includes(s)
         );
     }, [clients, search]);
 
@@ -171,7 +171,12 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
                             </th>
                             <th>
                                 <div className="table__sort-header">
-                                    Bank • Cards
+                                    Contact Number
+                                </div>
+                            </th>
+                            <th>
+                                <div className="table__sort-header">
+                                    Address
                                 </div>
                             </th>
                             <th>
@@ -206,10 +211,11 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
                                             </div>
                                         </div>
                                     </td>
+                                    <td>{client.contact}</td>
                                     <td>
-                                        <div className="client-table__bank-cards">
-                                            <span className="client-table__bank">{client.bank}</span>
-                                            <span className="client-table__cards">{client.cards}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                                            <MapPin size={16} className="table__address-icon" />
+                                            <span className="table__address-pill" title={client.address}>{client.address}</span>
                                         </div>
                                     </td>
                                     <td>
@@ -217,10 +223,16 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '' }) => {
                                         <span className="client-table__time">• {client.lastTransactionTime}</span>
                                     </td>
                                     <td>
-                                        <button className="table__row-actions">
-                                            <Eye size={16} />
-                                            View
-                                        </button>
+                                        <div style={{ display: 'flex', gap: '8px' }}>
+                                            <button className="table__row-actions">
+                                                <Eye size={16} />
+                                                View
+                                            </button>
+                                            <button className="row-actions">
+                                                <MoreHorizontal size={16} />
+                                                Manage
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))

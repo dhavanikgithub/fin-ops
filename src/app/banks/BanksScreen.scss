@@ -1,5 +1,16 @@
 @use '../../styles/Main.scss';
+.main {
+    &__content {
+        @extend .main__content;
+        flex: 1;                // added: lets this section take remaining height under header
+        overflow: hidden;
+    }
 
+    &__view {
+        @extend .main__view;
+        min-height: 0;
+    }
+}
 .banks-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -124,9 +135,28 @@
     padding: 10px 12px;
     font-size: 14px;
     color: var(--foreground);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--primary);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+}
+
+// spacing between label and the input control
+.label + .control {
+    margin-top: 4px;
 }
 
 .inline-actions {
     display: inline-flex;
     gap: 8px;
 }
+
