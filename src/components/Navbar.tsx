@@ -28,7 +28,16 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
     return (
         <div className="navbar">
             <div className="navbar__logo">
-                <div className="navbar__badge">FinOps</div>
+                <div className="navbar__brand">
+                    <img 
+                        src="/favicon.svg" 
+                        alt="FinOps Logo" 
+                        className="navbar__icon"
+                        width={28}
+                        height={28}
+                    />
+                    <span className="navbar__badge navbar__badge--gradient">FinOps</span>
+                </div>
                 <button className="navbar__theme-toggle" onClick={toggleTheme}>
                     <span style={{ marginLeft: 'auto', display: 'flex' }}>
                         {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}

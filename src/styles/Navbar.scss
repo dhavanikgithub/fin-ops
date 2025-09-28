@@ -11,17 +11,48 @@
     &__logo {
         display: flex;
         align-items: center;
+        justify-content: space-between;
         gap: 10px;
         font-size: 16px;
         font-weight: 600;
     }
 
+    &__brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__icon {
+        width: 28px;
+        height: 28px;
+        flex-shrink: 0;
+        border-radius: var(--radius-sm);
+    }
+
     &__badge {
         color: var(--sidebar-primary-foreground);
-        padding: 6px 10px;
-        border-radius: var(--radius-md);
-        font-size: 14px;
-        font-weight: 600;
+        font-size: 16px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        
+        &--gradient {
+            background: var(--brand-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 200%;
+        }
+    }
+    
+    // Gradient animation keyframes
+    @keyframes gradientShift {
+        0%, 100% {
+            background-position: 0% 50%;
+        }
+        50% {
+            background-position: 100% 50%;
+        }
     }
 
     &__nav {

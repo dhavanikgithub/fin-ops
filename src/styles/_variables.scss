@@ -43,6 +43,15 @@
     // Font family
     --font-family-body: 'Inter', 'Inter Fallback', sans-serif;
 
+    // Brand gradient colors (light theme optimized)
+    --brand-gradient-1: #42F2FE;
+    --brand-gradient-2: #0B99FF;
+    --brand-gradient: linear-gradient(
+        135deg, 
+        var(--brand-gradient-1) 0%, 
+        var(--brand-gradient-2) 50%
+    );
+
     /* ==================== DATE PICKER VARIABLES ==================== */
     /* Primary Colors */
     --dp-primary-color: var(--primary);
@@ -204,6 +213,15 @@
     --sidebar-foreground: #cbd5e1;
     --sidebar-primary: #334155;
     --sidebar-primary-foreground: #38bdf8;
+
+     // Brand gradient colors (light theme optimized)
+    --brand-gradient-1: #42F2FE;
+    --brand-gradient-2: #0B99FF;
+    --brand-gradient: linear-gradient(
+        135deg, 
+        var(--brand-gradient-1) 0%, 
+        var(--brand-gradient-2) 50%
+    );
     
 
     /* ==================== DATE PICKER VARIABLES ==================== */
