@@ -130,11 +130,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             <header className="main__header">
                 <div className="main__header-left">
                     <h1>Transactions</h1>
-                    {pagination && (
-                        <span className="main__subtitle">
-                            Showing {transactions.length} of {pagination.total_count} transactions
-                        </span>
-                    )}
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={handleOpenExportModal}>
@@ -153,12 +148,6 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             </header>
 
             <div className="main__content">
-                {error && (
-                    <div className="main__error">
-                        <span>{error}</span>
-                        <button onClick={handleClearError} className="main__error-close">×</button>
-                    </div>
-                )}
                 
                 <div className="main__view">
                     <div className="main__view-header">
@@ -192,6 +181,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                     </div>
 
                     <Table />
+                    {pagination && (
+                        <span className="main__subtitle">
+                            Showing {transactions.length} of {pagination.total_count} transactions
+                        </span>
+                    )}
                 </div>
             </div>
 

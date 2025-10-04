@@ -130,7 +130,6 @@ const Table: React.FC = () => {
             (entries) => {
                 const first = entries[0];
                 if (first.isIntersecting) {
-                    console.log('Loading more transactions...');
                     loadMore();
                 }
             },
