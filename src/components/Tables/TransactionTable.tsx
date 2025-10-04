@@ -1,299 +1,36 @@
 'use client';
-import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowDownLeft, ArrowUpRight, Eye, ChevronDown } from 'lucide-react';
-import { FilterValues } from '../TransactionFilterModal';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ChevronDown, Eye, ChevronUp, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
 import '../../styles/TransactionTable.scss';
+import { getTransactionTypeLabel } from '@/utils/transactionUtils';
 
-interface Transaction {
-    id: string;
-    client: string;
-    bank: string;
-    card: string;
-    amount: number;
-    type: 'deposit' | 'withdraw';
-    date: string;
-    time: string;
-    dateObj: Date;
-    chargesPct: number;
-    notes: string;
-}
+const Table: React.FC = () => {
+    const dispatch = useAppDispatch();
+    const {
+        transactions,
+        loading,
+        loadingMore,
+        hasMore,
+        sortConfig,
+        pagination,
+        error
+    } = useAppSelector((state) => state.transactions);
 
-interface TableProps {
-    filters?: FilterValues | null;
-}
-
-const Table: React.FC<TableProps> = ({ filters }) => {
-    const [visibleItems, setVisibleItems] = useState(10);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [isLoading, setIsLoading] = useState(false);
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
-    
+    const [sortField, setSortField] = useState<string | null>(null);
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
     const observerRef = useRef<HTMLDivElement>(null);
 
-    const allTransactions: Transaction[] = [
-        {
-            id: '1',
-            client: 'Akash Patel',
-            bank: 'HDFC Bank',
-            card: 'VISA',
-            amount: 24500,
-            type: 'deposit',
-            date: 'Sep 02, 2025',
-            time: '02:15 PM',
-            dateObj: new Date('2025-09-02T14:15:00'),
-            chargesPct: 2.5,
-            notes: 'Salary credited for the month of August. Includes bonus and incentives.'
-        },
-        {
-            id: '2',
-            client: 'Jia Lee',
-            bank: 'Axis Bank',
-            card: 'Mastercard',
-            amount: 8999,
-            type: 'withdraw',
-            date: 'Sep 02, 2025',
-            time: '09:40 AM',
-            dateObj: new Date('2025-09-02T09:40:00'),
-            chargesPct: 1.5,
-            notes: 'ATM withdrawal for rent payment.'
-        },
-        {
-            id: '3',
-            client: 'Maria Gomez',
-            bank: 'ICICI Bank',
-            card: 'RuPay',
-            amount: 12100,
-            type: 'deposit',
-            date: 'Sep 01, 2025',
-            time: '06:05 PM',
-            dateObj: new Date('2025-09-01T18:05:00'),
-            chargesPct: 2.5,
-            notes: 'Freelance project payment received.'
-        },
-        {
-            id: '4',
-            client: 'Alice Cooper',
-            bank: 'HDFC Bank',
-            card: 'VISA',
-            amount: 5500,
-            type: 'withdraw',
-            date: 'Aug 31, 2025',
-            time: '11:30 AM',
-            dateObj: new Date('2025-08-31T11:30:00'),
-            chargesPct: 1.5,
-            notes: 'Online shopping payment for electronics and accessories.'
-        },
-        {
-            id: '5',
-            client: 'Rahul S.3',
-            bank: 'Axis Bank',
-            card: 'Mastercard',
-            amount: 18750,
-            type: 'deposit',
-            date: 'Aug 30, 2025',
-            time: '03:45 PM',
-            dateObj: new Date('2025-08-30T15:45:00'),
-            chargesPct: 2.5,
-            notes: 'Refund from travel agency for cancelled trip.'
-        },
-        {
-            id: '6',
-            client: 'Emma Watson',
-            bank: 'SBI Bank',
-            card: 'VISA',
-            amount: 32000,
-            type: 'deposit',
-            date: 'Aug 29, 2025',
-            time: '10:20 AM',
-            dateObj: new Date('2025-08-29T10:20:00'),
-            chargesPct: 2.5,
-            notes: 'Bonus payout for Q2 performance.'
-        },
-        {
-            id: '7',
-            client: 'David Kim',
-            bank: 'ICICI Bank',
-            card: 'RuPay',
-            amount: 7500,
-            type: 'withdraw',
-            date: 'Aug 28, 2025',
-            time: '04:15 PM',
-            dateObj: new Date('2025-08-28T16:15:00'),
-            chargesPct: 1.5,
-            notes: 'Cash withdrawal for home repairs.'
-        },
-        {
-            id: '8',
-            client: 'Sarah Johnson',
-            bank: 'Axis Bank',
-            card: 'Mastercard',
-            amount: 15600,
-            type: 'deposit',
-            date: 'Aug 27, 2025',
-            time: '01:30 PM',
-            dateObj: new Date('2025-08-27T13:30:00'),
-            chargesPct: 2.5,
-            notes: 'Stock dividends credited.'
-        },
-        {
-            id: '9',
-            client: 'Michael Chen',
-            bank: 'HDFC Bank',
-            card: 'VISA',
-            amount: 9800,
-            type: 'withdraw',
-            date: 'Aug 26, 2025',
-            time: '08:45 AM',
-            dateObj: new Date('2025-08-26T08:45:00'),
-            chargesPct: 1.5,
-            notes: 'Utility bill payment.'
-        },
-        {
-            id: '10',
-            client: 'Lisa Anderson',
-            bank: 'SBI Bank',
-            card: 'RuPay',
-            amount: 22400,
-            type: 'deposit',
-            date: 'Aug 25, 2025',
-            time: '05:10 PM',
-            dateObj: new Date('2025-08-25T17:10:00'),
-            chargesPct: 2.5,
-            notes: 'Consulting fee for August.'
-        },
-        {
-            id: '11',
-            client: 'James Wilson',
-            bank: 'ICICI Bank',
-            card: 'Mastercard',
-            amount: 13700,
-            type: 'withdraw',
-            date: 'Aug 24, 2025',
-            time: '11:55 AM',
-            dateObj: new Date('2025-08-24T11:55:00'),
-            chargesPct: 1.5,
-            notes: 'Tuition fee payment.'
-        },
-        {
-            id: '12',
-            client: 'Nina Rodriguez',
-            bank: 'Axis Bank',
-            card: 'VISA',
-            amount: 28900,
-            type: 'deposit',
-            date: 'Aug 23, 2025',
-            time: '02:40 PM',
-            dateObj: new Date('2025-08-23T14:40:00'),
-            chargesPct: 2.5,
-            notes: 'Project milestone payment.'
-        },
-        {
-            id: '13',
-            client: 'Robert Taylor',
-            bank: 'HDFC Bank',
-            card: 'RuPay',
-            amount: 6400,
-            type: 'withdraw',
-            date: 'Aug 22, 2025',
-            time: '09:25 AM',
-            dateObj: new Date('2025-08-22T09:25:00'),
-            chargesPct: 1.5,
-            notes: 'Medical expenses.'
-        },
-        {
-            id: '14',
-            client: 'Jennifer Lee',
-            bank: 'SBI Bank',
-            card: 'Mastercard',
-            amount: 19500,
-            type: 'deposit',
-            date: 'Aug 21, 2025',
-            time: '06:30 PM',
-            dateObj: new Date('2025-08-21T18:30:00'),
-            chargesPct: 2.5,
-            notes: 'Royalty payment for book sales.'
-        },
-        {
-            id: '15',
-            client: 'Kevin Park',
-            bank: 'ICICI Bank',
-            card: 'VISA',
-            amount: 11200,
-            type: 'withdraw',
-            date: 'Aug 20, 2025',
-            time: '12:15 PM',
-            dateObj: new Date('2025-08-20T12:15:00'),
-            chargesPct: 1.5,
-            notes: 'Travel expenses for business trip.'
-        },
-        {
-            id: '16',
-            client: 'Amy Davis',
-            bank: 'Axis Bank',
-            card: 'RuPay',
-            amount: 25300,
-            type: 'deposit',
-            date: 'Aug 19, 2025',
-            time: '03:50 PM',
-            dateObj: new Date('2025-08-19T15:50:00'),
-            chargesPct: 2.5,
-            notes: 'Performance bonus.'
-        },
-        {
-            id: '17',
-            client: 'Daniel White',
-            bank: 'HDFC Bank',
-            card: 'Mastercard',
-            amount: 8750,
-            type: 'withdraw',
-            date: 'Aug 18, 2025',
-            time: '10:05 AM',
-            dateObj: new Date('2025-08-18T10:05:00'),
-            chargesPct: 1.5,
-            notes: 'Cash withdrawal for vacation.'
-        },
-        {
-            id: '18',
-            client: 'Sophia Brown',
-            bank: 'SBI Bank',
-            card: 'VISA',
-            amount: 33600,
-            type: 'deposit',
-            date: 'Aug 17, 2025',
-            time: '04:20 PM',
-            dateObj: new Date('2025-08-17T16:20:00'),
-            chargesPct: 2.5,
-            notes: 'Consulting project payment.'
-        },
-        {
-            id: '19',
-            client: 'Ryan Miller',
-            bank: 'ICICI Bank',
-            card: 'RuPay',
-            amount: 14800,
-            type: 'withdraw',
-            date: 'Aug 16, 2025',
-            time: '11:10 AM',
-            dateObj: new Date('2025-08-16T11:10:00'),
-            chargesPct: 1.5,
-            notes: 'Loan EMI payment.'
-        },
-        {
-            id: '20',
-            client: 'Olivia Garcia',
-            bank: 'Axis Bank',
-            card: 'Mastercard',
-            amount: 21700,
-            type: 'deposit',
-            date: 'Aug 15, 2025',
-            time: '07:35 PM',
-            dateObj: new Date('2025-08-15T19:35:00'),
-            chargesPct: 2.5,
-            notes: 'Dividend from mutual funds.'
-        }
-    ];
+    // Update local sort state when Redux state changes
+    useEffect(() => {
+        setSortField(sortConfig.sort_by);
+        setSortDirection(sortConfig.sort_order);
+    }, [sortConfig]);
 
     // Handle scroll events to show/hide header shadow
     useEffect(() => {
@@ -309,40 +46,23 @@ const Table: React.FC<TableProps> = ({ filters }) => {
         return () => container.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Calculate table height offset and items per page
+    // Calculate table height offset
     useEffect(() => {
         const calculateTableHeight = () => {
             const tableWrap = tableContainerRef.current?.parentElement;
             if (!tableWrap) return;
 
-            // Get the table wrapper's position relative to viewport
             const rect = tableWrap.getBoundingClientRect();
             const topOffset = rect.top;
-            
-            // Calculate offset including some padding for bottom spacing
-            const bottomPadding = 60; // Space for bottom padding
+            const bottomPadding = 60;
             const totalOffset = topOffset + bottomPadding;
-            
-            // Set CSS custom property for dynamic height calculation
+
             document.documentElement.style.setProperty('--table-offset', `${totalOffset}px`);
-            
-            // Calculate items per page based on available height
-            const availableHeight = window.innerHeight - totalOffset;
-            const rowHeight = 60; // Approximate row height
-            const calculatedItems = Math.floor(availableHeight / rowHeight);
-            
-            // Minimum 5 items, maximum 25 items per page
-            const itemsCount = Math.min(Math.max(calculatedItems, 5), 25);
-            setItemsPerPage(itemsCount);
-            setVisibleItems(itemsCount);
         };
 
-        // Initial calculation with a small delay to ensure DOM is ready
         const timer = setTimeout(calculateTableHeight, 100);
-        
-        // Recalculate on window resize
         window.addEventListener('resize', calculateTableHeight);
-        
+
         return () => {
             clearTimeout(timer);
             window.removeEventListener('resize', calculateTableHeight);
@@ -367,79 +87,42 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             '#10AC84', '#EE5A24', '#0984E3', '#6C5CE7', '#A29BFE',
             '#FD79A8', '#E17055', '#00B894', '#00CEC9', '#74B9FF'
         ];
-        
+
         let hash = 0;
         for (let i = 0; i < name.length; i++) {
             hash = name.charCodeAt(i) + ((hash << 5) - hash);
         }
-        
+
         const index = Math.abs(hash) % colors.length;
         return colors[index];
     };
 
-    // Filter transactions based on applied filters
-    const filteredTransactions = useMemo(() => {
-        if (!filters) return allTransactions;
+    // Handle sorting
+    const handleSort = (field: string) => {
+        let newDirection: 'asc' | 'desc';
+        
+        if (sortField === field) {
+            // If clicking on the same column, toggle between asc and desc
+            newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+        } else {
+            // If clicking on a different column, start with asc
+            newDirection = 'asc';
+        }
 
-        return allTransactions.filter(transaction => {
-            if (filters.types.length > 0 && !filters.types.includes(transaction.type)) {
-                return false;
-            }
+        setSortField(field);
+        setSortDirection(newDirection);
 
-            if (filters.minAmount && transaction.amount < parseFloat(filters.minAmount)) {
-                return false;
-            }
-            if (filters.maxAmount && transaction.amount > parseFloat(filters.maxAmount)) {
-                return false;
-            }
-
-            if (filters.startDate) {
-                const startDate = new Date(filters.startDate);
-                if (transaction.dateObj < startDate) {
-                    return false;
-                }
-            }
-            if (filters.endDate) {
-                const endDate = new Date(filters.endDate);
-                endDate.setHours(23, 59, 59, 999);
-                if (transaction.dateObj > endDate) {
-                    return false;
-                }
-            }
-
-            if (filters.banks.length > 0 && !filters.banks.includes(transaction.bank)) {
-                return false;
-            }
-
-            if (filters.cards.length > 0 && !filters.cards.includes(transaction.card)) {
-                return false;
-            }
-
-            if (filters.clients.length > 0 && !filters.clients.includes(transaction.client)) {
-                return false;
-            }
-
-            return true;
-        });
-    }, [filters]);
-
-    // Get currently visible transactions
-    const displayedTransactions = useMemo(() => {
-        return filteredTransactions.slice(0, visibleItems);
-    }, [filteredTransactions, visibleItems]);
+        dispatch(sortTransactions({
+            sort_by: field,
+            sort_order: newDirection
+        }));
+    };
 
     // Load more items function
     const loadMore = useCallback(() => {
-        if (isLoading || visibleItems >= filteredTransactions.length) return;
-        
-        setIsLoading(true);
-        
-        // Simulate loading delay (remove in production)
-        setTimeout(() => {
-            setVisibleItems(prev => Math.min(prev + itemsPerPage, filteredTransactions.length));
-            setIsLoading(false);
-        }, 300);
-    }, [isLoading, visibleItems, filteredTransactions.length, itemsPerPage]);
+        if (loadingMore || !hasMore) return;
+        dispatch(loadMoreTransactions());
+    }, [dispatch, loadingMore, hasMore]);
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -447,6 +130,7 @@ const Table: React.FC<TableProps> = ({ filters }) => {
             (entries) => {
                 const first = entries[0];
                 if (first.isIntersecting) {
+                    console.log('Loading more transactions...');
                     loadMore();
                 }
             },
@@ -467,143 +151,213 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                 observer.unobserve(currentObserverRef);
             }
         };
-    }, [loadMore]);
-
-    // Reset visible items when filters change
-    useEffect(() => {
-        setVisibleItems(itemsPerPage);
-        // Scroll to top when filters change
-        if (tableContainerRef.current) {
-            tableContainerRef.current.scrollTop = 0;
-        }
-    }, [filters, itemsPerPage]);
+    }, [loadMore, transactions]);
 
     const formatAmount = (amount: number): string => {
         return `₹ ${amount.toLocaleString()}`;
     };
 
-    const hasMoreItems = visibleItems < filteredTransactions.length;
+    const formatTransactionType = (type: number): string => {
+        return type === 1 ? 'deposit' : 'withdraw';
+    };
+
+    const formatDate = (dateString: string): string => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-GB', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
+    };
+
+    const formatTime = (timeString: string): string => {
+        // Handle different time string formats
+        if (!timeString) return '';
+
+        // If timeString is already in HH:MM:SS format
+        if (timeString.includes(':')) {
+            const parts = timeString.split(':');
+            if (parts.length >= 2) {
+                const hours = parseInt(parts[0], 10);
+                const minutes = parseInt(parts[1], 10);
+                const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
+
+                // Convert to 12-hour format with AM/PM
+                const period = hours >= 12 ? 'PM' : 'AM';
+                const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+
+                return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+            }
+        }
+
+        // If timeString is a timestamp or ISO string, extract time
+        try {
+            const date = new Date(timeString);
+            if (!isNaN(date.getTime())) {
+                return date.toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+            }
+        } catch (error) {
+            console.warn('Failed to parse time string:', timeString);
+        }
+
+        // Fallback: return original string
+        return timeString;
+    };
 
     // Modal state for viewing full notes with position
-    const [notesModal, setNotesModal] = useState<{ 
-        open: boolean; 
-        text: string; 
-        position: { x: number; y: number } 
-    }>({ 
-        open: false, 
-        text: '', 
-        position: { x: 0, y: 0 } 
+    const [notesModal, setNotesModal] = useState<{
+        open: boolean;
+        text: string;
+        position: { x: number; y: number }
+    }>({
+        open: false,
+        text: '',
+        position: { x: 0, y: 0 }
     });
+
+    const SortIcon: React.FC<{ field: string }> = ({ field }) => {
+        if (sortField !== field) {
+            return null;
+        }
+
+        return sortDirection === 'asc' ?
+            <ChevronUp size={16} className="table__sort-icon table__sort-icon--active" /> :
+            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" />;
+    };
 
     return (
         <div className="table-wrap">
             {/* Scrollable container */}
             <div className="table__container" ref={tableContainerRef}>
                 <table className="table">
-                    <thead 
+                    <thead
                         ref={tableHeaderRef}
                         className={showHeaderShadow ? 'table__header--shadow' : ''}
                     >
                         <tr>
                             <th>
-                                <div className="table__sort-header">
+                                <div
+                                    className="table__sort-header"
+                                    onClick={() => handleSort('client_name')}
+                                >
                                     Client
-                                    <ChevronDown size={16} className="table__sort-icon" />
+                                    <SortIcon field="client_name" />
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--disabled">
                                     Bank • Card
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div
+                                    className="table__sort-header"
+                                    onClick={() => handleSort('transaction_amount')}
+                                >
                                     Amount
+                                    <SortIcon field="transaction_amount" />
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--disabled">
                                     Charges
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--disabled">
                                     Notes
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div
+                                    className="table__sort-header"
+                                    onClick={() => handleSort('create_date')}
+                                >
                                     Date & Time
+                                    <SortIcon field="create_date" />
                                 </div>
                             </th>
                             <th></th>
                         </tr>
                     </thead>
                     <tbody>
-                        {displayedTransactions.length === 0 ? (
+                        {loading && transactions.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="table__no-results">
-                                    No transactions found matching your filters.
+                                    <div className="table__loading">
+                                        <div className="table__spinner"></div>
+                                        Loading transactions...
+                                    </div>
+                                </td>
+                            </tr>
+                        ) : transactions.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="table__no-results">
+                                    No transactions found.
                                 </td>
                             </tr>
                         ) : (
-                            displayedTransactions.map((transaction, index) => (
+                            transactions.map((transaction, index) => (
                                 <tr key={`${transaction.id}-${index}`}>
                                     <td>
                                         <div className="table__client">
-                                            <div 
+                                            <div
                                                 className="table__client-avatar"
-                                                style={{ backgroundColor: getAvatarColor(transaction.client) }}
+                                                style={{ backgroundColor: getAvatarColor(transaction.client_name) }}
                                             >
-                                                {getInitials(transaction.client)}
+                                                {getInitials(transaction.client_name)}
                                             </div>
-                                            <span className="table__client-name">
-                                                {transaction.client}
-                                            </span>
+                                            <span className="table__client-name">{transaction.client_name}</span>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="table__method-bank">
                                             <div className="table__pill">
-                                                {transaction.bank} • {transaction.card}
+                                                {transaction.bank_name || transaction.card_name ? `${transaction.bank_name || ''}${transaction.bank_name && transaction.card_name ? ' • ' : ''}${transaction.card_name || ''}` : 'N/A'}
                                             </div>
                                         </div>
+
                                     </td>
                                     <td>
-                                        <div className={`table__amount table__amount--${transaction.type}`}>
-                                            {transaction.type === 'deposit' ? (
+                                        <div className={`table__amount table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
+                                            {transaction.transaction_type === 1 ? (
                                                 <ArrowDownLeft size={16} className="table__amount-icon" />
                                             ) : (
                                                 <ArrowUpRight size={16} className="table__amount-icon" />
                                             )}
                                             <span className="table__amount-value">
-                                                {formatAmount(transaction.amount)}
+                                                {formatAmount(transaction.transaction_amount)}
                                             </span>
                                         </div>
+
                                     </td>
                                     <td>
                                         <div className="table__charges">
-                                            <span className="table__charges-value">{transaction.chargesPct.toFixed(2)}%</span>
+                                            <span className="table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
                                             <div className="table__charges-amount">
-                                                ₹ {(transaction.amount * transaction.chargesPct / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                                ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                             </div>
                                         </div>
                                     </td>
                                     <td>
                                         <div className="table__notes">
-                                            {transaction.notes.length > 30 ? (
+                                            {transaction.remark.length > 30 ? (
                                                 <span className="table__notes-text">
-                                                    {transaction.notes.slice(0, 30)}
-                                                    <button 
-                                                        className="table__notes-viewmore" 
+                                                    {transaction.remark.slice(0, 30)}
+                                                    <button
+                                                        className="table__notes-viewmore"
                                                         onClick={(e) => {
                                                             const rect = e.currentTarget.getBoundingClientRect();
-                                                            setNotesModal({ 
-                                                                open: true, 
-                                                                text: transaction.notes,
-                                                                position: { 
-                                                                    x: rect.left + rect.width / 2, 
-                                                                    y: rect.top - 8 
+                                                            setNotesModal({
+                                                                open: true,
+                                                                text: transaction.remark,
+                                                                position: {
+                                                                    x: rect.left + rect.width / 2,
+                                                                    y: rect.top - 8
                                                                 }
                                                             });
                                                         }}
@@ -613,13 +367,14 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                                                 </span>
                                             ) : (
                                                 <span className="table__notes-text">
-                                                    {transaction.notes}
+                                                    {transaction.remark && transaction.remark.trim() !== '' ? transaction.remark : 'N/A'}
                                                 </span>
                                             )}
                                         </div>
+
                                     </td>
                                     <td>
-                                        {transaction.date} <span className="table__time">• {transaction.time}</span>
+                                        {formatDate(transaction.create_date)} <span className="table__time">• {formatTime(transaction.create_time)}</span>
                                     </td>
                                     <td>
                                         <button className="table__row-actions">
@@ -634,9 +389,9 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                 </table>
 
                 {/* Infinite scroll trigger */}
-                {hasMoreItems && (
+                {hasMore && !loading && (
                     <div ref={observerRef} className="table__load-trigger">
-                        {isLoading && (
+                        {loadingMore && (
                             <div className="table__loading">
                                 <div className="table__spinner"></div>
                                 Loading more transactions...
@@ -645,16 +400,23 @@ const Table: React.FC<TableProps> = ({ filters }) => {
                     </div>
                 )}
 
+                {/* Error message */}
+                {error && (
+                    <div className="table__error">
+                        Error: {error}
+                    </div>
+                )}
+
             </div>
 
             {/* Notes Popup */}
             {notesModal.open && (
-                <div 
-                    className="notes-popup-overlay" 
+                <div
+                    className="notes-popup-overlay"
                     onClick={() => setNotesModal({ open: false, text: '', position: { x: 0, y: 0 } })}
                 >
-                    <div 
-                        className="notes-popup" 
+                    <div
+                        className="notes-popup"
                         style={{
                             left: notesModal.position.x,
                             top: notesModal.position.y,

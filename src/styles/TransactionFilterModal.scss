@@ -231,6 +231,26 @@
         &:hover {
             background: var(--muted);
         }
+
+        &--loading {
+            color: var(--muted-foreground);
+            cursor: default;
+            font-style: italic;
+
+            &:hover {
+                background: transparent;
+            }
+        }
+
+        &--no-results {
+            color: var(--muted-foreground);
+            cursor: default;
+            font-style: italic;
+
+            &:hover {
+                background: transparent;
+            }
+        }
     }
 
     &__token-input {
@@ -344,6 +364,7 @@
 
 /* Hide number input arrows for all browsers */
 input[type="number"].filter-modal__input {
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 

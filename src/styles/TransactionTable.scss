@@ -1,4 +1,15 @@
 @use './Table.scss';
+
+// Disable hover effects for non-sortable columns
+.table__sort-header--disabled {
+    cursor: default !important;
+    
+    &:hover {
+        background: transparent !important;
+        color: inherit !important;
+    }
+}
+
 // Notes column styling
 .table__notes {
     max-width: 220px;

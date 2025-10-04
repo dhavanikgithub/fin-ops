@@ -1,6 +1,18 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { 
+    fetchTransactions, 
+    searchTransactions, 
+    applyFilters
+} from '../../store/actions/transactionActions';
+import {
+    setSearchQuery,
+    setFilters,
+    clearError
+} from '../../store/slices/transactionSlice';
+import { convertUIFiltersToAPI, getActiveFilterCount } from '../../utils/filterUtils';
 import Table from '../../components/Tables/TransactionTable';
 import TransactionFilterModal, { FilterValues } from '../../components/TransactionFilterModal';
 import ExportTransactionModal, { ExportSettings } from './ExportTransaction';
@@ -12,9 +24,66 @@ interface TransactionListProps {
 }
 
 const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw }) => {
+    const dispatch = useAppDispatch();
+    const { 
+        transactions,
+        loading,
+        error,
+        searchQuery: reduxSearchQuery,
+        pagination,
+        hasMore 
+    } = useAppSelector((state) => state.transactions);
+
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
-    const [activeFilters, setActiveFilters] = useState<FilterValues | null>(null);
+    const [activeFilters, setActiveFilters] = useState<FilterValues>({
+        types: [],
+        minAmount: '',
+        maxAmount: '',
+        startDate: '',
+        endDate: '',
+        banks: [],
+        cards: [],
+        clients: []
+    });
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+
+    // Load initial transactions
+    useEffect(() => {
+        dispatch(fetchTransactions());
+    }, [dispatch]);
+
+    // Handle search with debouncing
+    const handleSearchChange = useCallback((value: string) => {
+        setLocalSearchQuery(value);
+        
+        // Clear existing timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+        
+        // Set new timeout for debounced search
+        const timeout = setTimeout(() => {
+            dispatch(setSearchQuery(value));
+            if (value.trim()) {
+                dispatch(searchTransactions(value.trim()));
+            } else {
+                dispatch(fetchTransactions());
+            }
+        }, 500); // 500ms debounce
+        
+        setSearchTimeout(timeout);
+    }, [dispatch, searchTimeout]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
 
     const handleOpenFilterModal = () => {
         setIsFilterModalOpen(true);
@@ -34,8 +103,15 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
     const handleApplyFilters = (filters: FilterValues) => {
         setActiveFilters(filters);
+        
+        // Convert UI filters to API format
+        const apiFilters = convertUIFiltersToAPI(filters);
+        
+        // Update Redux state and fetch filtered data
+        dispatch(setFilters(apiFilters));
+        dispatch(applyFilters(apiFilters));
+        
         console.log('Applied filters:', filters);
-        // Here you would typically update your data based on the filters
     };
 
     const handleExport = (exportSettings: ExportSettings) => {
@@ -43,27 +119,22 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         // Handle export logic here
     };
 
-    const getActiveFilterCount = () => {
-        if (!activeFilters) return 0;
-
-        let count = 0;
-        if (activeFilters.types.length > 0) count++;
-        if (activeFilters.minAmount || activeFilters.maxAmount) count++;
-        if (activeFilters.startDate || activeFilters.endDate) count++;
-        if (activeFilters.banks.length > 0) count++;
-        if (activeFilters.cards.length > 0) count++;
-        if (activeFilters.clients.length > 0) count++;
-
-        return count;
+    const handleClearError = () => {
+        dispatch(clearError());
     };
 
-    const filterCount = getActiveFilterCount();
+    const filterCount = getActiveFilterCount(activeFilters);
 
     return (
         <>
             <header className="main__header">
                 <div className="main__header-left">
                     <h1>Transactions</h1>
+                    {pagination && (
+                        <span className="main__subtitle">
+                            Showing {transactions.length} of {pagination.total_count} transactions
+                        </span>
+                    )}
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={handleOpenExportModal}>
@@ -82,6 +153,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             </header>
 
             <div className="main__content">
+                {error && (
+                    <div className="main__error">
+                        <span>{error}</span>
+                        <button onClick={handleClearError} className="main__error-close">×</button>
+                    </div>
+                )}
+                
                 <div className="main__view">
                     <div className="main__view-header">
                         <div className="main__search-row">
@@ -91,8 +169,13 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search"
+                                placeholder="Search transactions..."
+                                value={localSearchQuery}
+                                onChange={(e) => handleSearchChange(e.target.value)}
                             />
+                            {loading && localSearchQuery && (
+                                <div className="main__search-loading">Searching...</div>
+                            )}
                         </div>
                         <div className="main__actions">
                             <button
@@ -108,8 +191,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                         </div>
                     </div>
 
-                    <Table filters={activeFilters} />
-                    {/* <Pagination /> */}
+                    <Table />
                 </div>
             </div>
 

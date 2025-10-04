@@ -1,8 +1,15 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, RotateCcw, Filter, Banknote, CreditCard, User, Plus, Check } from 'lucide-react';
 import '../styles/TransactionFilterModal.scss';
 import ReactDatePicker from './DatePicker/ReactDatePicker';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
+import { fetchBankAutocomplete } from '../store/actions/bankActions';
+import { clearBankAutocomplete } from '../store/slices/bankAutocompleteSlice';
+import { fetchCardAutocomplete } from '../store/actions/cardActions';
+import { clearCardAutocomplete } from '../store/slices/cardAutocompleteSlice';
+import { fetchClientAutocomplete } from '../store/actions/clientActions';
+import { clearClientAutocomplete } from '../store/slices/clientAutocompleteSlice';
 
 
 interface FilterModalProps {
@@ -17,30 +24,31 @@ export interface FilterValues {
     maxAmount: string;
     startDate: string;
     endDate: string;
-    banks: string[];
-    cards: string[];
-    clients: string[];
+    banks: Array<{ label: string; value: number }>;
+    cards: Array<{ label: string; value: number }>;
+    clients: Array<{ label: string; value: number }>;
 }
 
 
 const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, onApplyFilters }) => {
-    const allBanks = ['HDFC Bank', 'Axis Bank', 'ICICI Bank', 'State Bank of India', 'Kotak Bank']; // Example
-    const allCards = ['VISA', 'Mastercard', 'RuPay', 'Amex'];
-    const allClients = ['Alice Cooper', 'Rahul S.3', 'Maria Gomez', 'John Doe'];
+    const dispatch = useAppDispatch();
+    const { items: bankAutocompleteItems, loading: bankLoading } = useAppSelector(state => state.bankAutocomplete);
+    const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
+    const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
 
 
     const [cardSearch, setCardSearch] = useState('');
     const [clientSearch, setClientSearch] = useState('');
     const [bankSearch, setBankSearch] = useState('');
     const [filters, setFilters] = useState<FilterValues>({
-        types: ['deposit', 'withdraw'],
+        types: [],
         minAmount: '',
         maxAmount: '',
         startDate: '',
         endDate: '',
-        banks: ['HDFC Bank', 'Axis Bank'],
-        cards: ['VISA', 'Mastercard'],
-        clients: ['Alice Cooper', 'Rahul S.3'],
+        banks: [],
+        cards: [],
+        clients: [],
     });
 
     const [newTokenInputs, setNewTokenInputs] = useState({
@@ -48,6 +56,98 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         cards: '',
         clients: ''
     });
+
+    // Debounced bank search
+    const bankSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    
+    const debouncedBankSearch = useCallback((searchTerm: string) => {
+        if (bankSearchDebounceTimer.current) {
+            clearTimeout(bankSearchDebounceTimer.current);
+        }
+        
+        const timer = setTimeout(() => {
+            if (searchTerm.trim()) {
+                dispatch(fetchBankAutocomplete({ search: searchTerm, limit: 5 }));
+            } else {
+                dispatch(clearBankAutocomplete());
+            }
+        }, 300);
+        
+        bankSearchDebounceTimer.current = timer;
+    }, [dispatch]);
+
+    // Debounced card search
+    const cardSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    
+    const debouncedCardSearch = useCallback((searchTerm: string) => {
+        if (cardSearchDebounceTimer.current) {
+            clearTimeout(cardSearchDebounceTimer.current);
+        }
+        
+        const timer = setTimeout(() => {
+            if (searchTerm.trim()) {
+                dispatch(fetchCardAutocomplete({ search: searchTerm, limit: 5 }));
+            } else {
+                dispatch(clearCardAutocomplete());
+            }
+        }, 300);
+        
+        cardSearchDebounceTimer.current = timer;
+    }, [dispatch]);
+
+    // Debounced client search
+    const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    
+    const debouncedClientSearch = useCallback((searchTerm: string) => {
+        if (clientSearchDebounceTimer.current) {
+            clearTimeout(clientSearchDebounceTimer.current);
+        }
+        
+        const timer = setTimeout(() => {
+            if (searchTerm.trim()) {
+                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+            } else {
+                dispatch(clearClientAutocomplete());
+            }
+        }, 300);
+        
+        clientSearchDebounceTimer.current = timer;
+    }, [dispatch]);
+
+    // Effect to fetch initial bank data when modal opens
+    useEffect(() => {
+        if (isOpen) {
+            dispatch(fetchBankAutocomplete({ limit: 5 }));
+            dispatch(fetchCardAutocomplete({ limit: 5 }));
+            dispatch(fetchClientAutocomplete({ limit: 5 }));
+        }
+        return () => {
+            if (bankSearchDebounceTimer.current) {
+                clearTimeout(bankSearchDebounceTimer.current);
+            }
+            if (cardSearchDebounceTimer.current) {
+                clearTimeout(cardSearchDebounceTimer.current);
+            }
+            if (clientSearchDebounceTimer.current) {
+                clearTimeout(clientSearchDebounceTimer.current);
+            }
+        };
+    }, [isOpen, dispatch]);
+
+    // Effect to handle bank search changes
+    useEffect(() => {
+        debouncedBankSearch(bankSearch);
+    }, [bankSearch, debouncedBankSearch]);
+
+    // Effect to handle card search changes
+    useEffect(() => {
+        debouncedCardSearch(cardSearch);
+    }, [cardSearch, debouncedCardSearch]);
+
+    // Effect to handle client search changes
+    useEffect(() => {
+        debouncedClientSearch(clientSearch);
+    }, [clientSearch, debouncedClientSearch]);
 
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
         setFilters(prev => ({
@@ -65,25 +165,11 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         }));
     };
 
-    const handleRemoveToken = (category: keyof FilterValues, value: string) => {
+    const handleRemoveToken = (category: keyof FilterValues, item: { label: string; value: number }) => {
         if (Array.isArray(filters[category])) {
             setFilters(prev => ({
                 ...prev,
-                [category]: (prev[category] as string[]).filter(item => item !== value)
-            }));
-        }
-    };
-
-    const handleAddToken = (category: 'banks' | 'cards' | 'clients') => {
-        const value = newTokenInputs[category].trim();
-        if (value && !filters[category].includes(value)) {
-            setFilters(prev => ({
-                ...prev,
-                [category]: [...prev[category], value]
-            }));
-            setNewTokenInputs(prev => ({
-                ...prev,
-                [category]: ''
+                [category]: (prev[category] as Array<{ label: string; value: number }>).filter(filterItem => filterItem.value !== item.value)
             }));
         }
     };
@@ -93,20 +179,6 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
             ...prev,
             [field]: value
         }));
-    };
-
-    const handleNewTokenInputChange = (category: 'banks' | 'cards' | 'clients', value: string) => {
-        setNewTokenInputs(prev => ({
-            ...prev,
-            [category]: value
-        }));
-    };
-
-    const handleKeyPress = (e: React.KeyboardEvent, category: 'banks' | 'cards' | 'clients') => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleAddToken(category);
-        }
     };
 
     const handleReset = () => {
@@ -132,207 +204,210 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         onClose();
     };
 
-    const renderTokens = (
-        items: string[],
-        category: 'banks' | 'cards' | 'clients',
-        icon: React.ReactNode,
-        placeholder: string
-    ) => (
-        <div className="filter-modal__multi">
-            <div className="filter-modal__input filter-modal__input--multi">
-                {items.map((item) => (
-                    <div key={item} className="filter-modal__token">
-                        {icon}
-                        <span>{item}</span>
-                        <button
-                            type="button"
-                            className="filter-modal__token-remove"
-                            onClick={() => handleRemoveToken(category, item)}
-                        >
-                            <X size={12} />
-                        </button>
-                    </div>
-                ))}
-                <div className="filter-modal__add-token">
-                    <input
-                        type="text"
-                        className="filter-modal__token-input"
-                        placeholder={placeholder}
-                        value={newTokenInputs[category]}
-                        onChange={(e) => handleNewTokenInputChange(category, e.target.value)}
-                        onKeyPress={(e) => handleKeyPress(e, category)}
-                    />
-                    <button
-                        type="button"
-                        className="filter-modal__add-button"
-                        onClick={() => handleAddToken(category)}
-                        disabled={!newTokenInputs[category].trim()}
-                    >
-                        <Plus size={14} />
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
-
-
-
-    const filteredBankOptions = allBanks.filter(
-        b => b.toLowerCase().includes(bankSearch.toLowerCase()) && !filters.banks.includes(b)
-    );
-    const filteredCardOptions = allCards.filter(
-        c => c.toLowerCase().includes(cardSearch.toLowerCase()) && !filters.cards.includes(c)
-    );
-    const filteredClientOptions = allClients.filter(
-        c => c.toLowerCase().includes(clientSearch.toLowerCase()) && !filters.clients.includes(c)
-    );
-
-    const renderBankTokens = () => (
-        <div className="filter-modal__multi">
-            <div className="filter-modal__input filter-modal__input--multi">
-                {filters.banks.map((item) => (
-                    <div key={item} className="filter-modal__token">
-                        <Banknote size={14} />
-                        <span>{item}</span>
-                        <button
-                            type="button"
-                            className="filter-modal__token-remove"
-                            onClick={() => handleRemoveToken('banks', item)}
-                        >
-                            <X size={12} />
-                        </button>
-                    </div>
-                ))}
-                <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                    <input
-                        type="text"
-                        className="filter-modal__token-input"
-                        placeholder="Search bank..."
-                        value={bankSearch}
-                        onChange={e => setBankSearch(e.target.value)}
-                        autoComplete="off"
-                    />
-                    {bankSearch && filteredBankOptions.length > 0 && (
-                        <div className="filter-modal__dropdown">
-                            {filteredBankOptions.map(bank => (
-                                <div
-                                    key={bank}
-                                    className="filter-modal__dropdown-item"
-                                    onClick={() => {
-                                        setFilters(prev => ({
-                                            ...prev,
-                                            banks: [...prev.banks, bank]
-                                        }));
-                                        setBankSearch('');
-                                    }}
-                                >
-                                    {bank}
-                                </div>
-                            ))}
+    
+    const renderBankTokens = () => {
+        // Filter out banks that are already selected
+        const selectedBankIds = filters.banks.map(bank => bank.value);
+        const availableBanks = bankAutocompleteItems.filter(
+            bank => !selectedBankIds.includes(bank.id)
+        );
+        
+        return (
+            <div className="filter-modal__multi">
+                <div className="filter-modal__input filter-modal__input--multi">
+                    {filters.banks.map((item) => (
+                        <div key={item.value} className="filter-modal__token">
+                            <Banknote size={14} />
+                            <span>{item.label}</span>
+                            <button
+                                type="button"
+                                className="filter-modal__token-remove"
+                                onClick={() => handleRemoveToken('banks', item)}
+                            >
+                                <X size={12} />
+                            </button>
                         </div>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-
-    const renderCardTokens = () => (
-        <div className="filter-modal__multi">
-            <div className="filter-modal__input filter-modal__input--multi">
-                {filters.cards.map((item) => (
-                    <div key={item} className="filter-modal__token">
-                        <CreditCard size={14} />
-                        <span>{item}</span>
-                        <button
-                            type="button"
-                            className="filter-modal__token-remove"
-                            onClick={() => handleRemoveToken('cards', item)}
-                        >
-                            <X size={12} />
-                        </button>
+                    ))}
+                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                        <input
+                            type="text"
+                            className="filter-modal__token-input"
+                            placeholder="Search bank..."
+                            value={bankSearch}
+                            onChange={e => setBankSearch(e.target.value)}
+                            autoComplete="off"
+                        />
+                        {bankSearch && (
+                            <div className="filter-modal__dropdown">
+                                {bankLoading ? (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                        Loading banks...
+                                    </div>
+                                ) : availableBanks.length > 0 ? (
+                                    availableBanks.map(bank => (
+                                        <div
+                                            key={bank.id}
+                                            className="filter-modal__dropdown-item"
+                                            onClick={() => {
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    banks: [...prev.banks, { label: bank.name, value: bank.id }]
+                                                }));
+                                                setBankSearch('');
+                                                dispatch(clearBankAutocomplete());
+                                            }}
+                                        >
+                                            {bank.name}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                        No banks found
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
-                ))}
-                <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                    <input
-                        type="text"
-                        className="filter-modal__token-input"
-                        placeholder="Search card..."
-                        value={cardSearch}
-                        onChange={e => setCardSearch(e.target.value)}
-                        autoComplete="off"
-                    />
-                    {cardSearch && filteredCardOptions.length > 0 && (
-                        <div className="filter-modal__dropdown">
-                            {filteredCardOptions.map(card => (
-                                <div
-                                    key={card}
-                                    className="filter-modal__dropdown-item"
-                                    onClick={() => {
-                                        setFilters(prev => ({
-                                            ...prev,
-                                            cards: [...prev.cards, card]
-                                        }));
-                                        setCardSearch('');
-                                    }}
-                                >
-                                    {card}
-                                </div>
-                            ))}
-                        </div>
-                    )}
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
 
-    const renderClientTokens = () => (
-        <div className="filter-modal__multi">
-            <div className="filter-modal__input filter-modal__input--multi">
-                {filters.clients.map((item) => (
-                    <div key={item} className="filter-modal__token">
-                        <User size={14} />
-                        <span>{item}</span>
-                        <button
-                            type="button"
-                            className="filter-modal__token-remove"
-                            onClick={() => handleRemoveToken('clients', item)}
-                        >
-                            <X size={12} />
-                        </button>
-                    </div>
-                ))}
-                <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                    <input
-                        type="text"
-                        className="filter-modal__token-input"
-                        placeholder="Search client..."
-                        value={clientSearch}
-                        onChange={e => setClientSearch(e.target.value)}
-                        autoComplete="off"
-                    />
-                    {clientSearch && filteredClientOptions.length > 0 && (
-                        <div className="filter-modal__dropdown">
-                            {filteredClientOptions.map(client => (
-                                <div
-                                    key={client}
-                                    className="filter-modal__dropdown-item"
-                                    onClick={() => {
-                                        setFilters(prev => ({
-                                            ...prev,
-                                            clients: [...prev.clients, client]
-                                        }));
-                                        setClientSearch('');
-                                    }}
-                                >
-                                    {client}
-                                </div>
-                            ))}
+    const renderCardTokens = () => {
+        // Filter out cards that are already selected
+        const selectedCardIds = filters.cards.map(card => card.value);
+        const availableCards = cardAutocompleteItems.filter(
+            card => !selectedCardIds.includes(card.id)
+        );
+        
+        return (
+            <div className="filter-modal__multi">
+                <div className="filter-modal__input filter-modal__input--multi">
+                    {filters.cards.map((item) => (
+                        <div key={item.value} className="filter-modal__token">
+                            <CreditCard size={14} />
+                            <span>{item.label}</span>
+                            <button
+                                type="button"
+                                className="filter-modal__token-remove"
+                                onClick={() => handleRemoveToken('cards', item)}
+                            >
+                                <X size={12} />
+                            </button>
                         </div>
-                    )}
+                    ))}
+                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                        <input
+                            type="text"
+                            className="filter-modal__token-input"
+                            placeholder="Search card..."
+                            value={cardSearch}
+                            onChange={e => setCardSearch(e.target.value)}
+                            autoComplete="off"
+                        />
+                        {cardSearch && (
+                            <div className="filter-modal__dropdown">
+                                {cardLoading ? (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                        Loading cards...
+                                    </div>
+                                ) : availableCards.length > 0 ? (
+                                    availableCards.map(card => (
+                                        <div
+                                            key={card.id}
+                                            className="filter-modal__dropdown-item"
+                                            onClick={() => {
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    cards: [...prev.cards, { label: card.name, value: card.id }]
+                                                }));
+                                                setCardSearch('');
+                                                dispatch(clearCardAutocomplete());
+                                            }}
+                                        >
+                                            {card.name}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                        No cards found
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    };
+
+    const renderClientTokens = () => {
+        // Filter out clients that are already selected
+        const selectedClientIds = filters.clients.map(client => client.value);
+        const availableClients = clientAutocompleteItems.filter(
+            client => !selectedClientIds.includes(client.id)
+        );
+        
+        return (
+            <div className="filter-modal__multi">
+                <div className="filter-modal__input filter-modal__input--multi">
+                    {filters.clients.map((item) => (
+                        <div key={item.value} className="filter-modal__token">
+                            <User size={14} />
+                            <span>{item.label}</span>
+                            <button
+                                type="button"
+                                className="filter-modal__token-remove"
+                                onClick={() => handleRemoveToken('clients', item)}
+                            >
+                                <X size={12} />
+                            </button>
+                        </div>
+                    ))}
+                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                        <input
+                            type="text"
+                            className="filter-modal__token-input"
+                            placeholder="Search client..."
+                            value={clientSearch}
+                            onChange={e => setClientSearch(e.target.value)}
+                            autoComplete="off"
+                        />
+                        {clientSearch && (
+                            <div className="filter-modal__dropdown">
+                                {clientLoading ? (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                        Loading clients...
+                                    </div>
+                                ) : availableClients.length > 0 ? (
+                                    availableClients.map(client => (
+                                        <div
+                                            key={client.id}
+                                            className="filter-modal__dropdown-item"
+                                            onClick={() => {
+                                                setFilters(prev => ({
+                                                    ...prev,
+                                                    clients: [...prev.clients, { label: client.name, value: client.id }]
+                                                }));
+                                                setClientSearch('');
+                                                dispatch(clearClientAutocomplete());
+                                            }}
+                                        >
+                                            {client.name}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                        No clients found
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        );
+    };
 
     if (!isOpen) return null;
 
