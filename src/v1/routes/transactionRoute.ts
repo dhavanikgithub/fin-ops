@@ -37,7 +37,7 @@ router.get('/paginated', TransactionController.getPaginatedTransactions);
  * @description Get report preview with estimated rows and file size based on filters
  * @access Public
  * @query {
- *   transaction_type?: number (1=Deposit, 2=Withdraw),
+ *   transaction_type?: number (1=Deposit, 0=Withdraw),
  *   min_amount?: number,
  *   max_amount?: number,
  *   start_date?: string (YYYY-MM-DD),

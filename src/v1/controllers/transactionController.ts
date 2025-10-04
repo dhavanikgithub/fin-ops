@@ -73,11 +73,11 @@ export class TransactionController {
         // Filter parameters
         if (transaction_type !== undefined) {
             const parsedType = parseInt(transaction_type as string);
-            if (isNaN(parsedType) || (parsedType !== 1 && parsedType !== 2)) {
-                throw new ValidationError('Transaction type must be 1 (Deposit) or 2 (Withdraw)', {
+            if (isNaN(parsedType) || (parsedType !== 1 && parsedType !== 0)) {
+                throw new ValidationError('Transaction type must be 1 (Deposit) or 0 (Withdraw)', {
                     field: 'transaction_type',
                     value: transaction_type,
-                    expected: '1 or 2'
+                    expected: '1 or 0'
                 });
             }
             params.transaction_type = parsedType;

@@ -50,7 +50,7 @@ export interface DeleteTransactionInput {
 }
 
 export interface TransactionFilters {
-    transaction_type?: number; // 1 for Deposit, 2 for Withdraw
+    transaction_type?: number; // 1 for Deposit, 0 for Withdraw
     min_amount?: number;
     max_amount?: number;
     start_date?: string; // YYYY-MM-DD format
