@@ -1,0 +1,50 @@
+{
+  "name": "new-ui-backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "nodemon",
+    "dev:watch": "nodemon",
+    "clean": "rimraf dist",
+    "typecheck": "tsc --noEmit",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:logger": "node --loader ts-node/esm src/test-logger.ts"
+  },
+  "keywords": [],
+  "author": "Dhavanik",
+  "license": "ISC",
+  "description": "Backend API for Finance Inventory",
+  "dependencies": {
+    "@types/pdfkit": "^0.17.3",
+    "@types/pg": "^8.15.5",
+    "@types/winston": "^2.4.4",
+    "@types/xlsx": "^0.0.35",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "morgan": "^1.10.1",
+    "pdfkit": "^0.17.2",
+    "pg": "^8.16.3",
+    "winston": "^3.18.3",
+    "winston-daily-rotate-file": "^5.0.0",
+    "xlsx": "^0.18.5"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^24.5.2",
+    "nodemon": "^3.1.10",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalSpecifierResolution": "node"
+  }
+}
