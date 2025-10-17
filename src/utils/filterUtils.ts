@@ -1,5 +1,6 @@
 import { FilterValues } from '../components/TransactionFilterModal';
 import { TransactionFilters } from '../services/transactionService';
+import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, getTransactionTypeValue } from './transactionUtils';
 
 /**
  * Convert UI filter values to API transaction filters
@@ -9,14 +10,8 @@ export const convertUIFiltersToAPI = (uiFilters: FilterValues): TransactionFilte
 
     // Convert transaction types
     if (uiFilters.types.length > 0) {
-        // Assuming: 'deposit' = 1, 'withdraw' = 0
-        const typeMap: { [key: string]: number } = {
-            'deposit': 1,
-            'withdraw': 0
-        };
-        
         if (uiFilters.types.length === 1) {
-            apiFilters.transaction_type = typeMap[uiFilters.types[0]];
+            apiFilters.transaction_type = getTransactionTypeValue(uiFilters.types[0]);
         }
         // If both types are selected, don't set transaction_type filter
     }
@@ -72,12 +67,7 @@ export const convertAPIFiltersToUI = (apiFilters: TransactionFilters): FilterVal
 
     // Convert transaction type
     if (apiFilters.transaction_type !== undefined) {
-        const typeMap: { [key: number]: string } = {
-            0: 'withdraw',
-            1: 'deposit'
-        };
-        
-        const type = typeMap[apiFilters.transaction_type];
+        const type = TRANSACTION_TYPE_LABELS[apiFilters.transaction_type as keyof typeof TRANSACTION_TYPE_LABELS];
         if (type) {
             uiFilters.types = [type];
         }

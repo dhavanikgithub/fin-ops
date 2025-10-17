@@ -10,6 +10,7 @@ import { fetchCardAutocomplete } from '../store/actions/cardActions';
 import { clearCardAutocomplete } from '../store/slices/cardAutocompleteSlice';
 import { fetchClientAutocomplete } from '../store/actions/clientActions';
 import { clearClientAutocomplete } from '../store/slices/clientAutocompleteSlice';
+import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from '../utils/transactionUtils';
 
 
 interface FilterModalProps {
@@ -431,22 +432,22 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                 <label className="filter-modal__pill-checkbox">
                                     <input
                                         type="checkbox"
-                                        checked={filters.types.includes('deposit')}
-                                        onChange={() => handleTypeToggle('deposit')}
+                                        checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
+                                        onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
                                     />
                                     <span className="filter-modal__custom-checkbox">
-                                        {filters.types.includes('deposit') && <Check size={14} />}
+                                        {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT]) && <Check size={14} />}
                                     </span>
                                     <span>Deposit</span>
                                 </label>
                                 <label className="filter-modal__pill-checkbox">
                                     <input
                                         type="checkbox"
-                                        checked={filters.types.includes('withdraw')}
-                                        onChange={() => handleTypeToggle('withdraw')}
+                                        checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
+                                        onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
                                     />
                                     <span className="filter-modal__custom-checkbox">
-                                        {filters.types.includes('withdraw') && <Check size={14} />}
+                                        {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW]) && <Check size={14} />}
                                     </span>
                                     <span>Withdraw</span>
                                 </label>

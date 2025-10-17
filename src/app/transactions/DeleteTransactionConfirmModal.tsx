@@ -2,13 +2,14 @@
 import React from 'react';
 import { Trash2, X, Hash, Calendar, User, Banknote, IndianRupee, Percent, AlertTriangle, Trash } from 'lucide-react';
 import './DeleteTransactionConfirmModal.scss';
+import { TransactionType } from '@/utils/transactionUtils';
 
 export interface Transaction {
     id: string;
     date: string;
     time: string;
     client: string;
-    type: 'Deposit' | 'Withdraw';
+    type: TransactionType;
     amount: number;
     charges: number;
     bank: string;

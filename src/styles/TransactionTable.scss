@@ -220,6 +220,16 @@
 
 
 
+// Selected row styling
+.table__row--selected {
+    background-color: var(--primary-light, rgba(59, 130, 246, 0.1)) !important;
+    border-left: 3px solid var(--primary, #3b82f6);
+    
+    &:hover {
+        background-color: var(--primary-light, rgba(59, 130, 246, 0.15)) !important;
+    }
+}
+
 // Print styles
 @media print {
     .table-wrap {
@@ -234,5 +244,10 @@
     .table__load-trigger,
     .table__end-message {
         display: none;
+    }
+    
+    .table__row--selected {
+        background-color: transparent !important;
+        border-left: none !important;
     }
 }

@@ -1,12 +1,18 @@
 'use client';
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown, Eye, ChevronUp, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
+import { Transaction } from '../../services/transactionService';
 import '../../styles/TransactionTable.scss';
-import { getTransactionTypeLabel } from '@/utils/transactionUtils';
+import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transactionUtils';
 
-const Table: React.FC = () => {
+interface TableProps {
+    selectedTransaction?: Transaction | null;
+    onTransactionSelect?: (transaction: Transaction) => void;
+}
+
+const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
     const dispatch = useAppDispatch();
     const {
         transactions,
@@ -156,10 +162,6 @@ const Table: React.FC = () => {
         return `₹ ${amount.toLocaleString()}`;
     };
 
-    const formatTransactionType = (type: number): string => {
-        return type === 1 ? 'deposit' : 'withdraw';
-    };
-
     const formatDate = (dateString: string): string => {
         const date = new Date(dateString);
         return date.toLocaleDateString('en-GB', {
@@ -300,8 +302,11 @@ const Table: React.FC = () => {
                                 </td>
                             </tr>
                         ) : (
-                            transactions.map((transaction, index) => (
-                                <tr key={`${transaction.id}-${index}`}>
+                            transactions.map((transaction: Transaction, index: number) => (
+                                <tr 
+                                    key={`${transaction.id}-${index}`}
+                                    className={selectedTransaction?.id === transaction.id ? 'table__row--selected' : ''}
+                                >
                                     <td>
                                         <div className="table__client">
                                             <div
@@ -323,7 +328,7 @@ const Table: React.FC = () => {
                                     </td>
                                     <td>
                                         <div className={`table__amount table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
-                                            {transaction.transaction_type === 1 ? (
+                                            {isDeposit(transaction.transaction_type) ? (
                                                 <ArrowDownLeft size={16} className="table__amount-icon" />
                                             ) : (
                                                 <ArrowUpRight size={16} className="table__amount-icon" />
@@ -376,9 +381,12 @@ const Table: React.FC = () => {
                                         {formatDate(transaction.create_date)} <span className="table__time">• {formatTime(transaction.create_time)}</span>
                                     </td>
                                     <td>
-                                        <button className="table__row-actions">
-                                            <Eye size={16} />
-                                            View
+                                        <button 
+                                            className="table__row-actions"
+                                            onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
+                                        >
+                                            <MoreHorizontal size={16} />
+                                            Manage
                                         </button>
                                     </td>
                                 </tr>
