@@ -1,6 +1,9 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ArrowDownCircle, X, Save, User, IndianRupee, StickyNote, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchClientAutocomplete } from '../../store/actions/clientActions';
+import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import './AddDeposit.scss';
 
 interface AddDepositScreenProps {
@@ -9,17 +12,80 @@ interface AddDepositScreenProps {
 }
 
 const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToTransactions }) => {
+    const dispatch = useAppDispatch();
+    const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
+
     const [formData, setFormData] = useState({
-        client: 'Alice Cooper',
-        amount: '24,500',
+        client: '',
+        clientId: null as number | null,
+        amount: '',
         notes: ''
     });
+
+    // Client autocomplete states
+    const [clientSearch, setClientSearch] = useState('');
+    const [showClientDropdown, setShowClientDropdown] = useState(false);
+
+    // Debounced client search
+    const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+    const debouncedClientSearch = useCallback((searchTerm: string) => {
+        if (clientSearchDebounceTimer.current) {
+            clearTimeout(clientSearchDebounceTimer.current);
+        }
+
+        const timer = setTimeout(() => {
+            if (searchTerm.trim()) {
+                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+            } else {
+                dispatch(clearClientAutocomplete());
+            }
+        }, 300);
+
+        clientSearchDebounceTimer.current = timer;
+    }, [dispatch]);
+
+    // Effect to handle client search changes
+    useEffect(() => {
+        if (showClientDropdown) {
+            debouncedClientSearch(clientSearch);
+        }
+    }, [clientSearch, debouncedClientSearch, showClientDropdown]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (clientSearchDebounceTimer.current) {
+                clearTimeout(clientSearchDebounceTimer.current);
+            }
+        };
+    }, []);
 
     const handleInputChange = (field: string, value: string) => {
         setFormData(prev => ({
             ...prev,
             [field]: value
         }));
+    };
+
+    const handleClientSelect = (client: { id: number; name: string }) => {
+        setFormData(prev => ({
+            ...prev,
+            client: client.name,
+            clientId: client.id
+        }));
+        setClientSearch('');
+        setShowClientDropdown(false);
+    };
+
+    const handleClientRemove = () => {
+        setFormData(prev => ({
+            ...prev,
+            client: '',
+            clientId: null
+        }));
+        setShowClientDropdown(true);
+        setClientSearch('');
     };
 
     const handleSaveDeposit = () => {
@@ -76,13 +142,72 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                 <User size={16} />
                                 Select Client
                             </label>
-                            <input
-                                type="text"
-                                className="ad__input"
-                                value={formData.client}
-                                onChange={(e) => handleInputChange('client', e.target.value)}
-                                placeholder="Choose an existing client"
-                            />
+                            <div className="ad__client-autocomplete">
+                                <div className="ad__client-input">
+                                    {formData.client && !showClientDropdown && (
+                                        <div className="ad__client-token">
+                                            <User size={14} />
+                                            <span>{formData.client}</span>
+                                            <button
+                                                type="button"
+                                                className="ad__client-remove"
+                                                onClick={handleClientRemove}
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    )}
+                                    {(!formData.client || showClientDropdown) && (
+                                        <div className="ad__client-search" style={{ position: 'relative' }}>
+                                            <input
+                                                type="text"
+                                                className="ad__input"
+                                                placeholder="Search client..."
+                                                value={showClientDropdown ? clientSearch : formData.client}
+                                                onChange={e => {
+                                                    if (showClientDropdown) {
+                                                        setClientSearch(e.target.value);
+                                                    } else {
+                                                        handleInputChange('client', e.target.value);
+                                                    }
+                                                }}
+                                                onFocus={() => {
+                                                    setShowClientDropdown(true);
+                                                    setClientSearch(formData.client || '');
+                                                }}
+                                                onBlur={() => setTimeout(() => {
+                                                    setShowClientDropdown(false);
+                                                    setClientSearch('');
+                                                }, 200)}
+                                                autoComplete="off"
+                                            />
+                                            {showClientDropdown && clientSearch && (
+                                                <div className="ad__client-dropdown">
+                                                    {clientLoading ? (
+                                                        <div className="ad__client-option ad__client-option--loading">
+                                                            Loading...
+                                                        </div>
+                                                    ) : clientAutocompleteItems.length > 0 ? (
+                                                        clientAutocompleteItems.map(client => (
+                                                            <div
+                                                                key={client.id}
+                                                                className="ad__client-option"
+                                                                onClick={() => handleClientSelect(client)}
+                                                            >
+                                                                {client.name}
+                                                            </div>
+                                                        ))
+                                                    ) : (
+                                                        <div className="ad__client-option ad__client-option--no-results">
+                                                            No clients found
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                             <span className="ad__hint">Choose an existing client.</span>
                         </div>
 
