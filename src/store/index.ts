@@ -3,6 +3,7 @@ import transactionReducer from './slices/transactionSlice';
 import bankAutocompleteReducer from './slices/bankAutocompleteSlice';
 import cardAutocompleteReducer from './slices/cardAutocompleteSlice';
 import clientAutocompleteReducer from './slices/clientAutocompleteSlice';
+import clientReducer from './slices/clientSlice';
 
 export const store = configureStore({
     reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
         bankAutocomplete: bankAutocompleteReducer,
         cardAutocomplete: cardAutocompleteReducer,
         clientAutocomplete: clientAutocompleteReducer,
+        clients: clientReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

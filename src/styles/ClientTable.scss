@@ -34,3 +34,14 @@
 .table__address-icon{
     margin-right: 5px;
 }
+
+// Sortable header styles
+.table__sort-header--sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+
+    &:hover {
+        color: var(--primary);
+    }
+}

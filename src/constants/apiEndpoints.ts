@@ -30,6 +30,7 @@ export const CARD_ENDPOINTS = {
 // Client Endpoints
 export const CLIENT_ENDPOINTS = {
     AUTOCOMPLETE: `${API_CONFIG.BASE_URL}/clients/autocomplete`,
+    PAGINATED: `${API_CONFIG.BASE_URL}/clients/paginated`,
 } as const;
 
 

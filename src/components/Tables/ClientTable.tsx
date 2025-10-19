@@ -2,31 +2,31 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Eye, ChevronDown, MoreHorizontal, MapPin } from 'lucide-react';
 import '../../styles/ClientTable.scss';
-import { getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
-
-export interface Client {
-    id: number;
-    name: string;
-    email: string;
-    contact: string;
-    address: string;
-    avatar: string;
-    lastTransaction: string;
-    lastTransactionTime: string;
-}
+import { formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
+import { Client } from '../../services/clientService';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { loadMoreClients, sortClients } from '../../store/actions/clientActions';
 
 interface ClientTableProps {
-    clients: Client[];
     search?: string;
     selectedClient?: Client | null;
     onClientSelect?: (client: Client) => void;
 }
 
 
-const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selectedClient, onClientSelect }) => {
+const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, onClientSelect }) => {
+    const dispatch = useAppDispatch();
+    const {
+        clients,
+        loading,
+        loadingMore,
+        hasMore,
+        sortConfig,
+        pagination
+    } = useAppSelector((state) => state.clients);
+
     const [visibleItems, setVisibleItems] = useState(10);
     const [itemsPerPage, setItemsPerPage] = useState(10);
-    const [isLoading, setIsLoading] = useState(false);
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
 
     const tableContainerRef = useRef<HTMLDivElement>(null);
@@ -70,33 +70,30 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
         return () => container.removeEventListener('scroll', handleScroll);
     }, []);
 
-    // Filtered clients
-    const filteredClients = useMemo(() => {
-        if (!search) return clients;
-        const s = search.toLowerCase();
-        return clients.filter(
-            c =>
-                c.name.toLowerCase().includes(s) ||
-                c.email.toLowerCase().includes(s) ||
-                c.contact.toLowerCase().includes(s) ||
-                c.address.toLowerCase().includes(s)
-        );
-    }, [clients, search]);
+    // Handle sorting
+    const handleSort = (field: string) => {
+        let newDirection: 'asc' | 'desc';
 
-    // Paginated clients
-    const displayedClients = useMemo(() => {
-        return filteredClients.slice(0, visibleItems);
-    }, [filteredClients, visibleItems]);
+        if (sortConfig.sort_by === field) {
+            newDirection = sortConfig.sort_order === 'asc' ? 'desc' : 'asc';
+        } else {
+            newDirection = 'asc';
+        }
 
-    // Infinite scroll load more
+        dispatch(sortClients({
+            sort_by: field,
+            sort_order: newDirection
+        }));
+    };
+
+    // Clients are already filtered and sorted by the API
+    const displayedClients = clients;
+
+    // Load more clients function
     const loadMore = useCallback(() => {
-        if (isLoading || visibleItems >= filteredClients.length) return;
-        setIsLoading(true);
-        setTimeout(() => {
-            setVisibleItems(prev => Math.min(prev + itemsPerPage, filteredClients.length));
-            setIsLoading(false);
-        }, 300);
-    }, [isLoading, visibleItems, filteredClients.length, itemsPerPage]);
+        if (loadingMore || !hasMore) return;
+        dispatch(loadMoreClients());
+    }, [dispatch, loadingMore, hasMore]);
 
     // Intersection Observer for infinite scroll
     useEffect(() => {
@@ -124,15 +121,26 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
         };
     }, [loadMore]);
 
-    // Reset visible items when search changes
-    useEffect(() => {
-        setVisibleItems(itemsPerPage);
-        if (tableContainerRef.current) {
-            tableContainerRef.current.scrollTop = 0;
+    // Add sort icon component
+    const SortIcon: React.FC<{ field: string }> = ({ field }) => {
+        if (sortConfig.sort_by !== field) {
+            return null; // Don't show icon for non-active columns
         }
-    }, [search, itemsPerPage]);
 
-    const hasMoreItems = visibleItems < filteredClients.length;
+        return sortConfig.sort_order === 'asc' ?
+            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" style={{ transform: 'rotate(180deg)' }} /> :
+            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" />;
+    };
+
+    const renderClientAddress = (address: string) => {
+        if(!address) return '-';
+        return (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+                <MapPin size={16} className="table__address-icon" />
+                <span className="table__address-pill" title={address}>{address}</span>
+            </div>
+        );
+    }
 
     return (
         <div className="table-wrap">
@@ -144,24 +152,27 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
                     >
                         <tr>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('name')}>
                                     Client
-                                    <ChevronDown size={16} className="table__sort-icon" />
+                                    <SortIcon field="name" />
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('contact')}>
                                     Contact Number
+                                    <SortIcon field="contact" />
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
+                                <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('address')}>
                                     Address
+                                    <SortIcon field="address" />
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header">
-                                    Last Transaction
+                                <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('create_date')}>
+                                    Date Created
+                                    <SortIcon field="create_date" />
                                 </div>
                             </th>
                             <th></th>
@@ -170,8 +181,8 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
                     <tbody>
                         {displayedClients.length === 0 ? (
                             <tr>
-                                <td colSpan={4} className="table__no-results">
-                                    No clients found.
+                                <td colSpan={5} className="table__no-results">
+                                    {loading ? 'Loading clients...' : 'No clients found.'}
                                 </td>
                             </tr>
                         ) : (
@@ -194,16 +205,13 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
                                             </div>
                                         </div>
                                     </td>
-                                    <td>{client.contact}</td>
+                                    <td>{client.contact ? client.contact : '-'}</td>
                                     <td>
-                                        <div style={{ display: 'flex', alignItems: 'center' }}>
-                                            <MapPin size={16} className="table__address-icon" />
-                                            <span className="table__address-pill" title={client.address}>{client.address}</span>
-                                        </div>
+                                        {renderClientAddress(client.address)}
                                     </td>
                                     <td>
-                                        {client.lastTransaction}{' '}
-                                        <span className="client-table__time">• {client.lastTransactionTime}</span>
+                                        {formatDateToReadable(client.create_date)}{' '}
+                                        <span className="client-table__time">• {formatTime(client.create_time)}</span>
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '8px' }}>
@@ -225,9 +233,9 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
                         )}
                     </tbody>
                 </table>
-                {hasMoreItems && (
+                {hasMore && (
                     <div ref={observerRef} className="table__load-trigger">
-                        {isLoading && (
+                        {loadingMore && (
                             <div className="table__loading">
                                 <div className="table__spinner"></div>
                                 Loading more clients...

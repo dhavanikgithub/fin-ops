@@ -1,51 +1,64 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { UserPlus, SlidersHorizontal, Edit, Trash, User2, Search, UserMinus, ArrowDownCircle, ArrowUpCircle, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import DeleteClientConfirmModal, { Client as ModalClient } from './DeleteClientConfirmModal';
 import './ClientList.scss';
-import ClientTable, { Client } from '../../components/Tables/ClientTable';
-
-const mockClients: Client[] = [
-    {
-        id: 1,
-        name: 'Alice Cooper',
-        email: 'alice@example.com',
-        contact: '+1 555-123-4567',
-        address: '123 Main St, Springfield',
-        avatar: 'https://app.banani.co/avatar1.jpeg',
-        lastTransaction: 'Sep 02, 2025',
-        lastTransactionTime: '02:15 PM',
-    },
-    {
-        id: 2,
-        name: 'Rahul Shah',
-        email: 'rahul@acme.co',
-        contact: '+91 98765-43210',
-        address: '22 Residency Rd, Mumbai',
-        avatar: 'https://app.banani.co/avatar2.jpg',
-        lastTransaction: 'Sep 02, 2025',
-        lastTransactionTime: '09:40 AM',
-    },
-    {
-        id: 3,
-        name: 'Maria Gomez',
-        email: 'maria@globex.com',
-        contact: '+34 600-123-456',
-        address: 'Calle Mayor 5, Madrid',
-        avatar: 'https://app.banani.co/avatar3.jpeg',
-        lastTransaction: 'Sep 01, 2025',
-        lastTransactionTime: '06:05 PM',
-    },
-];
+import ClientTable from '../../components/Tables/ClientTable';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { fetchClients, searchClients } from '../../store/actions/clientActions';
+import { Client } from '../../services/clientService';
 
 interface ClientListProps {
     onNewClient: () => void;
 }
 
 const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
-    const [search, setSearch] = useState('');
+    const dispatch = useAppDispatch();
+    const {
+        clients,
+        loading,
+        error,
+        searchQuery: reduxSearchQuery,
+        pagination
+    } = useAppSelector((state) => state.clients);
+
+    const [localSearchQuery, setLocalSearchQuery] = useState('');
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
     const [selectedClient, setSelectedClient] = useState<Client | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    // Load initial clients
+    useEffect(() => {
+        dispatch(fetchClients());
+    }, [dispatch]);
+
+    // Handle search with debouncing
+    const handleSearchChange = useCallback((value: string) => {
+        setLocalSearchQuery(value);
+
+        // Clear existing timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        // Set new timeout for debounced search
+        const timeout = setTimeout(() => {
+            if (value.trim() !== reduxSearchQuery) {
+                dispatch(searchClients(value.trim()));
+            }
+        }, 500); // 500ms debounce
+
+        setSearchTimeout(timeout);
+    }, [dispatch, searchTimeout, reduxSearchQuery]);
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
 
     const handleNewClient = () => {
         console.log('Navigate to new client');
@@ -115,9 +128,9 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Search clients..."
+                                value={localSearchQuery}
+                                onChange={e => handleSearchChange(e.target.value)}
                             />
                         </div>
                         {/* <div className="main__actions">
@@ -129,11 +142,15 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                     </div>
 
                     <ClientTable 
-                        clients={mockClients} 
-                        search={search} 
+                        search={localSearchQuery} 
                         selectedClient={selectedClient}
                         onClientSelect={handleClientSelect}
                     />
+                    {pagination && (
+                        <span className="main__subtitle">
+                            Showing {clients.length} of {pagination.total_count} clients
+                        </span>
+                    )}
                 </div>
 
                 {selectedClient && (
@@ -170,12 +187,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                             <div className="detail__recent-title">Recent Transactions</div>
                             <div className="detail__recent-list">
                                 <div className="detail__recent-item">
-                                    <span>₹ 24,500</span>
-                                    <span className="sub">{selectedClient.lastTransaction} • {selectedClient.lastTransactionTime}</span>
-                                </div>
-                                <div className="detail__recent-item">
-                                    <span>₹ 3,200</span>
-                                    <span className="sub">Aug 30, 2025 • 11:05 AM</span>
+                                    <span className="sub">No recent transactions</span>
                                 </div>
                             </div>
                         </div>
