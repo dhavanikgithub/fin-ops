@@ -1,6 +1,6 @@
 'use client';
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown, MoreHorizontal, MapPin } from 'lucide-react';
+import { Eye, ChevronDown, MoreHorizontal, MapPin, Wallet, Plus, Minus, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import '../../styles/ClientTable.scss';
 import { formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import { Client } from '../../services/clientService';
@@ -133,7 +133,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
     };
 
     const renderClientAddress = (address: string) => {
-        if(!address) return '-';
+        if (!address) return '-';
         return (
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 <MapPin size={16} className="table__address-icon" />
@@ -193,8 +193,8 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                             </tr>
                         ) : (
                             displayedClients.map((client, idx) => (
-                                <tr 
-                                    key={client.id} 
+                                <tr
+                                    key={client.id}
                                     className={selectedClient?.id === client.id ? 'table__row--selected' : ''}
                                 >
                                     <td>
@@ -222,11 +222,23 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                     </td>
                                     <td>
                                         <div style={{ display: 'flex', gap: '8px' }}>
+                                            {!selectedClient &&
+                                                (
+                                                    <>
+                                                        <button className="table__row-actions__deposit">
+                                                            <ArrowDownLeft size={16} />
+                                                        </button>
+                                                        <button className="table__row-actions__withdraw">
+                                                            <ArrowUpRight size={16} />
+                                                        </button>
+                                                    </>
+                                                )
+                                            }
                                             <button className="table__row-actions">
-                                                <Eye size={16} />
-                                                View
+                                                <Wallet size={16} />
+                                                {client.transaction_count || 0} Transactions
                                             </button>
-                                            <button 
+                                            <button
                                                 className="row-actions"
                                                 onClick={() => onClientSelect && onClientSelect(client)}
                                             >

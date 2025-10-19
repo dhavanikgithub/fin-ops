@@ -201,15 +201,15 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                 </div>
                                 <div>
                                     <div className="label">Email</div>
-                                    <input className="control" value={selectedClient.email} />
+                                    <input className="control" value={selectedClient.email ? selectedClient.email : ''} />
                                 </div>
                                 <div>
                                     <div className="label">Contact Number</div>
-                                    <input className="control" value={selectedClient.contact} />
+                                    <input className="control" value={selectedClient.contact ? selectedClient.contact : ''} />
                                 </div>
                                 <div>
                                     <div className="label">Address</div>
-                                    <textarea className="control" rows={4} value={selectedClient.address} />
+                                    <textarea className="control" rows={4} value={selectedClient.address ? selectedClient.address : ''} />
                                 </div>
                                 <div className="inline-actions">
                                     <button className="main__button">
