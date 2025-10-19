@@ -41,6 +41,9 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
     const [cardSearch, setCardSearch] = useState('');
     const [clientSearch, setClientSearch] = useState('');
     const [bankSearch, setBankSearch] = useState('');
+    const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
+    const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
+    const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
     const [filters, setFilters] = useState<FilterValues>({
         types: [],
         minAmount: '',
@@ -150,6 +153,19 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         debouncedClientSearch(clientSearch);
     }, [clientSearch, debouncedClientSearch]);
 
+    // Reset highlighted indices when items change
+    useEffect(() => {
+        setBankHighlightedIndex(0);
+    }, [bankAutocompleteItems]);
+
+    useEffect(() => {
+        setCardHighlightedIndex(0);
+    }, [cardAutocompleteItems]);
+
+    useEffect(() => {
+        setClientHighlightedIndex(0);
+    }, [clientAutocompleteItems]);
+
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
         setFilters(prev => ({
             ...prev,
@@ -205,6 +221,124 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         onClose();
     };
 
+    // Keyboard navigation handlers
+    const handleBankKeyDown = (e: React.KeyboardEvent) => {
+        const availableBanks = bankAutocompleteItems.filter(
+            bank => !filters.banks.map(b => b.value).includes(bank.id)
+        );
+        if (!bankSearch || availableBanks.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev < availableBanks.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : availableBanks.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (availableBanks.length > 0) {
+                    const selectedBank = availableBanks[bankHighlightedIndex];
+                    setFilters(prev => ({
+                        ...prev,
+                        banks: [...prev.banks, { label: selectedBank.name, value: selectedBank.id }]
+                    }));
+                    setBankSearch('');
+                    setBankHighlightedIndex(0);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setBankSearch('');
+                setBankHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleCardKeyDown = (e: React.KeyboardEvent) => {
+        const availableCards = cardAutocompleteItems.filter(
+            card => !filters.cards.map(c => c.value).includes(card.id)
+        );
+        if (!cardSearch || availableCards.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev < availableCards.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : availableCards.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (availableCards.length > 0) {
+                    const selectedCard = availableCards[cardHighlightedIndex];
+                    setFilters(prev => ({
+                        ...prev,
+                        cards: [...prev.cards, { label: selectedCard.name, value: selectedCard.id }]
+                    }));
+                    setCardSearch('');
+                    setCardHighlightedIndex(0);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setCardSearch('');
+                setCardHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleClientKeyDown = (e: React.KeyboardEvent) => {
+        const availableClients = clientAutocompleteItems.filter(
+            client => !filters.clients.map(c => c.value).includes(client.id)
+        );
+        if (!clientSearch || availableClients.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev < availableClients.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : availableClients.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (availableClients.length > 0) {
+                    const selectedClient = availableClients[clientHighlightedIndex];
+                    setFilters(prev => ({
+                        ...prev,
+                        clients: [...prev.clients, { label: selectedClient.name, value: selectedClient.id }]
+                    }));
+                    setClientSearch('');
+                    setClientHighlightedIndex(0);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setClientSearch('');
+                setClientHighlightedIndex(0);
+                break;
+        }
+    };
+
     
     const renderBankTokens = () => {
         // Filter out banks that are already selected
@@ -236,6 +370,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                             placeholder="Search bank..."
                             value={bankSearch}
                             onChange={e => setBankSearch(e.target.value)}
+                            onKeyDown={handleBankKeyDown}
                             autoComplete="off"
                         />
                         {bankSearch && (
@@ -245,18 +380,20 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         Loading banks...
                                     </div>
                                 ) : availableBanks.length > 0 ? (
-                                    availableBanks.map(bank => (
+                                    availableBanks.map((bank, index) => (
                                         <div
                                             key={bank.id}
-                                            className="filter-modal__dropdown-item"
+                                            className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                             onClick={() => {
                                                 setFilters(prev => ({
                                                     ...prev,
                                                     banks: [...prev.banks, { label: bank.name, value: bank.id }]
                                                 }));
                                                 setBankSearch('');
+                                                setBankHighlightedIndex(0);
                                                 dispatch(clearBankAutocomplete());
                                             }}
+                                            onMouseEnter={() => setBankHighlightedIndex(index)}
                                         >
                                             {bank.name}
                                         </div>
@@ -304,6 +441,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                             placeholder="Search card..."
                             value={cardSearch}
                             onChange={e => setCardSearch(e.target.value)}
+                            onKeyDown={handleCardKeyDown}
                             autoComplete="off"
                         />
                         {cardSearch && (
@@ -313,18 +451,20 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         Loading cards...
                                     </div>
                                 ) : availableCards.length > 0 ? (
-                                    availableCards.map(card => (
+                                    availableCards.map((card, index) => (
                                         <div
                                             key={card.id}
-                                            className="filter-modal__dropdown-item"
+                                            className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                             onClick={() => {
                                                 setFilters(prev => ({
                                                     ...prev,
                                                     cards: [...prev.cards, { label: card.name, value: card.id }]
                                                 }));
                                                 setCardSearch('');
+                                                setCardHighlightedIndex(0);
                                                 dispatch(clearCardAutocomplete());
                                             }}
+                                            onMouseEnter={() => setCardHighlightedIndex(index)}
                                         >
                                             {card.name}
                                         </div>
@@ -372,6 +512,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                             placeholder="Search client..."
                             value={clientSearch}
                             onChange={e => setClientSearch(e.target.value)}
+                            onKeyDown={handleClientKeyDown}
                             autoComplete="off"
                         />
                         {clientSearch && (
@@ -381,18 +522,20 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         Loading clients...
                                     </div>
                                 ) : availableClients.length > 0 ? (
-                                    availableClients.map(client => (
+                                    availableClients.map((client, index) => (
                                         <div
                                             key={client.id}
-                                            className="filter-modal__dropdown-item"
+                                            className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                             onClick={() => {
                                                 setFilters(prev => ({
                                                     ...prev,
                                                     clients: [...prev.clients, { label: client.name, value: client.id }]
                                                 }));
                                                 setClientSearch('');
+                                                setClientHighlightedIndex(0);
                                                 dispatch(clearClientAutocomplete());
                                             }}
+                                            onMouseEnter={() => setClientHighlightedIndex(index)}
                                         >
                                             {client.name}
                                         </div>

@@ -458,6 +458,43 @@ input[type="number"].filter-modal__input::-webkit-inner-spin-button {
             background: var(--muted);
         }
     }
+
+    &__dropdown-item {
+        padding: 8px 12px;
+        cursor: pointer;
+        font-size: 14px;
+        color: var(--foreground);
+        transition: background 0.15s;
+
+        &:hover {
+            background: var(--muted);
+        }
+
+        &--loading {
+            color: var(--muted-foreground);
+            cursor: default;
+            font-style: italic;
+
+            &:hover {
+                background: transparent;
+            }
+        }
+
+        &--no-results {
+            color: var(--muted-foreground);
+            cursor: default;
+            font-style: italic;
+
+            &:hover {
+                background: transparent;
+            }
+        }
+
+        &--highlighted {
+            background: var(--muted);
+            color: var(--foreground);
+        }
+    }
 }
 
 // Responsive design

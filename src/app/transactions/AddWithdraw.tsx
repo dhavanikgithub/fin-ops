@@ -40,6 +40,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
     const [showClientDropdown, setShowClientDropdown] = useState(false);
     const [showBankDropdown, setShowBankDropdown] = useState(false);
     const [showCardDropdown, setShowCardDropdown] = useState(false);
+    const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
+    const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
+    const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
 
     // Debounced search timers
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -116,6 +119,19 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }
     }, [cardSearch, debouncedCardSearch, showCardDropdown]);
 
+    // Reset highlighted indices when items change
+    useEffect(() => {
+        setClientHighlightedIndex(0);
+    }, [clientAutocompleteItems]);
+
+    useEffect(() => {
+        setBankHighlightedIndex(0);
+    }, [bankAutocompleteItems]);
+
+    useEffect(() => {
+        setCardHighlightedIndex(0);
+    }, [cardAutocompleteItems]);
+
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
@@ -146,6 +162,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setClientSearch('');
         setShowClientDropdown(false);
+        setClientHighlightedIndex(0);
     };
 
     const handleBankSelect = (bank: { id: number; name: string }) => {
@@ -156,6 +173,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setBankSearch('');
         setShowBankDropdown(false);
+        setBankHighlightedIndex(0);
     };
 
     const handleCardSelect = (card: { id: number; name: string }) => {
@@ -166,6 +184,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setCardSearch('');
         setShowCardDropdown(false);
+        setCardHighlightedIndex(0);
     };
 
     const handleClientRemove = () => {
@@ -176,6 +195,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setShowClientDropdown(true);
         setClientSearch('');
+        setClientHighlightedIndex(0);
     };
 
     const handleBankRemove = () => {
@@ -186,6 +206,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setShowBankDropdown(true);
         setBankSearch('');
+        setBankHighlightedIndex(0);
     };
 
     const handleCardRemove = () => {
@@ -196,6 +217,101 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }));
         setShowCardDropdown(true);
         setCardSearch('');
+        setCardHighlightedIndex(0);
+    };
+
+    // Keyboard navigation handlers
+    const handleClientKeyDown = (e: React.KeyboardEvent) => {
+        if (!showClientDropdown || clientAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev < clientAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : clientAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (clientAutocompleteItems.length > 0) {
+                    handleClientSelect(clientAutocompleteItems[clientHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowClientDropdown(false);
+                setClientSearch('');
+                setClientHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleBankKeyDown = (e: React.KeyboardEvent) => {
+        if (!showBankDropdown || bankAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev < bankAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : bankAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (bankAutocompleteItems.length > 0) {
+                    handleBankSelect(bankAutocompleteItems[bankHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowBankDropdown(false);
+                setBankSearch('');
+                setBankHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleCardKeyDown = (e: React.KeyboardEvent) => {
+        if (!showCardDropdown || cardAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev < cardAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : cardAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (cardAutocompleteItems.length > 0) {
+                    handleCardSelect(cardAutocompleteItems[cardHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowCardDropdown(false);
+                setCardSearch('');
+                setCardHighlightedIndex(0);
+                break;
+        }
     };
 
     const handleSaveWithdraw = () => {
@@ -290,7 +406,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                 onBlur={() => setTimeout(() => {
                                                     setShowClientDropdown(false);
                                                     setClientSearch('');
+                                                    setClientHighlightedIndex(0);
                                                 }, 200)}
+                                                onKeyDown={handleClientKeyDown}
                                                 autoComplete="off"
                                             />
                                             {showClientDropdown && clientSearch && (
@@ -300,11 +418,12 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                             Loading...
                                                         </div>
                                                     ) : clientAutocompleteItems.length > 0 ? (
-                                                        clientAutocompleteItems.map(client => (
+                                                        clientAutocompleteItems.map((client, index) => (
                                                             <div
                                                                 key={client.id}
-                                                                className="aw__dropdown-item"
+                                                                className={`aw__dropdown-item ${index === clientHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
                                                                 onClick={() => handleClientSelect(client)}
+                                                                onMouseEnter={() => setClientHighlightedIndex(index)}
                                                             >
                                                                 {client.name}
                                                             </div>
@@ -365,7 +484,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                     onBlur={() => setTimeout(() => {
                                                         setShowBankDropdown(false);
                                                         setBankSearch('');
+                                                        setBankHighlightedIndex(0);
                                                     }, 200)}
+                                                    onKeyDown={handleBankKeyDown}
                                                     autoComplete="off"
                                                 />
                                                 {showBankDropdown && bankSearch && (
@@ -375,11 +496,12 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                                 Loading...
                                                             </div>
                                                         ) : bankAutocompleteItems.length > 0 ? (
-                                                            bankAutocompleteItems.map(bank => (
+                                                            bankAutocompleteItems.map((bank, index) => (
                                                                 <div
                                                                     key={bank.id}
-                                                                    className="aw__dropdown-item"
+                                                                    className={`aw__dropdown-item ${index === bankHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
                                                                     onClick={() => handleBankSelect(bank)}
+                                                                    onMouseEnter={() => setBankHighlightedIndex(index)}
                                                                 >
                                                                     {bank.name}
                                                                 </div>
@@ -439,7 +561,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                     onBlur={() => setTimeout(() => {
                                                         setShowCardDropdown(false);
                                                         setCardSearch('');
+                                                        setCardHighlightedIndex(0);
                                                     }, 200)}
+                                                    onKeyDown={handleCardKeyDown}
                                                     autoComplete="off"
                                                 />
                                                 {showCardDropdown && cardSearch && (
@@ -449,11 +573,12 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                                                 Loading...
                                                             </div>
                                                         ) : cardAutocompleteItems.length > 0 ? (
-                                                            cardAutocompleteItems.map(card => (
+                                                            cardAutocompleteItems.map((card, index) => (
                                                                 <div
                                                                     key={card.id}
-                                                                    className="aw__dropdown-item"
+                                                                    className={`aw__dropdown-item ${index === cardHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
                                                                     onClick={() => handleCardSelect(card)}
+                                                                    onMouseEnter={() => setCardHighlightedIndex(index)}
                                                                 >
                                                                     {card.name}
                                                                 </div>

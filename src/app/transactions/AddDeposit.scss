@@ -196,6 +196,11 @@
             background: transparent;
         }
     }
+
+    &--highlighted {
+        background: var(--muted);
+        color: var(--foreground);
+    }
 }
 
 

@@ -25,6 +25,7 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
     // Client autocomplete states
     const [clientSearch, setClientSearch] = useState('');
     const [showClientDropdown, setShowClientDropdown] = useState(false);
+    const [highlightedIndex, setHighlightedIndex] = useState(0);
 
     // Debounced client search
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -52,6 +53,11 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
         }
     }, [clientSearch, debouncedClientSearch, showClientDropdown]);
 
+    // Reset highlighted index when items change
+    useEffect(() => {
+        setHighlightedIndex(0);
+    }, [clientAutocompleteItems]);
+
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
@@ -76,6 +82,7 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
         }));
         setClientSearch('');
         setShowClientDropdown(false);
+        setHighlightedIndex(0);
     };
 
     const handleClientRemove = () => {
@@ -86,6 +93,38 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
         }));
         setShowClientDropdown(true);
         setClientSearch('');
+        setHighlightedIndex(0);
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (!showClientDropdown || clientAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setHighlightedIndex(prev => 
+                    prev < clientAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : clientAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (clientAutocompleteItems.length > 0) {
+                    handleClientSelect(clientAutocompleteItems[highlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowClientDropdown(false);
+                setClientSearch('');
+                setHighlightedIndex(0);
+                break;
+        }
     };
 
     const handleSaveDeposit = () => {
@@ -178,7 +217,9 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                                 onBlur={() => setTimeout(() => {
                                                     setShowClientDropdown(false);
                                                     setClientSearch('');
+                                                    setHighlightedIndex(0);
                                                 }, 200)}
+                                                onKeyDown={handleKeyDown}
                                                 autoComplete="off"
                                             />
                                             {showClientDropdown && clientSearch && (
@@ -188,11 +229,12 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                                             Loading...
                                                         </div>
                                                     ) : clientAutocompleteItems.length > 0 ? (
-                                                        clientAutocompleteItems.map(client => (
+                                                        clientAutocompleteItems.map((client, index) => (
                                                             <div
                                                                 key={client.id}
-                                                                className="ad__client-option"
+                                                                className={`ad__client-option ${index === highlightedIndex ? 'ad__client-option--highlighted' : ''}`}
                                                                 onClick={() => handleClientSelect(client)}
+                                                                onMouseEnter={() => setHighlightedIndex(index)}
                                                             >
                                                                 {client.name}
                                                             </div>

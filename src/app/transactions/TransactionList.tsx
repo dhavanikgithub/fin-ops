@@ -74,6 +74,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
     const [showBankDropdown, setShowBankDropdown] = useState(false);
     const [showCardDropdown, setShowCardDropdown] = useState(false);
     const [showClientDropdown, setShowClientDropdown] = useState(false);
+    const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
+    const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
+    const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
 
     // Loading states for operations - track by transaction ID arrays
     const [savingTransactionIds, setSavingTransactionIds] = useState<number[]>([]);
@@ -193,6 +196,19 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         }
     }, [clientSearch, debouncedClientSearch, showClientDropdown]);
 
+    // Reset highlighted indices when items change
+    useEffect(() => {
+        setBankHighlightedIndex(0);
+    }, [bankAutocompleteItems]);
+
+    useEffect(() => {
+        setCardHighlightedIndex(0);
+    }, [cardAutocompleteItems]);
+
+    useEffect(() => {
+        setClientHighlightedIndex(0);
+    }, [clientAutocompleteItems]);
+
     const handleOpenFilterModal = () => {
         setIsFilterModalOpen(true);
     };
@@ -295,6 +311,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         });
         setBankSearch('');
         setShowBankDropdown(false);
+        setBankHighlightedIndex(0);
     };
 
     const handleCardSelect = (card: { id: number; name: string }) => {
@@ -306,6 +323,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         });
         setCardSearch('');
         setShowCardDropdown(false);
+        setCardHighlightedIndex(0);
     };
 
     const handleClientSelect = (client: { id: number; name: string }) => {
@@ -317,6 +335,101 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         });
         setClientSearch('');
         setShowClientDropdown(false);
+        setClientHighlightedIndex(0);
+    };
+
+    // Keyboard navigation handlers
+    const handleBankKeyDown = (e: React.KeyboardEvent) => {
+        if (!showBankDropdown || bankAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev < bankAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setBankHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : bankAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (bankAutocompleteItems.length > 0) {
+                    handleBankSelect(bankAutocompleteItems[bankHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowBankDropdown(false);
+                setBankSearch('');
+                setBankHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleCardKeyDown = (e: React.KeyboardEvent) => {
+        if (!showCardDropdown || cardAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev < cardAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setCardHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : cardAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (cardAutocompleteItems.length > 0) {
+                    handleCardSelect(cardAutocompleteItems[cardHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowCardDropdown(false);
+                setCardSearch('');
+                setCardHighlightedIndex(0);
+                break;
+        }
+    };
+
+    const handleClientKeyDown = (e: React.KeyboardEvent) => {
+        if (!showClientDropdown || clientAutocompleteItems.length === 0) return;
+
+        switch (e.key) {
+            case 'ArrowDown':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev < clientAutocompleteItems.length - 1 ? prev + 1 : 0
+                );
+                break;
+            case 'ArrowUp':
+                e.preventDefault();
+                setClientHighlightedIndex(prev => 
+                    prev > 0 ? prev - 1 : clientAutocompleteItems.length - 1
+                );
+                break;
+            case 'Enter':
+                e.preventDefault();
+                if (clientAutocompleteItems.length > 0) {
+                    handleClientSelect(clientAutocompleteItems[clientHighlightedIndex]);
+                }
+                break;
+            case 'Escape':
+                e.preventDefault();
+                setShowClientDropdown(false);
+                setClientSearch('');
+                setClientHighlightedIndex(0);
+                break;
+        }
     };
 
     const filterCount = getActiveFilterCount(activeFilters);
@@ -568,7 +681,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                         onBlur={() => setTimeout(() => {
                                                             setShowClientDropdown(false);
                                                             setClientSearch('');
+                                                            setClientHighlightedIndex(0);
                                                         }, 200)}
+                                                        onKeyDown={handleClientKeyDown}
                                                         autoComplete="off"
                                                         disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                     />
@@ -579,11 +694,12 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                     Loading...
                                                                 </div>
                                                             ) : clientAutocompleteItems.length > 0 ? (
-                                                                clientAutocompleteItems.map(client => (
+                                                                clientAutocompleteItems.map((client, index) => (
                                                                     <div
                                                                         key={client.id}
-                                                                        className="filter-modal__dropdown-item"
+                                                                        className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                                                         onClick={() => handleClientSelect(client)}
+                                                                        onMouseEnter={() => setClientHighlightedIndex(index)}
                                                                     >
                                                                         {client.name}
                                                                     </div>
@@ -629,7 +745,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                 value={bankSearch}
                                                                 onChange={e => setBankSearch(e.target.value)}
                                                                 onFocus={() => setShowBankDropdown(true)}
-                                                                onBlur={() => setTimeout(() => setShowBankDropdown(false), 200)}
+                                                                onBlur={() => setTimeout(() => {
+                                                                    setShowBankDropdown(false);
+                                                                    setBankHighlightedIndex(0);
+                                                                }, 200)}
+                                                                onKeyDown={handleBankKeyDown}
                                                                 autoComplete="off"
                                                                 disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                             />
@@ -640,11 +760,12 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                             Loading...
                                                                         </div>
                                                                     ) : bankAutocompleteItems.length > 0 ? (
-                                                                        bankAutocompleteItems.map(bank => (
+                                                                        bankAutocompleteItems.map((bank, index) => (
                                                                             <div
                                                                                 key={bank.id}
-                                                                                className="filter-modal__dropdown-item"
+                                                                                className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                                                                 onClick={() => handleBankSelect(bank)}
+                                                                                onMouseEnter={() => setBankHighlightedIndex(index)}
                                                                             >
                                                                                 {bank.name}
                                                                             </div>
@@ -688,7 +809,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                 value={cardSearch}
                                                                 onChange={e => setCardSearch(e.target.value)}
                                                                 onFocus={() => setShowCardDropdown(true)}
-                                                                onBlur={() => setTimeout(() => setShowCardDropdown(false), 200)}
+                                                                onBlur={() => setTimeout(() => {
+                                                                    setShowCardDropdown(false);
+                                                                    setCardHighlightedIndex(0);
+                                                                }, 200)}
+                                                                onKeyDown={handleCardKeyDown}
                                                                 autoComplete="off"
                                                                 disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                             />
@@ -699,11 +824,12 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                             Loading...
                                                                         </div>
                                                                     ) : cardAutocompleteItems.length > 0 ? (
-                                                                        cardAutocompleteItems.map(card => (
+                                                                        cardAutocompleteItems.map((card, index) => (
                                                                             <div
                                                                                 key={card.id}
-                                                                                className="filter-modal__dropdown-item"
+                                                                                className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
                                                                                 onClick={() => handleCardSelect(card)}
+                                                                                onMouseEnter={() => setCardHighlightedIndex(index)}
                                                                             >
                                                                                 {card.name}
                                                                             </div>
