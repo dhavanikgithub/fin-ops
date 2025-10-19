@@ -70,19 +70,19 @@ const DeleteClientConfirmModal: React.FC<DeleteClientConfirmModalProps> = ({
                                 <User size={16} />
                                 <span>{client.name}</span>
                             </div>
-                            <div className="delete-modal__info-row">
+                            {client.email ? <div className="delete-modal__info-row">
                                 <Mail size={16} />
                                 <span>{client.email}</span>
-                            </div>
+                            </div> : null}
                             <div className="delete-modal__meta-grid">
-                                <div className="delete-modal__info-row">
+                                {client.phone ? <div className="delete-modal__info-row">
                                     <Phone size={16} />
                                     <span>{client.phone}</span>
-                                </div>
-                                <div className="delete-modal__info-row">
+                                </div> : null}
+                                {client.location ? <div className="delete-modal__info-row">
                                     <MapPin size={16} />
                                     <span>{client.location}</span>
-                                </div>
+                                </div> : null}
                                 <div className="delete-modal__info-row">
                                     <Hash size={16} />
                                     <span>Client ID: {client.clientId}</span>

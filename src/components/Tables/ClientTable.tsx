@@ -170,6 +170,12 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                 </div>
                             </th>
                             <th>
+                                <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('transaction_count')}>
+                                    Transactions
+                                    <SortIcon field="transaction_count" />
+                                </div>
+                            </th>
+                            <th>
                                 <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('create_date')}>
                                     Date Created
                                     <SortIcon field="create_date" />
@@ -181,7 +187,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                     <tbody>
                         {displayedClients.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="table__no-results">
+                                <td colSpan={6} className="table__no-results">
                                     {loading ? 'Loading clients...' : 'No clients found.'}
                                 </td>
                             </tr>
@@ -209,6 +215,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                     <td>
                                         {renderClientAddress(client.address)}
                                     </td>
+                                    <td>{client.transaction_count || 0}</td>
                                     <td>
                                         {formatDateToReadable(client.create_date)}{' '}
                                         <span className="client-table__time">• {formatTime(client.create_time)}</span>

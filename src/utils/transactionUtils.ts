@@ -31,3 +31,10 @@ export const isDeposit = (type: number): boolean => {
 export const isWithdraw = (type: number): boolean => {
   return type === TRANSACTION_TYPES.WITHDRAW;
 };
+
+export const isDepositLabel = (label: string): boolean => {
+  return label === TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT];
+}
+export const isWithdrawLabel = (label: string): boolean => {
+  return label === TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW];
+};

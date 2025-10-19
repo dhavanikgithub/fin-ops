@@ -2,7 +2,7 @@
 import React from 'react';
 import { Trash2, X, Hash, Calendar, User, Banknote, IndianRupee, Percent, AlertTriangle, Trash } from 'lucide-react';
 import './DeleteTransactionConfirmModal.scss';
-import { TransactionType } from '@/utils/transactionUtils';
+import { isWithdraw, isWithdrawLabel, TransactionType } from '@/utils/transactionUtils';
 import { formatAmountAsCurrency, formatDateToReadable, formatDateWithTime, formatTime } from '@/utils/helperFunctions';
 
 export interface Transaction {
@@ -25,11 +25,11 @@ interface DeleteTransactionConfirmModalProps {
     transaction: Transaction | null;
 }
 
-const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps> = ({ 
-    isOpen, 
-    onClose, 
-    onDelete, 
-    transaction 
+const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps> = ({
+    isOpen,
+    onClose,
+    onDelete,
+    transaction
 }) => {
     if (!isOpen || !transaction) return null;
 
@@ -44,11 +44,11 @@ const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps
 
     return (
         <div className="delete-modal-overlay" onClick={onClose}>
-            <div 
-                className="delete-modal" 
+            <div
+                className="delete-modal"
                 onClick={(e) => e.stopPropagation()}
-                role="dialog" 
-                aria-labelledby="deleteTitle" 
+                role="dialog"
+                aria-labelledby="deleteTitle"
                 aria-describedby="deleteDesc"
             >
                 <div className="delete-modal__header">
@@ -87,16 +87,19 @@ const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps
                                     <IndianRupee size={16} />
                                     Amount: {formatAmountAsCurrency(transaction.amount)}
                                 </div>
-                                <div className="delete-modal__row">
+                                {transaction.charges && transaction.charges > 0 ? <div className="delete-modal__row">
                                     <Percent size={16} />
                                     Charges: {transaction.charges}%
-                                </div>
+                                </div> : null}
                             </div>
                         </div>
-                        <div className="delete-modal__summary-right">
-                            <div className="delete-modal__badge">Bank: {transaction.bank}</div>
-                            <div className="delete-modal__badge">Card: {transaction.card}</div>
-                        </div>
+                        {isWithdrawLabel(transaction.type) && transaction.bank && transaction.card && transaction.bank.toUpperCase() !== 'N/A' && transaction.card.toUpperCase() !== 'N/A' ? (
+                            <div className="delete-modal__summary-right">
+                                <div className="delete-modal__badge">Bank: {transaction.bank}</div>
+                                <div className="delete-modal__badge">Card: {transaction.card}</div>
+                            </div>
+                        ) : null}
+
                     </div>
 
                     <div className="delete-modal__warning">

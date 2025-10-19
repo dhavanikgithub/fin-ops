@@ -168,9 +168,9 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                 <div className="detail__sub">Client since Jan 2023</div>
                             </div>
                         </div>
-                        <div className="detail__badges">
-                            <div className="badge">{selectedClient.email}</div>
-                        </div>
+                        {selectedClient.email ? <div className="detail__badges">
+                            {selectedClient.email ? <div className="badge">{selectedClient.email}</div> : null}
+                        </div> : null}
                         <div className="detail__divider" />
                         <div className="detail__quick-actions">
                             <button className="quick-btn quick-btn--outlined deposit">
@@ -197,19 +197,19 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                             <div className="client-edit__form">
                                 <div>
                                     <div className="label">Client Name</div>
-                                    <input className="control" value={selectedClient.name} readOnly />
+                                    <input className="control" value={selectedClient.name} />
                                 </div>
                                 <div>
                                     <div className="label">Email</div>
-                                    <input className="control" value={selectedClient.email} readOnly />
+                                    <input className="control" value={selectedClient.email} />
                                 </div>
                                 <div>
                                     <div className="label">Contact Number</div>
-                                    <input className="control" value={selectedClient.contact} readOnly />
+                                    <input className="control" value={selectedClient.contact} />
                                 </div>
                                 <div>
                                     <div className="label">Address</div>
-                                    <textarea className="control" rows={4} value={selectedClient.address} readOnly />
+                                    <textarea className="control" rows={4} value={selectedClient.address} />
                                 </div>
                                 <div className="inline-actions">
                                     <button className="main__button">
