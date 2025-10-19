@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { UserPlus, X, Save, User, Mail, Phone, MapPin, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import './AddClient.scss';
+import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions';
 
 interface AddClientScreenProps {
     onCancel: () => void;
@@ -45,23 +46,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
         onBackToClients();
     };
 
-    const getAvatarInitials = (name: string) => {
-        return name
-            .split(' ')
-            .map(word => word.charAt(0).toUpperCase())
-            .join('')
-            .slice(0, 2);
-    };
-
-    const getAvatarColorClass = (name: string) => {
-        // Simple hash function to get consistent color based on name
-        const hash = name.split('').reduce((a, b) => {
-            a = ((a << 5) - a) + b.charCodeAt(0);
-            return a & a;
-        }, 0);
-        const colors = ['color-1', 'color-2', 'color-3', 'color-4', 'color-5'];
-        return colors[Math.abs(hash) % colors.length];
-    };
+    
 
     return (
         <div className="main">
@@ -170,7 +155,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                     <div className="ac__preview">
                         <div className="ac__preview-header">
                             <div className={`ac__avatar ${getAvatarColorClass(formData.fullName)}`}>
-                                {getAvatarInitials(formData.fullName) || 'AC'}
+                                {getAvatarInitials(formData.fullName)}
                             </div>
                             <div className="ac__preview-info">
                                 <div className="ac__preview-name">

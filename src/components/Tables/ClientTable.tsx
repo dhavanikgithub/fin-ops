@@ -2,6 +2,7 @@
 import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
 import { Eye, ChevronDown, MoreHorizontal, MapPin } from 'lucide-react';
 import '../../styles/ClientTable.scss';
+import { getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 
 export interface Client {
     id: number;
@@ -21,29 +22,6 @@ interface ClientTableProps {
     onClientSelect?: (client: Client) => void;
 }
 
-const getInitials = (name: string): string => {
-    const words = name.trim().split(' ');
-    if (words.length >= 2) {
-        return (words[0][0] + words[words.length - 1][0]).toUpperCase();
-    } else {
-        return words[0][0].toUpperCase();
-    }
-};
-
-const getAvatarColor = (name: string): string => {
-    const colors = [
-        '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57',
-        '#FF9FF3', '#54A0FF', '#5F27CD', '#00D2D3', '#FF9F43',
-        '#10AC84', '#EE5A24', '#0984E3', '#6C5CE7', '#A29BFE',
-        '#FD79A8', '#E17055', '#00B894', '#00CEC9', '#74B9FF'
-    ];
-    let hash = 0;
-    for (let i = 0; i < name.length; i++) {
-        hash = name.charCodeAt(i) + ((hash << 5) - hash);
-    }
-    const index = Math.abs(hash) % colors.length;
-    return colors[index];
-};
 
 const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selectedClient, onClientSelect }) => {
     const [visibleItems, setVisibleItems] = useState(10);
@@ -208,7 +186,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ clients, search = '', selecte
                                                 className="table__client-avatar"
                                                 style={{ backgroundColor: getAvatarColor(client.name) }}
                                             >
-                                                {getInitials(client.name)}
+                                                {getAvatarInitials(client.name)}
                                             </div>
                                             <div className="table__client-meta">
                                                 <div className="table__client-name">{client.name}</div>

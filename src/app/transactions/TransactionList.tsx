@@ -21,7 +21,7 @@ import { clearCardAutocomplete } from '../../store/slices/cardAutocompleteSlice'
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { convertUIFiltersToAPI, getActiveFilterCount } from '../../utils/filterUtils';
-import { isDeposit, isWithdraw, getTransactionTypeLabel, getCapitalizedTransactionTypeLabel } from '../../utils/transactionUtils';
+import { isDeposit, isWithdraw, getTransactionTypeLabel } from '../../utils/transactionUtils';
 import { Transaction } from '../../services/transactionService';
 import Table from '../../components/Tables/TransactionTable';
 import TransactionFilterModal, { FilterValues } from '../../components/TransactionFilterModal';
@@ -339,13 +339,37 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
     };
 
     // Helper function to check if a transaction ID is in deletingTransactionIds
-    const isTransactionBeingDeleted = (transactionId: number): boolean => {
+    const isTransactionBeingDeleted = (
+        transactionId: number,
+        deletingTransactionIds: number[]
+    ): boolean => {
         return deletingTransactionIds.includes(transactionId);
     };
 
     // Helper function to check if a transaction ID is in savingTransactionIds
-    const isTransactionBeingSaved = (transactionId: number): boolean => {
+    const isTransactionBeingSaved = (
+        transactionId: number,
+        savingTransactionIds: number[]
+    ): boolean => {
         return savingTransactionIds.includes(transactionId);
+    };
+
+    // Helper function to check if a transaction is being processed (saved or deleted)
+    const isTransactionBeingProcessed = (
+        transactionId: number,
+        savingTransactionIds: number[],
+        deletingTransactionIds: number[]
+    ): boolean => {
+        return isTransactionBeingSaved(transactionId,savingTransactionIds) || isTransactionBeingDeleted(transactionId,deletingTransactionIds);
+    };
+
+    const isSelectedTransactionBeingProcessed = (
+        selectedTransaction: Transaction | null,
+        savingTransactionIds: number[],
+        deletingTransactionIds: number[]
+    ): boolean => {
+        if (!selectedTransaction) return false;
+        return isTransactionBeingProcessed(selectedTransaction.id, savingTransactionIds, deletingTransactionIds);
     };
 
     return (
@@ -419,18 +443,18 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                 {selectedTransaction && (
                     <div className="detail">
                         {/* Processing Overlay */}
-                        {selectedTransaction && (savingTransactionIds.includes(selectedTransaction.id) || deletingTransactionIds.includes(selectedTransaction.id)) && (
+                        {isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds) && (
                             <div className="detail__processing-overlay">
                                 <div className="detail__processing-content">
                                     <div className="detail__processing-spinner"></div>
                                     <div className="detail__processing-message">
-                                        {savingTransactionIds.includes(selectedTransaction.id) && 'Saving Transaction...'}
-                                        {deletingTransactionIds.includes(selectedTransaction.id) && 'Deleting Transaction...'}
+                                        {isTransactionBeingSaved(selectedTransaction.id, savingTransactionIds) && 'Saving Transaction...'}
+                                        {isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) && 'Deleting Transaction...'}
                                     </div>
                                 </div>
                             </div>
                         )}
-                        
+
                         <div className="detail__header">
                             <div className="detail__header-column detail__header-column--icon">
                                 <div
@@ -468,7 +492,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                 value={0}
                                                 checked={isDeposit(selectedTransaction.transaction_type)}
                                                 onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
-                                                disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                             />
                                             <span className="filter-modal__custom-checkbox">
                                                 {isDeposit(selectedTransaction.transaction_type) && <Check size={14} />}
@@ -482,7 +506,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                 value={1}
                                                 checked={isWithdraw(selectedTransaction.transaction_type)}
                                                 onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
-                                                disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                             />
                                             <span className="filter-modal__custom-checkbox">
                                                 {isWithdraw(selectedTransaction.transaction_type) && <Check size={14} />}
@@ -498,7 +522,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                         type="number"
                                         value={selectedTransaction.transaction_amount}
                                         onChange={(e) => handleTransactionFieldChange('transaction_amount', parseFloat(e.target.value))}
-                                        disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                     />
                                 </div>
                                 <div>
@@ -517,7 +541,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                             setShowClientDropdown(true);
                                                             setClientSearch('');
                                                         }}
-                                                        disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                     >
                                                         <X size={12} />
                                                     </button>
@@ -546,7 +570,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                             setClientSearch('');
                                                         }, 200)}
                                                         autoComplete="off"
-                                                        disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                     />
                                                     {showClientDropdown && clientSearch && (
                                                         <div className="filter-modal__dropdown">
@@ -590,7 +614,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                 type="button"
                                                                 className="filter-modal__token-remove"
                                                                 onClick={() => handleTransactionFieldChange('bank_name', '')}
-                                                                disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                             >
                                                                 <X size={12} />
                                                             </button>
@@ -598,17 +622,17 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                     )}
                                                     {!selectedTransaction.bank_name && (
                                                         <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                                                                <input
-                                                                    type="text"
-                                                                    className="filter-modal__token-input"
-                                                                    placeholder="Search bank..."
-                                                                    value={bankSearch}
-                                                                    onChange={e => setBankSearch(e.target.value)}
-                                                                    onFocus={() => setShowBankDropdown(true)}
-                                                                    onBlur={() => setTimeout(() => setShowBankDropdown(false), 200)}
-                                                                    autoComplete="off"
-                                                                    disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
-                                                                />
+                                                            <input
+                                                                type="text"
+                                                                className="filter-modal__token-input"
+                                                                placeholder="Search bank..."
+                                                                value={bankSearch}
+                                                                onChange={e => setBankSearch(e.target.value)}
+                                                                onFocus={() => setShowBankDropdown(true)}
+                                                                onBlur={() => setTimeout(() => setShowBankDropdown(false), 200)}
+                                                                autoComplete="off"
+                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
+                                                            />
                                                             {showBankDropdown && bankSearch && (
                                                                 <div className="filter-modal__dropdown">
                                                                     {bankLoading ? (
@@ -649,7 +673,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                                 type="button"
                                                                 className="filter-modal__token-remove"
                                                                 onClick={() => handleTransactionFieldChange('card_name', '')}
-                                                                disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                                             >
                                                                 <X size={12} />
                                                             </button>
@@ -657,17 +681,17 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                     )}
                                                     {!selectedTransaction.card_name && (
                                                         <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                                                                <input
-                                                                    type="text"
-                                                                    className="filter-modal__token-input"
-                                                                    placeholder="Search card..."
-                                                                    value={cardSearch}
-                                                                    onChange={e => setCardSearch(e.target.value)}
-                                                                    onFocus={() => setShowCardDropdown(true)}
-                                                                    onBlur={() => setTimeout(() => setShowCardDropdown(false), 200)}
-                                                                    autoComplete="off"
-                                                                    disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
-                                                                />
+                                                            <input
+                                                                type="text"
+                                                                className="filter-modal__token-input"
+                                                                placeholder="Search card..."
+                                                                value={cardSearch}
+                                                                onChange={e => setCardSearch(e.target.value)}
+                                                                onFocus={() => setShowCardDropdown(true)}
+                                                                onBlur={() => setTimeout(() => setShowCardDropdown(false), 200)}
+                                                                autoComplete="off"
+                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
+                                                            />
                                                             {showCardDropdown && cardSearch && (
                                                                 <div className="filter-modal__dropdown">
                                                                     {cardLoading ? (
@@ -703,7 +727,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                                 type="number"
                                                 value={selectedTransaction.widthdraw_charges}
                                                 onChange={(e) => handleTransactionFieldChange('widthdraw_charges', parseFloat(e.target.value))}
-                                                disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                             />
                                         </div>
                                     </>
@@ -715,25 +739,25 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                                         rows={4}
                                         value={selectedTransaction.remark}
                                         onChange={(e) => handleTransactionFieldChange('remark', e.target.value)}
-                                        disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                     />
                                 </div>
                                 <div className="inline-actions">
                                     <button
                                         className="main__button"
                                         onClick={() => handleSaveTransaction(selectedTransaction)}
-                                        disabled={selectedTransaction ? (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)) : false}
+                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                     >
                                         <Edit size={16} />
-                                        {selectedTransaction && isTransactionBeingSaved(selectedTransaction.id) ? 'Saving...' : 'Save'}
+                                        {selectedTransaction && isTransactionBeingSaved(selectedTransaction.id,savingTransactionIds) ? 'Saving...' : 'Save'}
                                     </button>
                                     <button
                                         className="main__icon-button"
                                         onClick={handleDeleteTransaction}
-                                        disabled={!selectedTransaction || (selectedTransaction && (isTransactionBeingSaved(selectedTransaction.id) || isTransactionBeingDeleted(selectedTransaction.id)))}
+                                        disabled={!selectedTransaction || isSelectedTransactionBeingProcessed(selectedTransaction, savingTransactionIds, deletingTransactionIds)}
                                     >
                                         <Trash size={16} />
-                                        {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id) ? 'Deleting...' : 'Delete'}
+                                        {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) ? 'Deleting...' : 'Delete'}
                                     </button>
                                     <button
                                         className="main__secondary-button"

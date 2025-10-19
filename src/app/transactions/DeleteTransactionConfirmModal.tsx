@@ -3,6 +3,7 @@ import React from 'react';
 import { Trash2, X, Hash, Calendar, User, Banknote, IndianRupee, Percent, AlertTriangle, Trash } from 'lucide-react';
 import './DeleteTransactionConfirmModal.scss';
 import { TransactionType } from '@/utils/transactionUtils';
+import { formatAmountAsCurrency, formatDateToReadable, formatDateWithTime, formatTime } from '@/utils/helperFunctions';
 
 export interface Transaction {
     id: string;
@@ -41,17 +42,6 @@ const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps
         onClose();
     };
 
-    const formatAmount = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR'
-        }).format(amount);
-    };
-
-    const formatDate = (date: string, time: string) => {
-        return `${date} • ${time}`;
-    };
-
     return (
         <div className="delete-modal-overlay" onClick={onClose}>
             <div 
@@ -82,7 +72,7 @@ const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps
                             </div>
                             <div className="delete-modal__row">
                                 <Calendar size={16} />
-                                {formatDate(transaction.date, transaction.time)}
+                                {formatDateWithTime(formatDateToReadable(transaction.date), formatTime(transaction.time))}
                             </div>
                             <div className="delete-modal__meta">
                                 <div className="delete-modal__row">
@@ -95,7 +85,7 @@ const DeleteTransactionConfirmModal: React.FC<DeleteTransactionConfirmModalProps
                                 </div>
                                 <div className="delete-modal__row">
                                     <IndianRupee size={16} />
-                                    Amount: {formatAmount(transaction.amount)}
+                                    Amount: {formatAmountAsCurrency(transaction.amount)}
                                 </div>
                                 <div className="delete-modal__row">
                                     <Percent size={16} />

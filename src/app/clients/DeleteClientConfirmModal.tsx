@@ -42,15 +42,6 @@ const DeleteClientConfirmModal: React.FC<DeleteClientConfirmModalProps> = ({
         onClose();
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2
-        }).format(amount);
-    };
-
     return (
         <div className="delete-modal-overlay" onClick={onClose}>
             <div 
