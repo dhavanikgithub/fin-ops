@@ -30,18 +30,18 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
-    
+
     // Track completed operations for temporary status display
     const [completedOperations, setCompletedOperations] = useState<{
         [transactionId: number]: 'saved' | 'deleted'
     }>({});
-    
+
     // Track transactions being removed (for fade-out animation)
     const [removingTransactions, setRemovingTransactions] = useState<Set<number>>(new Set());
-    
+
     // Track new transactions for insertion animation
     const [newTransactions, setNewTransactions] = useState<Set<number>>(new Set());
-    
+
     // Track previous transaction count to detect new additions
     const [prevTransactionCount, setPrevTransactionCount] = useState(0);
 
@@ -79,7 +79,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
         completedDeletes.forEach(id => {
             // First show the deletion status icon
             setCompletedOperations(prev => ({ ...prev, [id]: 'deleted' }));
-            
+
             // After 1 second, start fade-out animation and remove status
             setTimeout(() => {
                 setCompletedOperations(prev => {
@@ -89,7 +89,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                 });
                 // Start fade-out animation after status icon disappears
                 setRemovingTransactions(prev => new Set([...prev, id]));
-                
+
                 // Remove from removing set after animation completes
                 setTimeout(() => {
                     setRemovingTransactions(prev => {
@@ -113,9 +113,9 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
             const newTransactionIds = transactions
                 .slice(0, transactions.length - prevTransactionCount)
                 .map(t => t.id);
-            
+
             setNewTransactions(new Set(newTransactionIds));
-            
+
             // Remove animation class after animation completes
             setTimeout(() => {
                 setNewTransactions(new Set());
@@ -164,7 +164,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
     // Handle sorting
     const handleSort = (field: string) => {
         let newDirection: 'asc' | 'desc';
-        
+
         if (sortField === field) {
             // If clicking on the same column, toggle between asc and desc
             newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
@@ -237,6 +237,55 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
             <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" />;
     };
 
+    const renderBankAndCard = (bankName: string | null, cardName: string | null) => {
+        if (bankName && cardName) {
+            return (
+                <div className="table__method-bank">
+                    <div className="table__pill">
+                        {bankName} • {cardName}
+                    </div>
+                </div>
+            )
+        }
+        else if (bankName) {
+            return (
+                <div className="table__method-bank">
+                    <div className="table__pill">
+                        {bankName}
+                    </div>
+                </div>
+            )
+        }
+        else if (cardName) {
+            return (
+                <div className="table__method-bank">
+                    <div className="table__pill">
+                        {cardName}
+                    </div>
+                </div>
+            )
+        }
+        else return <div className="table__method-bank">N/A</div>;
+    }
+
+    const renderWithdrawCharges = (transaction: Transaction | null) => {
+        if (transaction && transaction.widthdraw_charges !== null && transaction.widthdraw_charges !== 0) {
+            return (
+                <div className="table__charges">
+                    <span className="table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
+                    <div className="table__charges-amount">
+                        ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                </div>
+            )
+        }
+        else{
+            return (
+                <div className="table__charges">-</div>
+            )
+        }
+    }
+
     return (
         <div className="table-wrap">
             {/* Scrollable container */}
@@ -275,11 +324,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                                     Charges
                                 </div>
                             </th>
-                            <th>
-                                <div className="table__sort-header table__sort-header--disabled">
-                                    Notes
-                                </div>
-                            </th>
+
                             <th>
                                 <div
                                     className="table__sort-header"
@@ -287,6 +332,11 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                                 >
                                     Date & Time
                                     <SortIcon field="create_date" />
+                                </div>
+                            </th>
+                            <th>
+                                <div className="table__sort-header table__sort-header--disabled">
+                                    Notes
                                 </div>
                             </th>
                             <th></th>
@@ -315,9 +365,9 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                                 const completedStatus = completedOperations[transaction.id];
                                 const isRemoving = removingTransactions.has(transaction.id);
                                 const isNew = newTransactions.has(transaction.id);
-                                
+
                                 return (
-                                    <tr 
+                                    <tr
                                         key={`${transaction.id}-${index}`}
                                         className={`
                                             ${selectedTransaction?.id === transaction.id ? 'table__row--selected' : ''}
@@ -332,7 +382,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                                                     style={{ backgroundColor: getAvatarColor(transaction.client_name) }}
                                                 >
                                                     {getAvatarInitials(transaction.client_name)}
-                                                    
+
                                                     {/* Loading/Status Overlay */}
                                                     {(isSaving || isDeleting || completedStatus) && (
                                                         <div className="table__avatar-overlay">
@@ -362,78 +412,69 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                                                 <span className="table__client-name">{transaction.client_name}</span>
                                             </div>
                                         </td>
-                                    <td>
-                                        <div className="table__method-bank">
-                                            <div className="table__pill">
-                                                {transaction.bank_name || transaction.card_name ? `${transaction.bank_name || ''}${transaction.bank_name && transaction.card_name ? ' • ' : ''}${transaction.card_name || ''}` : 'N/A'}
-                                            </div>
-                                        </div>
-
-                                    </td>
-                                    <td>
-                                        <div className={`table__amount table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
-                                            {isDeposit(transaction.transaction_type) ? (
-                                                <ArrowDownLeft size={16} className="table__amount-icon" />
-                                            ) : (
-                                                <ArrowUpRight size={16} className="table__amount-icon" />
-                                            )}
-                                            <span className="table__amount-value">
-                                                {formatAmountWithSymbol(transaction.transaction_amount)}
-                                            </span>
-                                        </div>
-
-                                    </td>
-                                    <td>
-                                        <div className="table__charges">
-                                            <span className="table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
-                                            <div className="table__charges-amount">
-                                                ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div className="table__notes">
-                                            {transaction.remark.length > 30 ? (
-                                                <span className="table__notes-text">
-                                                    {transaction.remark.slice(0, 30)}
-                                                    <button
-                                                        className="table__notes-viewmore"
-                                                        onClick={(e) => {
-                                                            const rect = e.currentTarget.getBoundingClientRect();
-                                                            setNotesModal({
-                                                                open: true,
-                                                                text: transaction.remark,
-                                                                position: {
-                                                                    x: rect.left + rect.width / 2,
-                                                                    y: rect.top - 8
-                                                                }
-                                                            });
-                                                        }}
-                                                    >
-                                                        ...
-                                                    </button>
+                                        <td>
+                                            {renderBankAndCard(transaction.bank_name, transaction.card_name)}
+                                        </td>
+                                        <td>
+                                            <div className={`table__amount table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
+                                                {isDeposit(transaction.transaction_type) ? (
+                                                    <ArrowDownLeft size={16} className="table__amount-icon" />
+                                                ) : (
+                                                    <ArrowUpRight size={16} className="table__amount-icon" />
+                                                )}
+                                                <span className="table__amount-value">
+                                                    {formatAmountWithSymbol(transaction.transaction_amount)}
                                                 </span>
-                                            ) : (
-                                                <span className="table__notes-text">
-                                                    {transaction.remark && transaction.remark.trim() !== '' ? transaction.remark : 'N/A'}
-                                                </span>
-                                            )}
-                                        </div>
+                                            </div>
 
-                                    </td>
-                                    <td>
-                                        {formatDateToReadable(transaction.create_date)} <span className="table__time">• {formatTime(transaction.create_time)}</span>
-                                    </td>
-                                    <td>
-                                        <button 
-                                            className="row-actions"
-                                            onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
-                                        >
-                                            <MoreHorizontal size={16} />
-                                            Manage
-                                        </button>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td>
+                                            {renderWithdrawCharges(transaction)}
+                                        </td>
+                                        <td>
+                                            {formatDateToReadable(transaction.create_date)} <span className="table__time">• {formatTime(transaction.create_time)}</span>
+                                        </td>
+                                        <td>
+                                            <div className="table__notes">
+                                                {transaction.remark.length > 30 ? (
+                                                    <span className="table__notes-text">
+                                                        {transaction.remark.slice(0, 30)}
+                                                        <button
+                                                            className="table__notes-viewmore"
+                                                            onClick={(e) => {
+                                                                const rect = e.currentTarget.getBoundingClientRect();
+                                                                setNotesModal({
+                                                                    open: true,
+                                                                    text: transaction.remark,
+                                                                    position: {
+                                                                        x: rect.left + rect.width / 2,
+                                                                        y: rect.top - 8
+                                                                    }
+                                                                });
+                                                            }}
+                                                        >
+                                                            ...
+                                                        </button>
+                                                    </span>
+                                                ) : (
+                                                    <span className="table__notes-text">
+                                                        {transaction.remark && transaction.remark.trim() !== '' ? transaction.remark : 'N/A'}
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                        </td>
+
+                                        <td>
+                                            <button
+                                                className="row-actions"
+                                                onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
+                                            >
+                                                <MoreHorizontal size={16} />
+                                                Manage
+                                            </button>
+                                        </td>
+                                    </tr>
                                 );
                             })
                         )}
