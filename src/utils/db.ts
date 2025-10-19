@@ -47,7 +47,6 @@ const query = async <T extends QueryResultRow = any>(text: string, params?: any[
     try {
         // Set schema for this connection
         await client.query(`SET search_path TO ${currentSchema}`);
-        logger.debug("Using schema:", currentSchema);
         const result = await client.query<T>(text, params);
         return result;
     } catch (error) {
