@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Transaction, PaginationInfo, FiltersApplied, SortApplied } from '../../services/transactionService';
-import { fetchTransactions, loadMoreTransactions, searchTransactions, applyFilters, sortTransactions } from '../actions/transactionActions';
+import { fetchTransactions, loadMoreTransactions, searchTransactions, applyFilters, sortTransactions, editTransaction, deleteTransaction } from '../actions/transactionActions';
 
 export interface TransactionState {
     transactions: Transaction[];
@@ -169,6 +169,42 @@ const transactionSlice = createSlice({
             .addCase(sortTransactions.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to sort transactions';
+            });
+
+        // Edit transaction
+        builder
+            .addCase(editTransaction.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(editTransaction.fulfilled, (state, action) => {
+                state.loading = false;
+                const updated = action.payload.transaction;
+                state.transactions = state.transactions.map((t) =>
+                    t.id === updated.id ? { ...t, ...updated } : t
+                );
+                state.error = null;
+            })
+            .addCase(editTransaction.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to edit transaction';
+            });
+
+        // Delete transaction
+        builder
+            .addCase(deleteTransaction.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(deleteTransaction.fulfilled, (state, action) => {
+                state.loading = false;
+                const deletedId = action.payload.id;
+                state.transactions = state.transactions.filter((t) => t.id !== deletedId);
+                state.error = null;
+            })
+            .addCase(deleteTransaction.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to delete transaction';
             });
     },
 });

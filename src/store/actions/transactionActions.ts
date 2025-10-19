@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import transactionService, { TransactionFilters, TransactionResponse } from '../../services/transactionService';
+import transactionService, { Transaction, TransactionFilters, TransactionResponse } from '../../services/transactionService';
 import { RootState } from '../index';
 
 // Fetch transactions with filters and sorting
@@ -13,7 +13,7 @@ export const fetchTransactions = createAsyncThunk<
         try {
             const state = getState();
             const { filters, searchQuery, sortConfig } = state.transactions;
-            
+
             const requestFilters: TransactionFilters = {
                 page: 1,
                 limit: 20,
@@ -22,7 +22,7 @@ export const fetchTransactions = createAsyncThunk<
                 search: searchQuery || undefined,
                 ...customFilters
             };
-            
+
             const response = await transactionService.getTransactions(requestFilters);
             return response;
         } catch (error: any) {
@@ -44,11 +44,11 @@ export const loadMoreTransactions = createAsyncThunk<
         try {
             const state = getState();
             const { filters, searchQuery, sortConfig, pagination } = state.transactions;
-            
+
             if (!pagination?.has_next_page) {
                 throw new Error('No more transactions to load');
             }
-            
+
             const requestFilters: TransactionFilters = {
                 page: pagination.current_page + 1,
                 limit: pagination.per_page,
@@ -56,7 +56,7 @@ export const loadMoreTransactions = createAsyncThunk<
                 ...sortConfig,
                 search: searchQuery || undefined
             };
-            
+
             const response = await transactionService.getTransactions(requestFilters);
             return response;
         } catch (error: any) {
@@ -78,7 +78,7 @@ export const searchTransactions = createAsyncThunk<
         try {
             const state = getState();
             const { filters, sortConfig } = state.transactions;
-            
+
             const requestFilters: TransactionFilters = {
                 page: 1,
                 limit: 20,
@@ -86,7 +86,7 @@ export const searchTransactions = createAsyncThunk<
                 ...sortConfig,
                 search: searchQuery || undefined
             };
-            
+
             const response = await transactionService.getTransactions(requestFilters);
             return response;
         } catch (error: any) {
@@ -108,7 +108,7 @@ export const applyFilters = createAsyncThunk<
         try {
             const state = getState();
             const { searchQuery, sortConfig } = state.transactions;
-            
+
             const requestFilters: TransactionFilters = {
                 page: 1,
                 limit: 20,
@@ -116,7 +116,7 @@ export const applyFilters = createAsyncThunk<
                 ...sortConfig,
                 search: searchQuery || undefined
             };
-            
+
             const response = await transactionService.getTransactions(requestFilters);
             return response;
         } catch (error: any) {
@@ -138,7 +138,7 @@ export const sortTransactions = createAsyncThunk<
         try {
             const state = getState();
             const { filters, searchQuery } = state.transactions;
-            
+
             const requestFilters: TransactionFilters = {
                 page: 1,
                 limit: 20,
@@ -146,12 +146,50 @@ export const sortTransactions = createAsyncThunk<
                 ...sortConfig,
                 search: searchQuery || undefined
             };
-            
+
             const response = await transactionService.getTransactions(requestFilters);
             return response;
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || error.message || 'Failed to sort transactions'
+            );
+        }
+    }
+);
+
+// Edit a transaction
+export const editTransaction = createAsyncThunk<
+    { transaction: Transaction; message: string },
+    Partial<Transaction> & { id: number },
+    { rejectValue: string }
+>(
+    'transactions/editTransaction',
+    async (transactionData, { rejectWithValue }) => {
+        try {
+            const response = await transactionService.editTransaction(transactionData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to edit transaction'
+            );
+        }
+    }
+);
+
+// Delete a transaction
+export const deleteTransaction = createAsyncThunk<
+    { id: number; message: string },
+    number,
+    { rejectValue: string }
+>(
+    'transactions/deleteTransaction',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await transactionService.deleteTransaction(id);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to delete transaction'
             );
         }
     }

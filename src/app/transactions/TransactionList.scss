@@ -309,3 +309,100 @@
 .control-radio-group {
     display: none; // Hide if any legacy usage exists
 }
+
+// Spinner styles for toast notifications
+.spinner-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Processing overlay styles for detail panel
+.detail__processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    min-height: 100%;
+}
+
+.detail__processing-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 24px;
+    max-width: 280px;
+    text-align: center;
+}
+
+.detail__processing-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--muted);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: detail-processing-spin 1s linear infinite;
+    margin-bottom: 4px;
+}
+
+.detail__processing-message {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: center;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+}
+
+@keyframes detail-processing-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Ensure detail panel has relative positioning for overlay
+.detail {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+// Better centering for smaller screens
+@media (max-width: 768px) {
+    .detail__processing-content {
+        padding: 24px 20px;
+        max-width: 240px;
+    }
+    
+    .detail__processing-spinner {
+        width: 36px;
+        height: 36px;
+        border-width: 3px;
+    }
+    
+    .detail__processing-message {
+        font-size: 14px;
+    }
+}

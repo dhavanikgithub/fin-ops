@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal } from 'lucide-react';
+import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal, Check, X } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
 import { Transaction } from '../../services/transactionService';
@@ -10,9 +10,11 @@ import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transact
 interface TableProps {
     selectedTransaction?: Transaction | null;
     onTransactionSelect?: (transaction: Transaction) => void;
+    savingTransactionIds?: number[];
+    deletingTransactionIds?: number[];
 }
 
-const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
+const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect, savingTransactionIds = [], deletingTransactionIds = [] }) => {
     const dispatch = useAppDispatch();
     const {
         transactions,
@@ -27,6 +29,20 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
     const [sortField, setSortField] = useState<string | null>(null);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    
+    // Track completed operations for temporary status display
+    const [completedOperations, setCompletedOperations] = useState<{
+        [transactionId: number]: 'saved' | 'deleted'
+    }>({});
+    
+    // Track transactions being removed (for fade-out animation)
+    const [removingTransactions, setRemovingTransactions] = useState<Set<number>>(new Set());
+    
+    // Track new transactions for insertion animation
+    const [newTransactions, setNewTransactions] = useState<Set<number>>(new Set());
+    
+    // Track previous transaction count to detect new additions
+    const [prevTransactionCount, setPrevTransactionCount] = useState(0);
 
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
@@ -37,6 +53,75 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
         setSortField(sortConfig.sort_by);
         setSortDirection(sortConfig.sort_order);
     }, [sortConfig]);
+
+    // Track previous states to detect completion
+    const [prevSavingIds, setPrevSavingIds] = useState<number[]>([]);
+    const [prevDeletingIds, setPrevDeletingIds] = useState<number[]>([]);
+
+    // Handle completed operations status display
+    useEffect(() => {
+        // Check for newly completed save operations
+        const completedSaves = prevSavingIds.filter(id => !savingTransactionIds.includes(id));
+        completedSaves.forEach(id => {
+            setCompletedOperations(prev => ({ ...prev, [id]: 'saved' }));
+            setTimeout(() => {
+                setCompletedOperations(prev => {
+                    const newState = { ...prev };
+                    delete newState[id];
+                    return newState;
+                });
+            }, 1000);
+        });
+
+        // Check for newly completed delete operations
+        const completedDeletes = prevDeletingIds.filter(id => !deletingTransactionIds.includes(id));
+        completedDeletes.forEach(id => {
+            // First show the deletion status icon
+            setCompletedOperations(prev => ({ ...prev, [id]: 'deleted' }));
+            
+            // After 1 second, start fade-out animation and remove status
+            setTimeout(() => {
+                setCompletedOperations(prev => {
+                    const newState = { ...prev };
+                    delete newState[id];
+                    return newState;
+                });
+                // Start fade-out animation after status icon disappears
+                setRemovingTransactions(prev => new Set([...prev, id]));
+                
+                // Remove from removing set after animation completes
+                setTimeout(() => {
+                    setRemovingTransactions(prev => {
+                        const newSet = new Set(prev);
+                        newSet.delete(id);
+                        return newSet;
+                    });
+                }, 400); // Match CSS animation duration
+            }, 1000); // Wait 1 second to show delete status
+        });
+
+        // Update previous states
+        setPrevSavingIds(savingTransactionIds);
+        setPrevDeletingIds(deletingTransactionIds);
+    }, [savingTransactionIds, deletingTransactionIds, prevSavingIds, prevDeletingIds]);
+
+    // Handle new record insertion animations
+    useEffect(() => {
+        if (transactions.length > prevTransactionCount && prevTransactionCount > 0) {
+            // New transactions were added
+            const newTransactionIds = transactions
+                .slice(0, transactions.length - prevTransactionCount)
+                .map(t => t.id);
+            
+            setNewTransactions(new Set(newTransactionIds));
+            
+            // Remove animation class after animation completes
+            setTimeout(() => {
+                setNewTransactions(new Set());
+            }, 500);
+        }
+        setPrevTransactionCount(transactions.length);
+    }, [transactions, prevTransactionCount]);
 
     // Handle scroll events to show/hide header shadow
     useEffect(() => {
@@ -302,22 +387,59 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                                 </td>
                             </tr>
                         ) : (
-                            transactions.map((transaction: Transaction, index: number) => (
-                                <tr 
-                                    key={`${transaction.id}-${index}`}
-                                    className={selectedTransaction?.id === transaction.id ? 'table__row--selected' : ''}
-                                >
-                                    <td>
-                                        <div className="table__client">
-                                            <div
-                                                className="table__client-avatar"
-                                                style={{ backgroundColor: getAvatarColor(transaction.client_name) }}
-                                            >
-                                                {getInitials(transaction.client_name)}
+                            transactions.filter(transaction => !removingTransactions.has(transaction.id)).map((transaction: Transaction, index: number) => {
+                                const isSaving = savingTransactionIds.includes(transaction.id);
+                                const isDeleting = deletingTransactionIds.includes(transaction.id);
+                                const completedStatus = completedOperations[transaction.id];
+                                const isRemoving = removingTransactions.has(transaction.id);
+                                const isNew = newTransactions.has(transaction.id);
+                                
+                                return (
+                                    <tr 
+                                        key={`${transaction.id}-${index}`}
+                                        className={`
+                                            ${selectedTransaction?.id === transaction.id ? 'table__row--selected' : ''}
+                                            ${isRemoving ? 'table__row--removing' : ''}
+                                            ${isNew ? 'table__row--inserting' : ''}
+                                        `.trim()}
+                                    >
+                                        <td>
+                                            <div className="table__client">
+                                                <div
+                                                    className="table__client-avatar"
+                                                    style={{ backgroundColor: getAvatarColor(transaction.client_name) }}
+                                                >
+                                                    {getInitials(transaction.client_name)}
+                                                    
+                                                    {/* Loading/Status Overlay */}
+                                                    {(isSaving || isDeleting || completedStatus) && (
+                                                        <div className="table__avatar-overlay">
+                                                            {isSaving && (
+                                                                <div className="table__avatar-spinner">
+                                                                    <div className="table__spinner-ring"></div>
+                                                                </div>
+                                                            )}
+                                                            {isDeleting && (
+                                                                <div className="table__avatar-spinner">
+                                                                    <div className="table__spinner-ring table__spinner-ring--delete"></div>
+                                                                </div>
+                                                            )}
+                                                            {completedStatus === 'saved' && (
+                                                                <div className="table__avatar-status table__avatar-status--success">
+                                                                    <Check size={16} />
+                                                                </div>
+                                                            )}
+                                                            {completedStatus === 'deleted' && (
+                                                                <div className="table__avatar-status table__avatar-status--error">
+                                                                    <X size={16} />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="table__client-name">{transaction.client_name}</span>
                                             </div>
-                                            <span className="table__client-name">{transaction.client_name}</span>
-                                        </div>
-                                    </td>
+                                        </td>
                                     <td>
                                         <div className="table__method-bank">
                                             <div className="table__pill">
@@ -382,7 +504,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                                     </td>
                                     <td>
                                         <button 
-                                            className="table__row-actions"
+                                            className="row-actions"
                                             onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
                                         >
                                             <MoreHorizontal size={16} />
@@ -390,7 +512,8 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                                         </button>
                                     </td>
                                 </tr>
-                            ))
+                                );
+                            })
                         )}
                     </tbody>
                 </table>

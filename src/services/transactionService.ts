@@ -80,6 +80,19 @@ export const transactionService = {
         const response = await api.get(url);
         return response.data;
     },
+    // Edit a transaction
+    editTransaction: async (transactionData: Partial<Transaction> & { id: number }): Promise<{ transaction: Transaction; message: string }> => {
+        const url = `${TRANSACTION_ENDPOINTS.BASE}/transactions`;
+        const response = await api.put(url, transactionData);
+        return response.data;
+    },
+
+    // Delete a transaction
+    deleteTransaction: async (id: number): Promise<{ id: number; message: string }> => {
+        const url = `${TRANSACTION_ENDPOINTS.BASE}/transactions`;
+        const response = await api.delete(url, { data: { id } });
+        return response.data;
+    },
 };
 
 export default transactionService;

@@ -2,7 +2,7 @@
 import Navbar from "@/components/Navbar";
 import '../styles/App.scss'
 import { ReactNode } from "react";
-import { ThemeProvider } from "@/context/ThemeContext";
+import { ThemeProvider, useTheme } from "@/context/ThemeContext";
 
 interface AppProps {
     children: ReactNode;

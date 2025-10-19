@@ -12,6 +12,7 @@ export const API_CONFIG = {
 // Transaction Endpoints
 export const TRANSACTION_ENDPOINTS = {
     PAGINATED: `${API_CONFIG.BASE_URL}/transactions/paginated`,
+    BASE: `${API_CONFIG.BASE_URL}/transactions`,
 } as const;
 
 // Bank Endpoints
