@@ -1,5 +1,5 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import transactionService, { Transaction, TransactionFilters, TransactionResponse } from '../../services/transactionService';
+import transactionService, { Transaction, TransactionFilters, TransactionResponse, CreateTransactionData, CreateTransactionResponse, EditTransactionResponse, DeleteTransactionResponse } from '../../services/transactionService';
 import { RootState } from '../index';
 
 // Fetch transactions with filters and sorting
@@ -157,15 +157,35 @@ export const sortTransactions = createAsyncThunk<
     }
 );
 
+// Create a new transaction
+export const createTransaction = createAsyncThunk<
+    CreateTransactionResponse,
+    CreateTransactionData,
+    { rejectValue: string }
+>(
+    'transactions/createTransaction',
+    async (transactionData, { rejectWithValue }) => {
+        try {
+            const response = await transactionService.createTransaction(transactionData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to create transaction'
+            );
+        }
+    }
+);
+
 // Edit a transaction
 export const editTransaction = createAsyncThunk<
-    { transaction: Transaction; message: string },
+    EditTransactionResponse,
     Partial<Transaction> & { id: number },
     { rejectValue: string }
 >(
     'transactions/editTransaction',
     async (transactionData, { rejectWithValue }) => {
         try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const response = await transactionService.editTransaction(transactionData);
             return response;
         } catch (error: any) {
@@ -178,13 +198,14 @@ export const editTransaction = createAsyncThunk<
 
 // Delete a transaction
 export const deleteTransaction = createAsyncThunk<
-    { id: number; message: string },
+    DeleteTransactionResponse,
     number,
     { rejectValue: string }
 >(
     'transactions/deleteTransaction',
     async (id, { rejectWithValue }) => {
         try {
+            await new Promise(resolve => setTimeout(resolve, 1000));
             const response = await transactionService.deleteTransaction(id);
             return response;
         } catch (error: any) {

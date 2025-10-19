@@ -8,6 +8,7 @@ import { fetchCardAutocomplete } from '../../store/actions/cardActions';
 import { clearCardAutocomplete } from '../../store/slices/cardAutocompleteSlice';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
+import { createTransaction } from '../../store/actions/transactionActions';
 import './AddWithdraw.scss';
 
 interface AddWithdrawScreenProps {
@@ -20,6 +21,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
     const { items: bankAutocompleteItems, loading: bankLoading } = useAppSelector(state => state.bankAutocomplete);
     const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
+    const { loading: transactionLoading, error: transactionError } = useAppSelector(state => state.transactions);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -314,9 +316,46 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }
     };
 
-    const handleSaveWithdraw = () => {
-        console.log('Saving withdraw:', formData);
-        // Handle save logic here
+    const handleSaveWithdraw = async () => {
+        // Validate required fields
+        if (!formData.clientId) {
+            alert('Please select a client');
+            return;
+        }
+        
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        const chargesAmount = parseFloat(formData.chargesPct) || 0;
+        const transactionAmount = parseFloat(formData.amount);
+
+        try {
+            const transactionData = {
+                client_id: formData.clientId,
+                transaction_type: 1, // 1 for withdraw
+                widthdraw_charges: chargesAmount,
+                transaction_amount: transactionAmount,
+                bank_id: formData.bankId || undefined,
+                card_id: formData.cardId || undefined,
+                remark: formData.notes || undefined
+            };
+
+            const result = await dispatch(createTransaction(transactionData));
+            
+            if (createTransaction.fulfilled.match(result)) {
+                console.log('Withdraw created successfully:', result.payload);
+                // Navigate back to transactions list
+                onBackToTransactions();
+            } else {
+                console.error('Failed to create withdraw:', result.payload);
+                alert(`Failed to create withdraw: ${result.payload}`);
+            }
+        } catch (error) {
+            console.error('Error creating withdraw:', error);
+            alert('An unexpected error occurred while creating the withdraw');
+        }
     };
 
     const handleCancel = () => {
@@ -341,9 +380,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                         <X size={16} />
                         Cancel
                     </button>
-                    <button className="main__button" onClick={handleSaveWithdraw}>
+                    <button className="main__button" onClick={handleSaveWithdraw} disabled={transactionLoading}>
                         <Save size={16} />
-                        Save Withdraw
+                        {transactionLoading ? 'Saving...' : 'Save Withdraw'}
                     </button>
                 </div>
 
@@ -650,9 +689,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                             <ArrowLeft size={16} />
                             Back to Transactions
                         </button>
-                        <button className="main__button" onClick={handleSaveWithdraw}>
+                        <button className="main__button" onClick={handleSaveWithdraw} disabled={transactionLoading}>
                             <CheckCircle2 size={16} />
-                            Confirm & Add Withdraw
+                            {transactionLoading ? 'Creating...' : 'Confirm & Add Withdraw'}
                         </button>
 
                     </div>

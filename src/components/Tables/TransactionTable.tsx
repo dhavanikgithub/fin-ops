@@ -11,11 +11,9 @@ import { formatAmountWithSymbol, formatDateToReadable, formatTime, getAvatarColo
 interface TableProps {
     selectedTransaction?: Transaction | null;
     onTransactionSelect?: (transaction: Transaction) => void;
-    savingTransactionIds?: number[];
-    deletingTransactionIds?: number[];
 }
 
-const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect, savingTransactionIds = [], deletingTransactionIds = [] }) => {
+const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
     const dispatch = useAppDispatch();
     const {
         transactions,
@@ -24,7 +22,9 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
         hasMore,
         sortConfig,
         pagination,
-        error
+        error,
+        editingTransactionIds,
+        deletingTransactionIds
     } = useAppSelector((state) => state.transactions);
 
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
@@ -62,7 +62,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
     // Handle completed operations status display
     useEffect(() => {
         // Check for newly completed save operations
-        const completedSaves = prevSavingIds.filter(id => !savingTransactionIds.includes(id));
+        const completedSaves = prevSavingIds.filter(id => !editingTransactionIds.includes(id));
         completedSaves.forEach(id => {
             setCompletedOperations(prev => ({ ...prev, [id]: 'saved' }));
             setTimeout(() => {
@@ -102,9 +102,9 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
         });
 
         // Update previous states
-        setPrevSavingIds(savingTransactionIds);
+        setPrevSavingIds(editingTransactionIds);
         setPrevDeletingIds(deletingTransactionIds);
-    }, [savingTransactionIds, deletingTransactionIds, prevSavingIds, prevDeletingIds]);
+    }, [editingTransactionIds, deletingTransactionIds, prevSavingIds, prevDeletingIds]);
 
     // Handle new record insertion animations
     useEffect(() => {
@@ -360,7 +360,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect,
                             </tr>
                         ) : (
                             transactions.filter(transaction => !removingTransactions.has(transaction.id)).map((transaction: Transaction, index: number) => {
-                                const isSaving = savingTransactionIds.includes(transaction.id);
+                                const isSaving = editingTransactionIds.includes(transaction.id);
                                 const isDeleting = deletingTransactionIds.includes(transaction.id);
                                 const completedStatus = completedOperations[transaction.id];
                                 const isRemoving = removingTransactions.has(transaction.id);

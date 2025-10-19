@@ -4,6 +4,7 @@ import { ArrowDownCircle, X, Save, User, IndianRupee, StickyNote, ArrowLeft, Che
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
+import { createTransaction } from '../../store/actions/transactionActions';
 import './AddDeposit.scss';
 
 interface AddDepositScreenProps {
@@ -14,6 +15,7 @@ interface AddDepositScreenProps {
 const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToTransactions }) => {
     const dispatch = useAppDispatch();
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
+    const { loading: transactionLoading, error: transactionError } = useAppSelector(state => state.transactions);
 
     const [formData, setFormData] = useState({
         client: '',
@@ -127,9 +129,41 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
         }
     };
 
-    const handleSaveDeposit = () => {
-        console.log('Saving deposit:', formData);
-        // Handle save logic here
+    const handleSaveDeposit = async () => {
+        // Validate required fields
+        if (!formData.clientId) {
+            alert('Please select a client');
+            return;
+        }
+        
+        if (!formData.amount || parseFloat(formData.amount) <= 0) {
+            alert('Please enter a valid amount');
+            return;
+        }
+
+        try {
+            const transactionData = {
+                client_id: formData.clientId,
+                transaction_type: 0, // 0 for deposit
+                widthdraw_charges: 0, // No charges for deposits
+                transaction_amount: parseFloat(formData.amount),
+                remark: formData.notes || undefined
+            };
+
+            const result = await dispatch(createTransaction(transactionData));
+            
+            if (createTransaction.fulfilled.match(result)) {
+                console.log('Deposit created successfully:', result.payload);
+                // Navigate back to transactions list
+                onBackToTransactions();
+            } else {
+                console.error('Failed to create deposit:', result.payload);
+                alert(`Failed to create deposit: ${result.payload}`);
+            }
+        } catch (error) {
+            console.error('Error creating deposit:', error);
+            alert('An unexpected error occurred while creating the deposit');
+        }
     };
 
     const handleCancel = () => {
@@ -154,9 +188,9 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                         <X size={16} />
                         Cancel
                     </button>
-                    <button className="main__button" onClick={handleSaveDeposit}>
+                    <button className="main__button" onClick={handleSaveDeposit} disabled={transactionLoading}>
                         <Save size={16} />
-                        Save Deposit
+                        {transactionLoading ? 'Saving...' : 'Save Deposit'}
                     </button>
                 </div>
             </header>
@@ -288,9 +322,9 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                             <ArrowLeft size={16} />
                             Back to Transactions
                         </button>
-                        <button className="main__button" onClick={handleSaveDeposit}>
+                        <button className="main__button" onClick={handleSaveDeposit} disabled={transactionLoading}>
                             <CheckCircle2 size={16} />
-                            Confirm & Add Deposit
+                            {transactionLoading ? 'Creating...' : 'Confirm & Add Deposit'}
                         </button>
                     </div>
                 </div>
