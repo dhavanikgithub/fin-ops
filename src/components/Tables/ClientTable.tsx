@@ -215,7 +215,9 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                     <td>
                                         {renderClientAddress(client.address)}
                                     </td>
-                                    <td>{client.transaction_count || 0}</td>
+                                    <td>
+                                        {client.transaction_count || 0}
+                                    </td>
                                     <td>
                                         {formatDateToReadable(client.create_date)}{' '}
                                         <span className="client-table__time">• {formatTime(client.create_time)}</span>
