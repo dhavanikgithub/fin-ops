@@ -1,4 +1,4 @@
-# API Documentation
+# Autocomplete API Documentation
 
 This document provides comprehensive documentation for the autocomplete endpoints and report preview functionality for the finance management system.
 
