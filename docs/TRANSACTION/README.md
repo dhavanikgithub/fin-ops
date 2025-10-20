@@ -204,6 +204,6 @@ The implementation involved adding new components to support the paginated struc
 3.  **Service (`src/v1/services/transactionService.ts`):** Added `getPaginatedTransactions()` for core logic (dynamic WHERE for filters, exact match priority search, sorting, offset/limit).
 4.  **Controller (`src/v1/controllers/transactionController.ts`):** Added `getPaginatedTransactions()` for request handling, validation, type conversion, and error handling.
 5.  **Routes (`src/v1/routes/transactionRoute.ts`):** Added the new endpoint `GET /api/v1/transactions/paginated`.
-6.  **Documentation:** Created this comprehensive documentation (`docs/TRANSACTION_PAGINATION_API.md`).
+6.  **Documentation:** Created this comprehensive documentation (`docs/TRANSACTION/README.md`).
 
 ---

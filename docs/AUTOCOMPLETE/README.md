@@ -614,12 +614,3 @@ Invoke-RestMethod -Uri 'http://localhost:3001/api/v1/cards/autocomplete?search=v
 
 ---
 
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-10-04 | Initial implementation of autocomplete endpoints |
-
----
-
-*Last Updated: October 4, 2025*

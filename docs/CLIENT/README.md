@@ -180,6 +180,6 @@ The implementation involved adding new components to support the paginated struc
 3.  **Service (`src/v1/services/clientService.ts`):** Added `getPaginatedClients()` for core logic (dynamic WHERE, exact match priority across multiple fields, sorting, offset/limit).
 4.  **Controller (`src/v1/controllers/clientController.ts`):** Added `getPaginatedClients()` for request handling, validation, type conversion, and error handling.
 5.  **Routes (`src/v1/routes/clientRoute.ts`):** Added the new endpoint `GET /api/v1/clients/paginated`.
-6.  **Documentation:** Created this comprehensive documentation (`docs/CLIENT_PAGINATION_API.md`).
+6.  **Documentation:** Created this comprehensive documentation (`docs/CLIENT/README.md`).
 
 ---

@@ -172,6 +172,6 @@ The implementation involved adding new components to support the paginated struc
 3.  **Service (`src/v1/services/cardService.ts`):** Added `getPaginatedCards()` for core logic (dynamic WHERE, exact match priority, sorting, offset/limit).
 4.  **Controller (`src/v1/controllers/cardController.ts`):** Added `getPaginatedCards()` for request handling, validation, type conversion, and error handling.
 5.  **Routes (`src/v1/routes/cardRoute.ts`):** Added the new endpoint `GET /api/v1/cards/paginated`.
-6.  **Documentation:** Created this comprehensive documentation (`docs/CARD_PAGINATION_API.md`) and usage examples (`docs/CARD_API_EXAMPLES.ts`).
+6.  **Documentation:** Created this comprehensive documentation (`docs/CARD/README.md`) and usage examples (`docs/CARD_API_EXAMPLES.ts`).
 
 ---
