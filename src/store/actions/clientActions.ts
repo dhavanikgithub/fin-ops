@@ -180,7 +180,6 @@ export const createClient = createAsyncThunk<
     'clients/create',
     async (clientData, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 5000));
             const response = await clientService.createClient(clientData);
             return response;
         } catch (error: any) {
@@ -200,7 +199,6 @@ export const updateClient = createAsyncThunk<
     'clients/update',
     async (clientData, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 5000));
             const response = await clientService.updateClient(clientData);
             return response;
         } catch (error: any) {
@@ -220,7 +218,6 @@ export const deleteClient = createAsyncThunk<
     'clients/delete',
     async (clientData, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 5000));
             const response = await clientService.deleteClient(clientData);
             return response;
         } catch (error: any) {

@@ -185,7 +185,6 @@ export const editTransaction = createAsyncThunk<
     'transactions/editTransaction',
     async (transactionData, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
             const response = await transactionService.editTransaction(transactionData);
             return response;
         } catch (error: any) {
@@ -205,7 +204,6 @@ export const deleteTransaction = createAsyncThunk<
     'transactions/deleteTransaction',
     async (id, { rejectWithValue }) => {
         try {
-            await new Promise(resolve => setTimeout(resolve, 1000));
             const response = await transactionService.deleteTransaction(id);
             return response;
         } catch (error: any) {
