@@ -76,7 +76,10 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                     </div>
 
                     <div className="ab__form">
-                        <div className="ab__field">
+                        
+
+                        <div className="ab__dual-grid">
+                            <div className="ab__field">
                             <label className="ab__label">
                                 <Building2 size={16} />
                                 Bank Name
@@ -90,22 +93,6 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                             />
                             <span className="ab__hint">Example: HDFC Bank</span>
                         </div>
-
-                        <div className="ab__field">
-                            <label className="ab__label">
-                                <Calendar size={16} />
-                                Created On
-                            </label>
-                            <input
-                                type="date"
-                                className="ab__input"
-                                value={formData.createdOn}
-                                onChange={(e) => handleInputChange('createdOn', e.target.value)}
-                            />
-                            <span className="ab__hint">You can adjust later if needed.</span>
-                        </div>
-
-                        <div className="ab__dual-grid">
                             <div className="ab__field">
                                 <label className="ab__label">
                                     <LayoutDashboard size={16} />
@@ -118,25 +105,9 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                                     onChange={(e) => handleInputChange('initialTransactionsCount', e.target.value)}
                                     placeholder="0"
                                     min="0"
+                                    readOnly
                                 />
                                 <span className="ab__hint">Starting transaction count.</span>
-                            </div>
-
-                            <div className="ab__field">
-                                <label className="ab__label">
-                                    <IndianRupee size={16} />
-                                    Initial Amount (₹)
-                                </label>
-                                <input
-                                    type="number"
-                                    className="ab__input"
-                                    value={formData.initialAmount}
-                                    onChange={(e) => handleInputChange('initialAmount', e.target.value)}
-                                    placeholder="0.00"
-                                    step="0.01"
-                                    min="0"
-                                />
-                                <span className="ab__hint">Starting balance amount.</span>
                             </div>
                         </div>
 
