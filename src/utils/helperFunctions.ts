@@ -54,6 +54,15 @@ const formatDateWithTime = (date: string, time: string) => {
     return `${date} • ${time}`;
 };
 
+// Format date to "Jan 2023"
+const formatDateToMonthYear = (dateString: string): string => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        month: 'short',
+        year: 'numeric'
+    });
+};
+
 // Format time
 const formatTime = (timeString: string): string => {
     // Handle different time string formats
@@ -117,4 +126,4 @@ const formatAmountAsCurrency = (amount: number) => {
     }).format(amount);
 };
 
-export { getAvatarInitials, getAvatarColorClass, getAvatarColor, formatDateToReadable, formatDateWithTime, formatTime, debounce, formatCurrency, formatAmountWithSymbol, formatAmountAsCurrency };
+export { getAvatarInitials, getAvatarColorClass, getAvatarColor, formatDateToReadable, formatDateWithTime, formatTime, debounce, formatCurrency, formatAmountWithSymbol, formatAmountAsCurrency, formatDateToMonthYear };

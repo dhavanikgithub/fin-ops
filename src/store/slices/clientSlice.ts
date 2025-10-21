@@ -1,20 +1,34 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Client, ClientPaginationInfo, ClientSortApplied } from '../../services/clientService';
-import { fetchClients, loadMoreClients, searchClients, sortClients } from '../actions/clientActions';
+import { 
+    fetchClients, 
+    loadMoreClients, 
+    searchClients, 
+    sortClients,
+    getClientById,
+    createClient,
+    updateClient,
+    deleteClient
+} from '../actions/clientActions';
 
 export interface ClientState {
     clients: Client[];
+    selectedClient: Client | null;
     pagination: ClientPaginationInfo | null;
     searchQuery: string;
     sortConfig: ClientSortApplied;
     loading: boolean;
     loadingMore: boolean;
+    creating: boolean;
+    savingClientIds: number[];
+    deletingClientIds: number[];
     error: string | null;
     hasMore: boolean;
 }
 
 const initialState: ClientState = {
     clients: [],
+    selectedClient: null,
     pagination: null,
     searchQuery: '',
     sortConfig: {
@@ -23,6 +37,9 @@ const initialState: ClientState = {
     },
     loading: false,
     loadingMore: false,
+    creating: false,
+    savingClientIds: [],
+    deletingClientIds: [],
     error: null,
     hasMore: false,
 };
@@ -41,6 +58,11 @@ const clientSlice = createSlice({
         // Set search query
         setSearchQuery: (state, action: PayloadAction<string>) => {
             state.searchQuery = action.payload;
+        },
+
+        // Set selected client
+        setSelectedClient: (state, action: PayloadAction<Client | null>) => {
+            state.selectedClient = action.payload;
         },
 
         // Set sort configuration
@@ -138,6 +160,94 @@ const clientSlice = createSlice({
             .addCase(sortClients.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to sort clients';
+            })
+
+        // Get client by ID
+        builder
+            .addCase(getClientById.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(getClientById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.selectedClient = action.payload.data;
+                state.error = null;
+            })
+            .addCase(getClientById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to fetch client';
+            })
+
+        // Create client
+        builder
+            .addCase(createClient.pending, (state) => {
+                state.creating = true;
+                state.error = null;
+            })
+            .addCase(createClient.fulfilled, (state, action) => {
+                state.creating = false;
+                // Add the new client to the beginning of the list
+                state.clients = [action.payload.data, ...state.clients];
+                state.error = null;
+            })
+            .addCase(createClient.rejected, (state, action) => {
+                state.creating = false;
+                state.error = action.payload || 'Failed to create client';
+            })
+
+        // Update client
+        builder
+            .addCase(updateClient.pending, (state, action) => {
+                const clientId = action.meta.arg.id;
+                if (!state.savingClientIds.includes(clientId)) {
+                    state.savingClientIds.push(clientId);
+                }
+                state.error = null;
+            })
+            .addCase(updateClient.fulfilled, (state, action) => {
+                const clientId = action.payload.data.id;
+                state.savingClientIds = state.savingClientIds.filter(id => id !== clientId);
+                // Update the client in the list
+                const index = state.clients.findIndex(client => client.id === clientId);
+                if (index !== -1) {
+                    state.clients[index] = action.payload.data;
+                }
+                // Update selected client if it's the same one
+                if (state.selectedClient?.id === clientId) {
+                    state.selectedClient = action.payload.data;
+                }
+                state.error = null;
+            })
+            .addCase(updateClient.rejected, (state, action) => {
+                const clientId = action.meta.arg.id;
+                state.savingClientIds = state.savingClientIds.filter(id => id !== clientId);
+                state.error = action.payload || 'Failed to update client';
+            })
+
+        // Delete client
+        builder
+            .addCase(deleteClient.pending, (state, action) => {
+                const clientId = action.meta.arg.id;
+                if (!state.deletingClientIds.includes(clientId)) {
+                    state.deletingClientIds.push(clientId);
+                }
+                state.error = null;
+            })
+            .addCase(deleteClient.fulfilled, (state, action) => {
+                const clientId = action.payload.data.id;
+                state.deletingClientIds = state.deletingClientIds.filter(id => id !== clientId);
+                // Remove the client from the list
+                state.clients = state.clients.filter(client => client.id !== clientId);
+                // Clear selected client if it's the deleted one
+                if (state.selectedClient?.id === clientId) {
+                    state.selectedClient = null;
+                }
+                state.error = null;
+            })
+            .addCase(deleteClient.rejected, (state, action) => {
+                const clientId = action.meta.arg.id;
+                state.deletingClientIds = state.deletingClientIds.filter(id => id !== clientId);
+                state.error = action.payload || 'Failed to delete client';
             });
     },
 });
@@ -145,6 +255,7 @@ const clientSlice = createSlice({
 export const {
     clearClients,
     setSearchQuery,
+    setSelectedClient,
     setSortConfig,
     clearError,
     resetClientState,

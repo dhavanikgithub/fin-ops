@@ -55,7 +55,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [selectedTransaction, setStateWithRef, selectedTransactionRef] = useStateWithRef<Transaction | null>(null);
+    const [selectedTransaction, setSelectedTransactionWithRef, selectedTransactionRef] = useStateWithRef<Transaction | null>(null);
     const [activeFilters, setActiveFilters] = useState<FilterValues>({
         types: [],
         minAmount: '',
@@ -242,11 +242,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
     };
 
     const handleTransactionSelect = (transaction: Transaction) => {
-        setStateWithRef(transaction);
+        setSelectedTransactionWithRef(transaction);
     };
 
     const handleDeselectTransaction = () => {
-        setStateWithRef(null);
+        setSelectedTransactionWithRef(null);
     };
 
     const handleDeleteTransaction = () => {
@@ -262,7 +262,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             setIsDeleteModalOpen(false);
             // Use the latest `selectedTransaction` from the ref
             if (transactionId === selectedTransactionRef.current?.id.toString()) {
-                setStateWithRef(null);
+                setSelectedTransactionWithRef(null);
             }
         } catch (error) {
             console.error(`Failed to delete transaction ${transactionId}:`, error);
@@ -288,7 +288,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
     const handleTransactionFieldChange = (field: keyof Transaction, value: any) => {
         if (!selectedTransaction) return;
-        setStateWithRef({
+        setSelectedTransactionWithRef({
             ...selectedTransaction,
             [field]: value
         });
@@ -296,7 +296,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
     const handleBankSelect = (bank: { id: number; name: string }) => {
         if (!selectedTransaction) return;
-        setStateWithRef({
+        setSelectedTransactionWithRef({
             ...selectedTransaction,
             bank_name: bank.name,
             bank_id: bank.id
@@ -308,7 +308,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
     const handleCardSelect = (card: { id: number; name: string }) => {
         if (!selectedTransaction) return;
-        setStateWithRef({
+        setSelectedTransactionWithRef({
             ...selectedTransaction,
             card_name: card.name,
             card_id: card.id
@@ -320,7 +320,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
     const handleClientSelect = (client: { id: number; name: string }) => {
         if (!selectedTransaction) return;
-        setStateWithRef({
+        setSelectedTransactionWithRef({
             ...selectedTransaction,
             client_name: client.name,
             client_id: client.id

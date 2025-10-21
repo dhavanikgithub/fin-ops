@@ -73,6 +73,45 @@ export interface ClientAutocompleteFilters {
     limit?: number;
 }
 
+export interface CreateClientRequest {
+    name: string;
+    email?: string;
+    contact?: string;
+    address?: string;
+}
+
+export interface UpdateClientRequest {
+    id: number;
+    name: string;
+    email?: string;
+    contact?: string;
+    address?: string;
+}
+
+export interface DeleteClientRequest {
+    id: number;
+}
+
+export interface ClientResponse {
+    success: boolean;
+    data: Client;
+    successCode: string;
+    message: string;
+    timestamp: string;
+    statusCode: number;
+}
+
+export interface DeleteClientResponse {
+    success: boolean;
+    data: {
+        id: number;
+    };
+    successCode: string;
+    message: string;
+    timestamp: string;
+    statusCode: number;
+}
+
 export const clientService = {
     // Get paginated clients with filters and sorting
     getPaginatedClients: async (filters: ClientFilters = {}): Promise<ClientPaginatedResponse> => {
@@ -85,6 +124,36 @@ export const clientService = {
     getClientAutocomplete: async (filters: ClientAutocompleteFilters = {}): Promise<ClientAutocompleteResponse> => {
         const url = buildEndpointUrl(CLIENT_ENDPOINTS.AUTOCOMPLETE, filters);
         const response = await api.get(url);
+        return response.data;
+    },
+
+    // Get client by ID
+    getClientById: async (id: number): Promise<ClientResponse> => {
+        const response = await api.get(`${CLIENT_ENDPOINTS.GET_BY_ID}/${id}`);
+        return response.data;
+    },
+
+    // Get client by name
+    getClientByName: async (name: string): Promise<ClientResponse> => {
+        const response = await api.get(`${CLIENT_ENDPOINTS.GET_BY_NAME}/${encodeURIComponent(name)}`);
+        return response.data;
+    },
+
+    // Create a new client
+    createClient: async (clientData: CreateClientRequest): Promise<ClientResponse> => {
+        const response = await api.post(CLIENT_ENDPOINTS.CREATE, clientData);
+        return response.data;
+    },
+
+    // Update an existing client
+    updateClient: async (clientData: UpdateClientRequest): Promise<ClientResponse> => {
+        const response = await api.put(CLIENT_ENDPOINTS.UPDATE, clientData);
+        return response.data;
+    },
+
+    // Delete a client
+    deleteClient: async (clientData: DeleteClientRequest): Promise<DeleteClientResponse> => {
+        const response = await api.delete(CLIENT_ENDPOINTS.DELETE, { data: clientData });
         return response.data;
     },
 };

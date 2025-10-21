@@ -1,6 +1,6 @@
 'use client';
-import React, { useMemo, useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown, MoreHorizontal, MapPin, Wallet, Plus, Minus, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronDown, MoreHorizontal, MapPin, Wallet, ArrowDownLeft, ArrowUpRight, Check, X } from 'lucide-react';
 import '../../styles/ClientTable.scss';
 import { formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import { Client } from '../../services/clientService';
@@ -14,7 +14,7 @@ interface ClientTableProps {
 }
 
 
-const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, onClientSelect }) => {
+const ClientTable: React.FC<ClientTableProps> = ({ selectedClient, onClientSelect }) => {
     const dispatch = useAppDispatch();
     const {
         clients,
@@ -22,16 +22,58 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
         loadingMore,
         hasMore,
         sortConfig,
-        pagination
+        pagination,
+        savingClientIds,
+        deletingClientIds
     } = useAppSelector((state) => state.clients);
 
-    const [visibleItems, setVisibleItems] = useState(10);
-    const [itemsPerPage, setItemsPerPage] = useState(10);
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
+
+    // Track completed operations for temporary status display
+    const [completedOperations, setCompletedOperations] = useState<{
+        [clientId: number]: 'saved' | 'deleted'
+    }>({});
+
+    // Track previous states to detect completion
+    const [prevUpdatingIds, setPrevUpdatingIds] = useState<number[]>([]);
+    const [prevDeletingIds, setPrevDeletingIds] = useState<number[]>([]);
 
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
     const observerRef = useRef<HTMLDivElement>(null);
+
+    // Handle completed operations status display
+    useEffect(() => {
+        // Check for newly completed update operations
+        const completedUpdates = prevUpdatingIds.filter(id => !savingClientIds.includes(id));
+        completedUpdates.forEach(id => {
+            setCompletedOperations(prev => ({ ...prev, [id]: 'saved' }));
+            setTimeout(() => {
+                setCompletedOperations(prev => {
+                    const updated = { ...prev };
+                    delete updated[id];
+                    return updated;
+                });
+            }, 1000);
+        });
+
+        // Check for newly completed delete operations
+        const completedDeletes = prevDeletingIds.filter(id => !deletingClientIds.includes(id));
+        completedDeletes.forEach(id => {
+            setCompletedOperations(prev => ({ ...prev, [id]: 'deleted' }));
+            setTimeout(() => {
+                setCompletedOperations(prev => {
+                    const updated = { ...prev };
+                    delete updated[id];
+                    return updated;
+                });
+            }, 1000);
+        });
+
+        // Update previous states
+        setPrevUpdatingIds(savingClientIds);
+        setPrevDeletingIds(deletingClientIds);
+    }, [savingClientIds, deletingClientIds, prevUpdatingIds, prevDeletingIds]);
 
     // Responsive items per page calculation
     useEffect(() => {
@@ -43,12 +85,6 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
             const bottomPadding = 60;
             const totalOffset = topOffset + bottomPadding;
             document.documentElement.style.setProperty('--table-offset', `${totalOffset}px`);
-            const availableHeight = window.innerHeight - totalOffset;
-            const rowHeight = 60;
-            const calculatedItems = Math.floor(availableHeight / rowHeight);
-            const itemsCount = Math.min(Math.max(calculatedItems, 5), 25);
-            setItemsPerPage(itemsCount);
-            setVisibleItems(itemsCount);
         };
         const timer = setTimeout(calculateTableHeight, 100);
         window.addEventListener('resize', calculateTableHeight);
@@ -204,6 +240,32 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                                 style={{ backgroundColor: getAvatarColor(client.name) }}
                                             >
                                                 {getAvatarInitials(client.name)}
+
+                                                 {/* Loading/Status Overlay */}
+                                                {(savingClientIds.includes(client.id) || deletingClientIds.includes(client.id) || completedOperations[client.id]) && (
+                                                    <div className="table__avatar-overlay">
+                                                        {savingClientIds.includes(client.id) && (
+                                                            <div className="table__avatar-spinner">
+                                                                <div className="table__spinner-ring"></div>
+                                                            </div>
+                                                        )}
+                                                        {deletingClientIds.includes(client.id) && (
+                                                            <div className="table__avatar-spinner">
+                                                                <div className="table__spinner-ring table__spinner-ring--delete"></div>
+                                                            </div>
+                                                        )}
+                                                        {completedOperations[client.id] === 'saved' && (
+                                                            <div className="table__avatar-status table__avatar-status--success">
+                                                                <Check size={16} />
+                                                            </div>
+                                                        )}
+                                                        {completedOperations[client.id] === 'deleted' && (
+                                                            <div className="table__avatar-status table__avatar-status--error">
+                                                                <X size={16} />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
                                             </div>
                                             <div className="table__client-meta">
                                                 <div className="table__client-name">{client.name}</div>
@@ -238,7 +300,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ search = '', selectedClient, 
                                             }
                                             <button className="table__row-actions">
                                                 <Wallet size={16} />
-                                                {client.transaction_count || 0} Transactions
+                                                {client.transaction_count || 0} T
                                             </button>
                                             <button
                                                 className="row-actions"

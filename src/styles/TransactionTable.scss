@@ -333,15 +333,13 @@
 }
 
 .table__spinner-ring {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border: 3px solid rgba(0, 0, 0, 0.1);
     border-top: 3px solid var(--primary);
     border-radius: 50%;
     animation: table-avatar-spin 1s linear infinite;
     position: absolute;
-    top: 0;
-    left: 0;
     
     &--delete {
         border-top: 3px solid var(--destructive);

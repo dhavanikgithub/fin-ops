@@ -1,12 +1,14 @@
 'use client'
 import React, { useState, useEffect, useCallback } from 'react';
-import { UserPlus, SlidersHorizontal, Edit, Trash, User2, Search, UserMinus, ArrowDownCircle, ArrowUpCircle, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
+import { UserPlus, Edit, Search, UserMinus, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import DeleteClientConfirmModal, { Client as ModalClient } from './DeleteClientConfirmModal';
 import './ClientList.scss';
 import ClientTable from '../../components/Tables/ClientTable';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { fetchClients, searchClients } from '../../store/actions/clientActions';
+import { fetchClients, searchClients, updateClient, deleteClient } from '../../store/actions/clientActions';
 import { Client } from '../../services/clientService';
+import { formatDateToMonthYear, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
+import useStateWithRef from '@/hooks/useStateWithRef';
 
 interface ClientListProps {
     onNewClient: () => void;
@@ -19,13 +21,26 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
         loading,
         error,
         searchQuery: reduxSearchQuery,
-        pagination
+        pagination,
+        savingClientIds,
+        deletingClientIds
     } = useAppSelector((state) => state.clients);
 
     const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
-    const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+    const [selectedClient, setSelectedClientWithRef, selectedClientRef] = useStateWithRef<Client | null>(null);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+
+    // Track previous states to detect completion
+    const [prevUpdatingIds, setPrevUpdatingIds] = useState<number[]>([]);
+    const [prevDeletingIds, setPrevDeletingIds] = useState<number[]>([]);
+
+    // Handle completed operations status display
+    useEffect(() => {
+                // Update previous states
+        setPrevUpdatingIds(savingClientIds);
+        setPrevDeletingIds(deletingClientIds);
+    }, [savingClientIds, deletingClientIds, prevUpdatingIds, prevDeletingIds]);
 
     // Load initial clients
     useEffect(() => {
@@ -69,23 +84,54 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleDeleteConfirm = (clientId: string, deleteTransactions: boolean) => {
-        console.log(`Deleting client ${clientId}, deleteTransactions: ${deleteTransactions}`);
-        // Here you would typically call an API to delete the client
-        // After successful deletion, you might want to refresh the client list
-        setIsDeleteModalOpen(false);
+    const handleDeleteConfirm = async (clientId: string, deleteTransactions: boolean) => {
+        if (!clientId) return;
+        const clientIdNum = Number(clientId);
+        try {
+            await dispatch(deleteClient({ id: clientIdNum })).unwrap();
+            setIsDeleteModalOpen(false);
+            if(selectedClientRef.current && selectedClientRef.current.id === clientIdNum){
+                setSelectedClientWithRef(null);
+            }
+        } catch (error) {
+            console.error('Failed to delete client:', error);
+        }
     };
 
     const handleDeleteCancel = () => {
         setIsDeleteModalOpen(false);
     };
 
+    const handleEditFormChange = (field: keyof Client, value: any) => {
+        if (!selectedClient) return;
+        setSelectedClientWithRef({
+            ...selectedClient,
+            [field]: value
+        });
+    };
+
+    const handleSaveClient = async (client: Client | null) => {
+        if (!client) return;
+
+        try {
+            await dispatch(updateClient({
+                id: client.id,
+                name: client.name.trim(),
+                email: client.email ? client.email.trim() : undefined,
+                contact: client.contact ? client.contact.trim() : undefined,
+                address: client.address ? client.address.trim() : undefined,
+            })).unwrap();
+        } catch (error) {
+            console.error('Failed to update client:', error);
+        }
+    };
+
     const handleClientSelect = (client: Client) => {
-        setSelectedClient(client);
+        setSelectedClientWithRef(client);
     };
 
     const handleDeselectClient = () => {
-        setSelectedClient(null);
+        setSelectedClientWithRef(null);
     };
 
     // Convert Client to ModalClient format - using the selected client data
@@ -102,6 +148,40 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
             activeTransactions: 12, // Mock data
             openBalance: 124500, // Mock balance in paise (₹1,24,500.00)
         };
+    };
+
+    // Helper function to check if a client ID is in deletingClientIds
+    const isClientBeingDeleted = (
+        transactionId: number,
+        deletingTransactionIds: number[]
+    ): boolean => {
+        return deletingTransactionIds.includes(transactionId);
+    };
+
+    // Helper function to check if a client ID is in editingClientIds
+    const isClientBeingSaved = (
+        clientId: number,
+        editingClientIds: number[]
+    ): boolean => {
+        return editingClientIds.includes(clientId);
+    };
+
+    // Helper function to check if a client is being processed (saved or deleted)
+    const isClientBeingProcessed = (
+        clientId: number,
+        editingClientIds: number[],
+        deletingClientIds: number[]
+    ): boolean => {
+        return isClientBeingSaved(clientId, editingClientIds) || isClientBeingDeleted(clientId, deletingClientIds);
+    };
+
+    const isSelectedClientBeingProcessed = (
+        selectedClient: Client | null,
+        editingClientIds: number[],
+        deletingClientIds: number[]
+    ): boolean => {
+        if (!selectedClient) return false;
+        return isClientBeingProcessed(selectedClient.id, editingClientIds, deletingClientIds);
     };
 
     return (
@@ -141,8 +221,8 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                         </div> */}
                     </div>
 
-                    <ClientTable 
-                        search={localSearchQuery} 
+                    <ClientTable
+                        search={localSearchQuery}
                         selectedClient={selectedClient}
                         onClientSelect={handleClientSelect}
                     />
@@ -155,17 +235,28 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
 
                 {selectedClient && (
                     <div className="detail">
+                        {/* Processing overlay */}
+                        {isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds) && (
+                            <div className="detail__processing-overlay">
+                                <div className="detail__processing-content">
+                                    <div className="detail__processing-spinner"></div>
+                                    <div className="detail__processing-message">
+                                        {isClientBeingSaved(selectedClient.id, savingClientIds) ? 'Saving client details...' : 'Deleting client...'}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="detail__header">
                             <div
                                 className="client__avatar"
-                                style={{ backgroundColor: '#FF6B6B' }}
+                                style={{ backgroundColor: getAvatarColor(selectedClient.name) }}
                             >
-                                {selectedClient.name.charAt(0).toUpperCase()}
-                                {selectedClient.name.split(' ').length > 1 ? selectedClient.name.split(' ')[1].charAt(0).toUpperCase() : ''}
+                                {getAvatarInitials(selectedClient.name)}
                             </div>
                             <div>
                                 <div className="detail__name">{selectedClient.name}</div>
-                                <div className="detail__sub">Client since Jan 2023</div>
+                                <div className="detail__sub">Client since {formatDateToMonthYear(selectedClient.create_date)}</div>
                             </div>
                         </div>
                         {selectedClient.email ? <div className="detail__badges">
@@ -197,36 +288,68 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                             <div className="client-edit__form">
                                 <div>
                                     <div className="label">Client Name</div>
-                                    <input className="control" value={selectedClient.name} />
+                                    <input
+                                        className="control"
+                                        value={selectedClient.name || ''}
+                                        onChange={(e) => handleEditFormChange('name', e.target.value)}
+                                        placeholder="Enter client name"
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                    />
                                 </div>
                                 <div>
                                     <div className="label">Email</div>
-                                    <input className="control" value={selectedClient.email ? selectedClient.email : ''} />
+                                    <input
+                                        className="control"
+                                        value={selectedClient.email || ''}
+                                        onChange={(e) => handleEditFormChange('email', e.target.value)}
+                                        placeholder="client@example.com"
+                                        type="email"
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                    />
                                 </div>
                                 <div>
                                     <div className="label">Contact Number</div>
-                                    <input className="control" value={selectedClient.contact ? selectedClient.contact : ''} />
+                                    <input
+                                        className="control"
+                                        value={selectedClient.contact || ''}
+                                        onChange={(e) => handleEditFormChange('contact', e.target.value)}
+                                        placeholder="+91 98765 43210"
+                                        type="tel"
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                    />
                                 </div>
                                 <div>
                                     <div className="label">Address</div>
-                                    <textarea className="control" rows={4} value={selectedClient.address ? selectedClient.address : ''} />
+                                    <textarea
+                                        className="control"
+                                        rows={4}
+                                        value={selectedClient.address || ''}
+                                        onChange={(e) => handleEditFormChange('address', e.target.value)}
+                                        placeholder="Street address, city, state, pincode"
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                    />
                                 </div>
                                 <div className="inline-actions">
-                                    <button className="main__button">
+                                    <button
+                                        className="main__button"
+                                        onClick={() => handleSaveClient(selectedClient)}
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                    >
                                         <Edit size={16} />
-                                        Save
+                                        {selectedClient && savingClientIds.includes(selectedClient.id) ? 'Saving...' : 'Save'}
                                     </button>
-                                    <button 
-                                        className="main__icon-button" 
+                                    <button
+                                        className="main__icon-button"
                                         onClick={handleDeleteClient}
-                                        disabled={!selectedClient}
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                     >
                                         <UserMinus size={16} />
-                                        Delete
+                                        {selectedClient && deletingClientIds.includes(selectedClient.id) ? 'Deleting...' : 'Delete'}
                                     </button>
-                                    <button 
-                                        className="main__secondary-button" 
+                                    <button
+                                        className="main__secondary-button"
                                         onClick={handleDeselectClient}
+                                        disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                     >
                                         <X size={16} />
                                         Cancel
@@ -236,7 +359,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                         </div>
                     </div>
                 )}
-                
+
             </div>
 
             <DeleteClientConfirmModal

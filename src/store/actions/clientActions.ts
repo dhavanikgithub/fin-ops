@@ -1,5 +1,15 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import clientService, { ClientAutocompleteFilters, ClientAutocompleteResponse, ClientFilters, ClientPaginatedResponse } from '../../services/clientService';
+import clientService, { 
+    ClientAutocompleteFilters, 
+    ClientAutocompleteResponse, 
+    ClientFilters, 
+    ClientPaginatedResponse,
+    CreateClientRequest,
+    UpdateClientRequest,
+    DeleteClientRequest,
+    ClientResponse,
+    DeleteClientResponse
+} from '../../services/clientService';
 import { RootState } from '../index';
 
 // Fetch clients with filters and sorting
@@ -137,6 +147,85 @@ export const fetchClientAutocomplete = createAsyncThunk<
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || error.message || 'Failed to fetch client autocomplete data'
+            );
+        }
+    }
+);
+
+// Get client by ID
+export const getClientById = createAsyncThunk<
+    ClientResponse,
+    number,
+    { rejectValue: string }
+>(
+    'clients/getById',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await clientService.getClientById(id);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to fetch client'
+            );
+        }
+    }
+);
+
+// Create client
+export const createClient = createAsyncThunk<
+    ClientResponse,
+    CreateClientRequest,
+    { rejectValue: string }
+>(
+    'clients/create',
+    async (clientData, { rejectWithValue }) => {
+        try {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            const response = await clientService.createClient(clientData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to create client'
+            );
+        }
+    }
+);
+
+// Update client
+export const updateClient = createAsyncThunk<
+    ClientResponse,
+    UpdateClientRequest,
+    { rejectValue: string }
+>(
+    'clients/update',
+    async (clientData, { rejectWithValue }) => {
+        try {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            const response = await clientService.updateClient(clientData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to update client'
+            );
+        }
+    }
+);
+
+// Delete client
+export const deleteClient = createAsyncThunk<
+    DeleteClientResponse,
+    DeleteClientRequest,
+    { rejectValue: string }
+>(
+    'clients/delete',
+    async (clientData, { rejectWithValue }) => {
+        try {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            const response = await clientService.deleteClient(clientData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to delete client'
             );
         }
     }

@@ -1,8 +1,10 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserPlus, X, Save, User, Mail, Phone, MapPin, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import './AddClient.scss';
 import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { createClient } from '../../store/actions/clientActions';
 
 interface AddClientScreenProps {
     onCancel: () => void;
@@ -17,12 +19,33 @@ export interface ClientFormData {
 }
 
 const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToClients }) => {
+    const dispatch = useAppDispatch();
+    const { creating, error } = useAppSelector((state) => state.clients);
+
     const [formData, setFormData] = useState<ClientFormData>({
         fullName: '',
         email: '',
         phone: '',
         address: ''
     });
+
+    const [creationAttempted, setCreationAttempted] = useState(false);
+
+    // Handle successful creation
+    useEffect(() => {
+        if (creationAttempted && !creating && !error) {
+            // Reset form after successful creation
+            setFormData({
+                fullName: '',
+                email: '',
+                phone: '',
+                address: ''
+            });
+            setCreationAttempted(false);
+            // Navigate back to clients list
+            onBackToClients();
+        }
+    }, [creating, error, creationAttempted, onBackToClients]);
 
     const handleInputChange = (field: keyof ClientFormData, value: string) => {
         setFormData(prev => ({
@@ -31,9 +54,27 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
         }));
     };
 
-    const handleSaveClient = () => {
-        console.log('Saving client:', formData);
-        // Handle save logic here
+    const handleSaveClient = async () => {
+        if (!formData.fullName.trim()) {
+            console.error('Client name is required');
+            return;
+        }
+
+        setCreationAttempted(true);
+
+        try {
+            await dispatch(createClient({
+                name: formData.fullName.trim(),
+                email: formData.email.trim() || undefined,
+                contact: formData.phone.trim() || undefined,
+                address: formData.address.trim() || undefined
+            })).unwrap();
+            
+            // Success handled in useEffect
+        } catch (error) {
+            console.error('Failed to create client:', error);
+            setCreationAttempted(false); // Reset on error
+        }
     };
 
     const handleCancel = () => {
@@ -56,13 +97,21 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                     <h1>New Client</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleCancel}>
+                    <button 
+                        className="main__icon-button" 
+                        onClick={handleCancel}
+                        disabled={creating}
+                    >
                         <X size={16} />
                         Cancel
                     </button>
-                    <button className="main__button" onClick={handleSaveClient}>
+                    <button 
+                        className="main__button" 
+                        onClick={handleSaveClient}
+                        disabled={creating || !formData.fullName.trim()}
+                    >
                         <Save size={16} />
-                        Save Client
+                        {creating ? 'Creating...' : 'Save Client'}
                     </button>
                 </div>
             </header>
@@ -90,7 +139,8 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__input"
                                             value={formData.fullName}
                                             onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                            placeholder="Enter full name"
+                                            placeholder="Enter client full name"
+                                            disabled={creating}
                                         />
                                         <span className="ac__hint">As on bank records.</span>
                                     </div>
@@ -105,7 +155,8 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__input"
                                             value={formData.email}
                                             onChange={(e) => handleInputChange('email', e.target.value)}
-                                            placeholder="Enter email address"
+                                            placeholder="client@example.com"
+                                            disabled={creating}
                                         />
                                     </div>
 
@@ -120,6 +171,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             value={formData.phone}
                                             onChange={(e) => handleInputChange('phone', e.target.value)}
                                             placeholder="+91 98765 43210"
+                                            disabled={creating}
                                         />
                                     </div>
 
@@ -132,8 +184,9 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__textarea"
                                             value={formData.address}
                                             onChange={(e) => handleInputChange('address', e.target.value)}
-                                            placeholder="Enter complete address"
+                                            placeholder="Street address, city, state, pincode"
                                             rows={4}
+                                            disabled={creating}
                                         />
                                     </div>
                                 </div>
@@ -141,13 +194,21 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                         </div>
 
                         <div className="main__footer-actions">
-                            <button className="main__icon-button" onClick={handleBackToClients}>
+                            <button 
+                                className="main__icon-button" 
+                                onClick={handleBackToClients}
+                                disabled={creating}
+                            >
                                 <ArrowLeft size={16} />
                                 Back to Clients
                             </button>
-                            <button className="main__button" onClick={handleSaveClient}>
+                            <button 
+                                className="main__button" 
+                                onClick={handleSaveClient}
+                                disabled={creating || !formData.fullName.trim()}
+                            >
                                 <CheckCircle2 size={16} />
-                                Create Client
+                                {creating ? 'Creating...' : 'Create Client'}
                             </button>
                         </div>
                     </div>

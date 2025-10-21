@@ -31,6 +31,11 @@ export const CARD_ENDPOINTS = {
 export const CLIENT_ENDPOINTS = {
     AUTOCOMPLETE: `${API_CONFIG.BASE_URL}/clients/autocomplete`,
     PAGINATED: `${API_CONFIG.BASE_URL}/clients/paginated`,
+    CREATE: `${API_CONFIG.BASE_URL}/clients`,
+    UPDATE: `${API_CONFIG.BASE_URL}/clients`,
+    DELETE: `${API_CONFIG.BASE_URL}/clients`,
+    GET_BY_ID: `${API_CONFIG.BASE_URL}/clients`,
+    GET_BY_NAME: `${API_CONFIG.BASE_URL}/clients/name`,
 } as const;
 
 

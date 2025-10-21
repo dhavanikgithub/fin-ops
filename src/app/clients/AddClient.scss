@@ -74,6 +74,13 @@
     &::placeholder {
         color: var(--muted-foreground);
     }
+
+    &:disabled {
+        background: var(--muted);
+        color: var(--muted-foreground);
+        cursor: not-allowed;
+        opacity: 0.6;
+    }
 }
 
 .ac__textarea {
@@ -96,6 +103,14 @@
 
     &::placeholder {
         color: var(--muted-foreground);
+    }
+
+    &:disabled {
+        background: var(--muted);
+        color: var(--muted-foreground);
+        cursor: not-allowed;
+        opacity: 0.6;
+        resize: none;
     }
 }
 
