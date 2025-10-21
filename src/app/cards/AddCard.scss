@@ -176,3 +176,57 @@
         gap: 6px;
     }
 }
+
+// Error and validation styles
+.ac__input--error {
+    border-color: var(--destructive);
+    
+    &:focus {
+        border-color: var(--destructive);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+}
+
+.ac__error {
+    color: var(--destructive);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.ac__error-message {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+// Disabled states
+.ac__input:disabled,
+.ac__textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.main__button--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// Spinner styles
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

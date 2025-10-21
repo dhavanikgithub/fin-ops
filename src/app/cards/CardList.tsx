@@ -1,86 +1,144 @@
 'use client';
-import React, { useState } from 'react';
-import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X } from 'lucide-react';
-import DeleteCardConfirmModal from './DeleteCardConfirmModal';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { 
+    fetchPaginatedCards, 
+    updateCard, 
+    deleteCard 
+} from '../../store/actions/cardActions';
+import { 
+    setSearchQuery, 
+    setSorting, 
+    setEditingCard, 
+    closeEditForm, 
+    clearError 
+} from '../../store/slices/cardSlice';
+import { Card } from '../../services/cardService';
+import DeleteCardConfirmModal, { Card as ModalCard } from './DeleteCardConfirmModal';
+import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './CardList.scss';
-
-interface Card {
-    id: string;
-    name: string;
-    created: string;
-    transactions: number;
-    last4: string;
-    cardNumber: string;
-    linkedTransactionsCount: number;
-}
 
 interface CardListProps {
     onNewCard: () => void;
 }
 
-const mockCards: Card[] = [
-    {
-        id: '1',
-        name: 'Visa Platinum',
-        created: 'Jan 11, 2024',
-        transactions: 128,
-        last4: '1234',
-        cardNumber: '4111111111111234',
-        linkedTransactionsCount: 128,
-    },
-    {
-        id: '2',
-        name: 'Mastercard Business',
-        created: 'Mar 03, 2024',
-        transactions: 86,
-        last4: '4421',
-        cardNumber: '5555555555554421',
-        linkedTransactionsCount: 86,
-    },
-    {
-        id: '3',
-        name: 'RuPay Classic',
-        created: 'Jun 19, 2023',
-        transactions: 42,
-        last4: '9801',
-        cardNumber: '6061111111119801',
-        linkedTransactionsCount: 42,
-    },
-];
-
 const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
-    const [search, setSearch] = useState('');
+    const dispatch = useAppDispatch();
+    const { 
+        cards, 
+        loading, 
+        error, 
+        searchQuery, 
+        sortBy, 
+        sortOrder, 
+        pagination,
+        editingCard,
+        showEditForm,
+        updating,
+        deleting
+    } = useAppSelector(state => state.cards);
+
+    const [localSearch, setLocalSearch] = useState('');
+    const [editForm, setEditForm] = useState({ name: '' });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-    const [cardToDelete, setCardToDelete] = useState<Card | null>(null);
-    const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-    const filteredCards = mockCards.filter(card =>
-        card.name.toLowerCase().includes(search.toLowerCase())
-    );
+    // Load cards on component mount
+    useEffect(() => {
+        dispatch(fetchPaginatedCards({ 
+            page: 1, 
+            limit: 50, 
+            search: searchQuery, 
+            sort_by: sortBy, 
+            sort_order: sortOrder 
+        }));
+    }, [dispatch, searchQuery, sortBy, sortOrder]);
 
-    const handleSelectCard = (card: Card) => {
-        setSelectedCard(card);
+    // Update edit form when editing card changes
+    useEffect(() => {
+        if (editingCard) {
+            setEditForm({ name: editingCard.name });
+        }
+    }, [editingCard]);
+
+    // Handle search input with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== searchQuery) {
+                dispatch(setSearchQuery(localSearch));
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [localSearch, searchQuery, dispatch]);
+
+    // Event handlers
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalSearch(e.target.value);
     };
 
-    const handleDeselectCard = () => {
-        setSelectedCard(null);
+    const handleEditCard = (card: Card) => {
+        dispatch(setEditingCard(card));
     };
 
-    const handleDeleteCard = (card: Card) => {
-        setCardToDelete(card);
+    const handleSaveCard = async () => {
+        if (!editingCard || !editForm.name.trim()) return;
+
+        try {
+            await dispatch(updateCard({
+                id: editingCard.id,
+                name: editForm.name.trim()
+            }));
+            // Success handling is done in the reducer
+        } catch (error) {
+            console.error('Failed to update card:', error);
+        }
+    };
+
+    const handleDeleteCard = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleCloseDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        setCardToDelete(null);
+    const handleDeleteConfirm = async (cardId: string, deleteTransactions: boolean) => {
+        try {
+            await dispatch(deleteCard({ id: parseInt(cardId) }));
+            setIsDeleteModalOpen(false);
+            dispatch(closeEditForm());
+        } catch (error) {
+            console.error('Failed to delete card:', error);
+        }
     };
 
-    const handleConfirmDelete = (cardId: string, deleteTransactions: boolean) => {
-        // TODO: Implement actual delete logic
-        console.log(`Deleting card ${cardId}, deleteTransactions: ${deleteTransactions}`);
-        handleCloseDeleteModal();
+    const handleDeleteCancel = () => {
+        setIsDeleteModalOpen(false);
     };
+
+    const handleCancelEdit = () => {
+        dispatch(closeEditForm());
+        setEditForm({ name: '' });
+    };
+
+    // Convert Card to ModalCard format
+    const getModalCard = (card: Card | null): ModalCard | null => {
+        if (!card) return null;
+        return {
+            id: card.id.toString(),
+            name: card.name,
+            linkedTransactionsCount: card.transaction_count,
+        };
+    };
+
+    // Format date for display
+    const formatDisplayDate = (dateStr: string): string => {
+        try {
+            return formatDateToMonthYear(dateStr);
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const isUpdating = editingCard ? updating.includes(editingCard.id) : false;
+    const isDeleting = editingCard ? deleting.includes(editingCard.id) : false;
 
     return (
         <>
@@ -106,77 +164,135 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Search cards..."
+                                value={localSearch}
+                                onChange={handleSearchChange}
                             />
                         </div>
                     </div>
 
+                    {loading && (
+                        <div className="main__loading">
+                            <Loader className="spinner" size={20} />
+                            Loading cards...
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="main__error">
+                            Error: {error}
+                            <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                        </div>
+                    )}
+
                     <div className="cards-grid">
-                        {filteredCards.map(card => (
+                        {cards.map(card => (
                             <div 
-                                className={`card-item ${selectedCard?.id === card.id ? 'card-item--selected' : ''}`} 
+                                className={`card-item ${editingCard?.id === card.id ? 'card-item--selected' : ''}`} 
                                 key={card.id}
                             >
                                 <div className="card-left">
+                                    {deleting.includes(card.id) && (
+                                        <div className="card-item__overlay">
+                                            <Loader className="spinner" size={20} />
+                                        </div>
+                                    )}
                                     <CreditCard size={22} />
                                     <div>
                                         <div className="card-title">{card.name}</div>
-                                        <div className="card-sub">Created: {card.created}</div>
+                                        <div className="card-sub">Created: {formatDisplayDate(card.create_date)}</div>
                                     </div>
                                 </div>
                                 <div className="card-meta">
                                     <div className="meta-block">
                                         <div className="meta-label">Transactions</div>
-                                        <div className="meta-value">{card.transactions}</div>
+                                        <div className="meta-value">{card.transaction_count.toLocaleString()}</div>
                                     </div>
-                                    <div className="meta-block">
-                                        <div className="meta-label">Last 4</div>
-                                        <div className="meta-value">{card.last4}</div>
-                                    </div>
-                                    <button className="row-actions" onClick={() => handleSelectCard(card)}>
+                                    <button 
+                                        className="row-actions" 
+                                        onClick={() => handleEditCard(card)}
+                                        disabled={deleting.includes(card.id)}
+                                    >
                                         <MoreHorizontal size={16} />
                                         Manage
                                     </button>
                                 </div>
                             </div>
                         ))}
-                        {filteredCards.length === 0 && (
+                        {!loading && cards.length === 0 && (
                             <div className="card-item card-item--empty">
-                                No cards found.
+                                {searchQuery ? 'No cards found matching your search.' : 'No cards found.'}
                             </div>
                         )}
                     </div>
                 </div>
 
-                {selectedCard && (
+                {showEditForm && editingCard && (
                     <div className="detail">
+                        {isUpdating && (
+                            <div className="detail__overlay">
+                                <Loader className="spinner" size={24} />
+                            </div>
+                        )}
                         <div className="detail__header">
                             <CreditCard size={28} />
                             <div>
                                 <div className="detail__name">Edit Card</div>
                                 <div className="label">Update card details or delete</div>
                             </div>
-                            <button className="detail__cancel" onClick={handleDeselectCard}>
+                            <button className="detail__cancel" onClick={handleCancelEdit}>
                                 <X size={16} />
                             </button>
                         </div>
                         <div className="form">
                             <div>
                                 <div className="label">Card Name</div>
-                                <input className="control" value={selectedCard.name} readOnly />
+                                <input 
+                                    className="control" 
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm({ name: e.target.value })}
+                                    disabled={isUpdating || isDeleting}
+                                />
                             </div>
                             <div>
                                 <div className="label">Created On</div>
-                                <input className="control" value={selectedCard.created} readOnly />
+                                <input 
+                                    className="control" 
+                                    value={formatDisplayDate(editingCard.create_date)} 
+                                    readOnly 
+                                />
+                            </div>
+                            <div>
+                                <div className="label">Transactions</div>
+                                <input 
+                                    className="control" 
+                                    value={editingCard.transaction_count.toLocaleString()} 
+                                    readOnly 
+                                />
                             </div>
                             <div className="inline-actions">
-                                <button className="main__button">
-                                    <Edit size={16} />
-                                    Save
+                                <button 
+                                    className="main__button"
+                                    onClick={handleSaveCard}
+                                    disabled={isUpdating || isDeleting || !editForm.name.trim()}
+                                >
+                                    {isUpdating ? (
+                                        <>
+                                            <Loader className="spinner" size={16} />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Edit size={16} />
+                                            Save
+                                        </>
+                                    )}
                                 </button>
-                                <button className="main__icon-button" onClick={() => handleDeleteCard(selectedCard)}>
+                                <button 
+                                    className="main__icon-button" 
+                                    onClick={handleDeleteCard}
+                                    disabled={isUpdating || isDeleting}
+                                >
                                     <Trash size={16} />
                                     Delete
                                 </button>
@@ -188,9 +304,9 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
 
             <DeleteCardConfirmModal
                 isOpen={isDeleteModalOpen}
-                onClose={handleCloseDeleteModal}
-                onDelete={handleConfirmDelete}
-                card={cardToDelete}
+                onClose={handleDeleteCancel}
+                onDelete={handleDeleteConfirm}
+                card={getModalCard(editingCard)}
             />
         </>
     );

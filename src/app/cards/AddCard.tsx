@@ -1,6 +1,9 @@
 'use client';
-import React, { useState } from 'react';
-import { CreditCard, X, Save, LayoutDashboard, StickyNote, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CreditCard, X, Save, LayoutDashboard, StickyNote, ArrowLeft, CheckCircle2, Loader } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { createCard } from '../../store/actions/cardActions';
+import { clearError } from '../../store/slices/cardSlice';
 import './AddCard.scss';
 
 interface AddCardScreenProps {
@@ -10,16 +13,34 @@ interface AddCardScreenProps {
 
 export interface CardFormData {
     cardName: string;
-    initialTransactionsCount: string;
     notes: string;
 }
 
 const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }) => {
+    const dispatch = useAppDispatch();
+    const { creating, error } = useAppSelector(state => state.cards);
+    
     const [formData, setFormData] = useState<CardFormData>({
         cardName: '',
-        initialTransactionsCount: '0',
         notes: ''
     });
+    
+    const [creationAttempted, setCreationAttempted] = useState(false);
+
+    // Clear error when component mounts
+    useEffect(() => {
+        if (error) {
+            dispatch(clearError());
+        }
+    }, [dispatch, error]);
+
+    // Handle successful creation
+    useEffect(() => {
+        if (creationAttempted && !creating && !error) {
+            // Success! Navigate back to cards
+            onBackToCards();
+        }
+    }, [creating, error, creationAttempted, onBackToCards]);
 
     const handleInputChange = (field: keyof CardFormData, value: string) => {
         setFormData(prev => ({
@@ -28,20 +49,36 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
         }));
     };
 
-    const handleSaveCard = () => {
-        console.log('Saving card:', formData);
-        // Handle save logic here
+    const handleSaveCard = async () => {
+        if (!formData.cardName.trim()) {
+            return;
+        }
+
+        setCreationAttempted(true);
+        
+        try {
+            await dispatch(createCard({
+                name: formData.cardName.trim()
+            }));
+            // Success handling is done in the useEffect above
+        } catch (error) {
+            console.error('Failed to create card:', error);
+            setCreationAttempted(false);
+        }
     };
 
     const handleCancel = () => {
-        console.log('Cancelled card creation');
+        if (creating) return; // Prevent cancellation during creation
         onCancel();
     };
 
     const handleBackToCards = () => {
-        console.log('Back to cards');
+        if (creating) return; // Prevent navigation during creation
         onBackToCards();
     };
+
+    const isFormValid = formData.cardName.trim().length > 0;
+    const isDisabled = creating;
 
     return (
         <div className="main">
@@ -51,13 +88,30 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
                     <h1>Add New Card</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleBackToCards}>
+                    <button 
+                        className="main__icon-button" 
+                        onClick={handleBackToCards}
+                        disabled={isDisabled}
+                    >
                         <ArrowLeft size={16} />
                         Back to Cards
                     </button>
-                    <button className="main__button" onClick={handleSaveCard}>
-                        <Save size={16} />
-                        Save Card
+                    <button 
+                        className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                        onClick={handleSaveCard}
+                        disabled={isDisabled || !isFormValid}
+                    >
+                        {creating ? (
+                            <>
+                                <Loader className="spinner" size={16} />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} />
+                                Save Card
+                            </>
+                        )}
                     </button>
                 </div>
             </header>
@@ -75,57 +129,70 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
                         <div className="ac__field">
                             <label className="ac__label">
                                 <CreditCard size={16} />
-                                Card Name
+                                Card Name *
                             </label>
                             <input
                                 type="text"
-                                className="ac__input"
+                                className={`ac__input ${!isFormValid && creationAttempted ? 'ac__input--error' : ''}`}
                                 value={formData.cardName}
                                 onChange={(e) => handleInputChange('cardName', e.target.value)}
                                 placeholder="Enter card name"
+                                disabled={isDisabled}
                             />
-                            <span className="ac__hint">Example: MasterCard</span>
-                        </div>
-
-                        <div className="ac__field">
-                            <label className="ac__label">
-                                <LayoutDashboard size={16} />
-                                Initial Transactions Count
-                            </label>
-                            <input
-                                type="text"
-                                className="ac__input"
-                                value={formData.initialTransactionsCount}
-                                readOnly
-                                disabled
-                                placeholder="0 (read-only)"
-                            />
-                            <span className="ac__hint">Updates automatically as transactions are linked.</span>
+                            <span className="ac__hint">Example: Visa Credit Card, MasterCard Debit, etc.</span>
+                            {!isFormValid && creationAttempted && (
+                                <span className="ac__error">Card name is required</span>
+                            )}
                         </div>
 
                         <div className="ac__field">
                             <label className="ac__label">
                                 <StickyNote size={16} />
-                                Notes
+                                Notes (Optional)
                             </label>
                             <textarea
                                 className="ac__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                                placeholder="Any internal notes..."
-                                rows={5}
+                                placeholder="Any additional notes about this card..."
+                                rows={4}
+                                disabled={isDisabled}
                             />
                         </div>
+
+                        {error && (
+                            <div className="ac__error-message">
+                                <X size={16} />
+                                {error}
+                            </div>
+                        )}
                     </div>
 
                     <div className="main__footer-actions">
-                        <button className="main__icon-button" onClick={handleCancel}>
+                        <button 
+                            className="main__icon-button" 
+                            onClick={handleCancel}
+                            disabled={isDisabled}
+                        >
                             <X size={16} />
                             Cancel
                         </button>
-                        <button className="main__button" onClick={handleSaveCard}>
-                            <CheckCircle2 size={16} />
-                            Create Card
+                        <button 
+                            className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                            onClick={handleSaveCard}
+                            disabled={isDisabled || !isFormValid}
+                        >
+                            {creating ? (
+                                <>
+                                    <Loader className="spinner" size={16} />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 size={16} />
+                                    Create Card
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

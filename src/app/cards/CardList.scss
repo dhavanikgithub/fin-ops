@@ -188,3 +188,96 @@
     display: inline-flex;
     gap: 8px;
 }
+
+// Loading states
+.card-item {
+    position: relative;
+    
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+.detail {
+    position: relative;
+    
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+// Error and loading states
+.main__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px;
+    color: var(--muted-foreground);
+    
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+.main__error {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    button {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+
+// Spinner animation
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
