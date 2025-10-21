@@ -1,6 +1,9 @@
 'use client';
-import React, { useState } from 'react';
-import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, Loader } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { createBank } from '../../store/actions/bankActions';
+import { clearError } from '../../store/slices/bankSlice';
 import './AddBank.scss';
 
 interface AddBankScreenProps {
@@ -10,20 +13,34 @@ interface AddBankScreenProps {
 
 export interface BankFormData {
     bankName: string;
-    createdOn: string;
-    initialTransactionsCount: string;
-    initialAmount: string;
     notes: string;
 }
 
 const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }) => {
+    const dispatch = useAppDispatch();
+    const { creating, error } = useAppSelector(state => state.banks);
+    
     const [formData, setFormData] = useState<BankFormData>({
         bankName: '',
-        createdOn: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD format
-        initialTransactionsCount: '0',
-        initialAmount: '0.00',
         notes: ''
     });
+    
+    const [creationAttempted, setCreationAttempted] = useState(false);
+
+    // Clear error when component mounts
+    useEffect(() => {
+        if (error) {
+            dispatch(clearError());
+        }
+    }, [dispatch, error]);
+
+    // Handle successful creation
+    useEffect(() => {
+        if (creationAttempted && !creating && !error) {
+            // Success! Navigate back to banks
+            onBackToBanks();
+        }
+    }, [creating, error, creationAttempted, onBackToBanks]);
 
     const handleInputChange = (field: keyof BankFormData, value: string) => {
         setFormData(prev => ({
@@ -32,20 +49,36 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
         }));
     };
 
-    const handleSaveBank = () => {
-        console.log('Saving bank:', formData);
-        // Handle save logic here
+    const handleSaveBank = async () => {
+        if (!formData.bankName.trim()) {
+            return;
+        }
+
+        setCreationAttempted(true);
+        
+        try {
+            await dispatch(createBank({
+                name: formData.bankName.trim()
+            }));
+            // Success handling is done in the useEffect above
+        } catch (error) {
+            console.error('Failed to create bank:', error);
+            setCreationAttempted(false);
+        }
     };
 
     const handleCancel = () => {
-        console.log('Cancelled bank creation');
+        if (creating) return; // Prevent cancellation during creation
         onCancel();
     };
 
     const handleBackToBanks = () => {
-        console.log('Back to banks');
+        if (creating) return; // Prevent navigation during creation
         onBackToBanks();
     };
+
+    const isFormValid = formData.bankName.trim().length > 0;
+    const isDisabled = creating;
 
     return (
         <div className="main">
@@ -55,13 +88,30 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                     <h1>Add New Bank</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleBackToBanks}>
+                    <button 
+                        className="main__icon-button" 
+                        onClick={handleBackToBanks}
+                        disabled={isDisabled}
+                    >
                         <ArrowLeft size={16} />
                         Back to Banks
                     </button>
-                    <button className="main__button" onClick={handleSaveBank}>
-                        <Save size={16} />
-                        Save Bank
+                    <button 
+                        className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                        onClick={handleSaveBank}
+                        disabled={isDisabled || !isFormValid}
+                    >
+                        {creating ? (
+                            <>
+                                <Loader className="spinner" size={16} />
+                                Saving...
+                            </>
+                        ) : (
+                            <>
+                                <Save size={16} />
+                                Save Bank
+                            </>
+                        )}
                     </button>
                 </div>
             </header>
@@ -78,62 +128,73 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                     <div className="ab__form">
                         
 
-                        <div className="ab__dual-grid">
-                            <div className="ab__field">
+                        <div className="ab__field">
                             <label className="ab__label">
                                 <Building2 size={16} />
-                                Bank Name
+                                Bank Name *
                             </label>
                             <input
                                 type="text"
-                                className="ab__input"
+                                className={`ab__input ${!isFormValid && creationAttempted ? 'ab__input--error' : ''}`}
                                 value={formData.bankName}
                                 onChange={(e) => handleInputChange('bankName', e.target.value)}
                                 placeholder="Enter bank name"
+                                disabled={isDisabled}
                             />
-                            <span className="ab__hint">Example: HDFC Bank</span>
-                        </div>
-                            <div className="ab__field">
-                                <label className="ab__label">
-                                    <LayoutDashboard size={16} />
-                                    Initial Transactions Count
-                                </label>
-                                <input
-                                    type="number"
-                                    className="ab__input"
-                                    value={formData.initialTransactionsCount}
-                                    onChange={(e) => handleInputChange('initialTransactionsCount', e.target.value)}
-                                    placeholder="0"
-                                    min="0"
-                                    readOnly
-                                />
-                                <span className="ab__hint">Starting transaction count.</span>
-                            </div>
+                            <span className="ab__hint">Example: HDFC Bank, Axis Bank, etc.</span>
+                            {!isFormValid && creationAttempted && (
+                                <span className="ab__error">Bank name is required</span>
+                            )}
                         </div>
 
                         <div className="ab__field">
                             <label className="ab__label">
                                 <StickyNote size={16} />
-                                Notes
+                                Notes (Optional)
                             </label>
                             <textarea
                                 className="ab__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                                placeholder="Any internal notes..."
-                                rows={5}
+                                placeholder="Any additional notes about this bank..."
+                                rows={4}
+                                disabled={isDisabled}
                             />
                         </div>
+
+                        {error && (
+                            <div className="ab__error-message">
+                                <X size={16} />
+                                {error}
+                            </div>
+                        )}
                     </div>
 
                     <div className="main__footer-actions">
-                        <button className="main__icon-button" onClick={handleCancel}>
+                        <button 
+                            className="main__icon-button" 
+                            onClick={handleCancel}
+                            disabled={isDisabled}
+                        >
                             <X size={16} />
                             Cancel
                         </button>
-                        <button className="main__button" onClick={handleSaveBank}>
-                            <CheckCircle2 size={16} />
-                            Create Bank
+                        <button 
+                            className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                            onClick={handleSaveBank}
+                            disabled={isDisabled || !isFormValid}
+                        >
+                            {creating ? (
+                                <>
+                                    <Loader className="spinner" size={16} />
+                                    Creating...
+                                </>
+                            ) : (
+                                <>
+                                    <CheckCircle2 size={16} />
+                                    Create Bank
+                                </>
+                            )}
                         </button>
                     </div>
                 </div>

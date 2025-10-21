@@ -20,6 +20,11 @@ export const TRANSACTION_ENDPOINTS = {
 // Bank Endpoints
 export const BANK_ENDPOINTS = {
     AUTOCOMPLETE: `${API_CONFIG.BASE_URL}/banks/autocomplete`,
+    PAGINATED: `${API_CONFIG.BASE_URL}/banks/paginated`,
+    CREATE: `${API_CONFIG.BASE_URL}/banks`,
+    UPDATE: `${API_CONFIG.BASE_URL}/banks`,
+    DELETE: `${API_CONFIG.BASE_URL}/banks`,
+    GET_BY_ID: `${API_CONFIG.BASE_URL}/banks`,
 } as const;
 
 // Card Endpoints

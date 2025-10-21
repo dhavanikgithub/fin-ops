@@ -83,13 +83,13 @@ const DeleteBankConfirmModal: React.FC<DeleteBankConfirmModalProps> = ({
                             </div>
                             <Building2 size={16} />
                         </div>
-                        <div className="delete-modal__item">
+                        {/* <div className="delete-modal__item">
                             <div>
                                 <div className="delete-modal__item-label">Account Number</div>
                                 <div className="delete-modal__item-value">{formatAccountNumber(bank.accountNumber)}</div>
                             </div>
                             <BadgeDollarSign size={16} />
-                        </div>
+                        </div> */}
                         <div className="delete-modal__item">
                             <div>
                                 <div className="delete-modal__item-label">Linked Transactions</div>

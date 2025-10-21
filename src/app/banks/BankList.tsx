@@ -1,78 +1,125 @@
 'use client'
-import React, { useState } from 'react';
-import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader } from 'lucide-react';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { 
+    fetchPaginatedBanks, 
+    updateBank, 
+    deleteBank 
+} from '../../store/actions/bankActions';
+import { 
+    setSearchQuery, 
+    setSorting, 
+    setEditingBank, 
+    closeEditForm, 
+    clearError 
+} from '../../store/slices/bankSlice';
+import { Bank } from '../../services/bankService';
 import DeleteBankConfirmModal, { Bank as ModalBank } from './DeleteBankConfirmModal';
+import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './BankList.scss';
-
-interface Bank {
-    id: number;
-    name: string;
-    created: string;
-    transactions: number;
-}
-
-const mockBanks: Bank[] = [
-    {
-        id: 1,
-        name: 'HDFC Bank',
-        created: 'Jan 10, 2024',
-        transactions: 1204,
-    },
-    {
-        id: 2,
-        name: 'Axis Bank',
-        created: 'Feb 02, 2024',
-        transactions: 836,
-    },
-    {
-        id: 3,
-        name: 'ICICI Bank',
-        created: 'Mar 18, 2023',
-        transactions: 652,
-    },
-    {
-        id: 4,
-        name: 'State Bank of India',
-        created: 'Jul 05, 2022',
-        transactions: 2014,
-    },
-];
 
 interface BankListProps {
     onNewBank: () => void;
 }
 
 const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
-    const [search, setSearch] = useState('');
-    const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
+    const dispatch = useAppDispatch();
+    const { 
+        banks, 
+        loading, 
+        error, 
+        searchQuery, 
+        sortBy, 
+        sortOrder, 
+        pagination,
+        editingBank,
+        showEditForm,
+        updating,
+        deleting
+    } = useAppSelector(state => state.banks);
+
+    const [localSearch, setLocalSearch] = useState('');
+    const [editForm, setEditForm] = useState({ name: '' });
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const filteredBanks = mockBanks.filter(bank =>
-        bank.name.toLowerCase().includes(search.toLowerCase())
-    );
+    // Load banks on component mount
+    useEffect(() => {
+        dispatch(fetchPaginatedBanks({ 
+            page: 1, 
+            limit: 50, 
+            search: searchQuery, 
+            sort_by: sortBy, 
+            sort_order: sortOrder 
+        }));
+    }, [dispatch, searchQuery, sortBy, sortOrder]);
 
+    // Update edit form when editing bank changes
+    useEffect(() => {
+        if (editingBank) {
+            setEditForm({ name: editingBank.name });
+        }
+    }, [editingBank]);
+
+    // Handle search input with debounce
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (localSearch !== searchQuery) {
+                dispatch(setSearchQuery(localSearch));
+            }
+        }, 500);
+
+        return () => clearTimeout(timer);
+    }, [localSearch, searchQuery, dispatch]);
+
+    // Event handlers
     const handleNewBank = () => {
-        console.log('Navigate to new bank');
         onNewBank();
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setLocalSearch(e.target.value);
+    };
+
+    const handleEditBank = (bank: Bank) => {
+        dispatch(setEditingBank(bank));
+    };
+
+    const handleSaveBank = async () => {
+        if (!editingBank || !editForm.name.trim()) return;
+
+        try {
+            await dispatch(updateBank({
+                id: editingBank.id,
+                name: editForm.name.trim()
+            }));
+            // Success handling is done in the reducer
+        } catch (error) {
+            console.error('Failed to update bank:', error);
+        }
     };
 
     const handleDeleteBank = () => {
         setIsDeleteModalOpen(true);
     };
 
-    const handleDeleteConfirm = (bankId: string, deleteTransactions: boolean) => {
-        console.log(`Deleting bank ${bankId}, deleteTransactions: ${deleteTransactions}`);
-        // Here you would typically call an API to delete the bank
-        // After successful deletion, you might want to refresh the bank list
-        setIsDeleteModalOpen(false);
+    const handleDeleteConfirm = async (bankId: string, deleteTransactions: boolean) => {
+        try {
+            await dispatch(deleteBank({ id: parseInt(bankId) }));
+            setIsDeleteModalOpen(false);
+            dispatch(closeEditForm());
+        } catch (error) {
+            console.error('Failed to delete bank:', error);
+        }
     };
 
     const handleDeleteCancel = () => {
         setIsDeleteModalOpen(false);
     };
 
-    const handleDeselectBank = () => {
-        setSelectedBank(null);
+    const handleCancelEdit = () => {
+        dispatch(closeEditForm());
+        setEditForm({ name: '' });
     };
 
     // Convert Bank to ModalBank format
@@ -82,9 +129,21 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
             id: bank.id.toString(),
             name: bank.name,
             accountNumber: `XXXX${bank.id.toString().padStart(4, '0')}`, // Mock account number
-            linkedTransactionsCount: bank.transactions,
+            linkedTransactionsCount: bank.transaction_count,
         };
     };
+
+    // Format date for display
+    const formatDisplayDate = (dateStr: string): string => {
+        try {
+            return formatDateToMonthYear(dateStr);
+        } catch {
+            return dateStr;
+        }
+    };
+
+    const isUpdating = editingBank ? updating.includes(editingBank.id) : false;
+    const isDeleting = editingBank ? deleting.includes(editingBank.id) : false;
 
     return (
         <div className="main">
@@ -110,40 +169,54 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                             <input
                                 type="text"
                                 className="main__input"
-                                placeholder="Search"
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
+                                placeholder="Search banks..."
+                                value={localSearch}
+                                onChange={handleSearchChange}
                             />
                         </div>
-                        {/* <div className="main__actions">
-                            <button className="main__icon-button">
-                                <SlidersHorizontal size={16} />
-                                Filters
-                            </button>
-                        </div> */}
                     </div>
 
+                    {loading && (
+                        <div className="main__loading">
+                            <Loader className="spinner" size={20} />
+                            Loading banks...
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="main__error">
+                            Error: {error}
+                            <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                        </div>
+                    )}
+
                     <div className="banks-grid">
-                        {filteredBanks.map(bank => (
+                        {banks.map(bank => (
                             <div 
-                                className={`bank-card ${selectedBank?.id === bank.id ? 'bank-card--selected' : ''}`}
+                                className={`bank-card ${editingBank?.id === bank.id ? 'bank-card--selected' : ''}`}
                                 key={bank.id}
                             >
                                 <div className="bank-left">
+                                    {deleting.includes(bank.id) && (
+                                        <div className="bank-card__overlay">
+                                            <Loader className="spinner" size={20} />
+                                        </div>
+                                    )}
                                     <Building2 size={22} />
                                     <div>
                                         <div className="bank-title">{bank.name}</div>
-                                        <div className="bank-sub">Created: {bank.created}</div>
+                                        <div className="bank-sub">Created: {formatDisplayDate(bank.create_date)}</div>
                                     </div>
                                 </div>
                                 <div className="bank-meta">
                                     <div className="meta-block">
                                         <div className="meta-label">Transactions</div>
-                                        <div className="meta-value">{bank.transactions.toLocaleString()}</div>
+                                        <div className="meta-value">{bank.transaction_count.toLocaleString()}</div>
                                     </div>
                                     <button 
                                         className="row-actions"
-                                        onClick={() => setSelectedBank(bank)}
+                                        onClick={() => handleEditBank(bank)}
+                                        disabled={deleting.includes(bank.id)}
                                     >
                                         <MoreHorizontal size={16} />
                                         Manage
@@ -151,16 +224,21 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                                 </div>
                             </div>
                         ))}
-                        {filteredBanks.length === 0 && (
+                        {!loading && banks.length === 0 && (
                             <div className="bank-card bank-card--empty">
-                                No banks found.
+                                {searchQuery ? 'No banks found matching your search.' : 'No banks found.'}
                             </div>
                         )}
                     </div>
                 </div>
 
-                {selectedBank && (
+                {showEditForm && editingBank && (
                     <div className="detail">
+                        {isUpdating && (
+                            <div className="detail__overlay">
+                                <Loader className="spinner" size={24} />
+                            </div>
+                        )}
                         <div className="detail__header">
                             <Building2 size={28} />
                             <div>
@@ -171,32 +249,59 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                         <div className="form">
                             <div>
                                 <div className="label">Bank Name</div>
-                                <input className="control" value={selectedBank?.name || ''} readOnly />
+                                <input 
+                                    className="control" 
+                                    value={editForm.name}
+                                    onChange={(e) => setEditForm({ name: e.target.value })}
+                                    disabled={isUpdating || isDeleting}
+                                />
                             </div>
                             <div>
                                 <div className="label">Created On</div>
-                                <input className="control" value={selectedBank?.created || ''} readOnly />
+                                <input 
+                                    className="control" 
+                                    value={formatDisplayDate(editingBank.create_date)} 
+                                    readOnly 
+                                />
                             </div>
                             <div>
                                 <div className="label">Transactions</div>
-                                <input className="control" value={selectedBank?.transactions.toLocaleString() || ''} readOnly />
+                                <input 
+                                    className="control" 
+                                    value={editingBank.transaction_count.toLocaleString()} 
+                                    readOnly 
+                                />
                             </div>
                             <div className="inline-actions">
-                                <button className="main__button">
-                                    <Edit size={16} />
-                                    Save
+                                <button 
+                                    className="main__button"
+                                    onClick={handleSaveBank}
+                                    disabled={isUpdating || isDeleting || !editForm.name.trim()}
+                                >
+                                    {isUpdating ? (
+                                        <>
+                                            <Loader className="spinner" size={16} />
+                                            Saving...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Edit size={16} />
+                                            Save
+                                        </>
+                                    )}
                                 </button>
                                 <button 
                                     className="main__icon-button" 
                                     onClick={handleDeleteBank}
-                                    disabled={!selectedBank}
+                                    disabled={isUpdating || isDeleting}
                                 >
                                     <Trash size={16} />
                                     Delete
                                 </button>
                                 <button 
                                     className="main__secondary-button" 
-                                    onClick={handleDeselectBank}
+                                    onClick={handleCancelEdit}
+                                    disabled={isUpdating || isDeleting}
                                 >
                                     <X size={16} />
                                     Cancel
@@ -211,7 +316,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                 isOpen={isDeleteModalOpen}
                 onClose={handleDeleteCancel}
                 onDelete={handleDeleteConfirm}
-                bank={getModalBank(selectedBank)}
+                bank={getModalBank(editingBank)}
             />
         </div>
     );
