@@ -34,10 +34,10 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
         { icon: <CreditCard size={20} />, label: 'Cards', href: '/cards' },
         { 
             icon: <Calculator size={20} />, 
-            label: 'Calculators',
+            label: 'Special Calculators',
             subItems: [
-                { icon: <Calculator size={20} />, label: 'Charge Calculator', href: '/calculator' },
-                { icon: <Percent size={20} />, label: 'Finkeda Calculator', href: '/finkeda' },
+                { icon: <Percent size={20} />, label: 'Simple', href: '/calculator' },
+                { icon: <Percent size={20} />, label: 'Finkeda Special', href: '/finkeda' },
             ]
         },
     ];
