@@ -86,6 +86,24 @@
             }
         }
 
+        &--parent {
+            justify-content: space-between;
+            
+            &:hover {
+                background: var(--muted);
+            }
+
+            &--expanded {
+                background: var(--muted);
+            }
+        }
+
+        &--sub {
+            margin-left: 20px;
+            padding-left: 20px;
+            border-left: 2px solid var(--border);
+        }
+
         svg {
             font-size: 20px;
             color: currentColor;
@@ -94,6 +112,29 @@
         span {
             font-size: 14px;
             font-weight: 500;
+        }
+    }
+
+    &__chevron {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        transition: transform 0.2s ease;
+
+        svg {
+            width: 16px;
+            height: 16px;
+            color: var(--muted-foreground);
+        }
+    }
+
+    &__sub-items {
+        max-height: 0;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+
+        &--expanded {
+            max-height: 200px; // Adjust based on number of sub-items
         }
     }
 

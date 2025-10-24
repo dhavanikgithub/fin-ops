@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import "../styles/globals.scss"
 import ReduxProvider from "../components/ReduxProvider";
-import { Slide, ToastContainer } from "react-toastify";
 
 export const metadata: Metadata = {
   title: "FinOps",

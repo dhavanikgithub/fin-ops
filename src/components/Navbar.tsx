@@ -1,13 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Banknote, Users, CreditCard, Calculator, Moon, Sun, Wallet, Building, Building2 } from 'lucide-react';
+import { Banknote, Users, CreditCard, Calculator, Moon, Sun, Wallet, Building, Building2, Percent, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/Navbar.scss';
 
 interface NavItem {
     icon: React.ReactNode;
     label: string;
-    href: string;
+    href?: string;
+    subItems?: NavItem[];
 }
 
 interface NavbarProps {
@@ -16,14 +17,42 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
     const { theme, toggleTheme } = useTheme();
+    const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+    const toggleExpanded = (label: string) => {
+        setExpandedItems(prev => 
+            prev.includes(label) 
+                ? prev.filter(item => item !== label)
+                : [...prev, label]
+        );
+    };
 
     const navItems: NavItem[] = [
         { icon: <Wallet size={20} />, label: 'Transactions', href: '/transactions' },
         { icon: <Users size={20} />, label: 'Clients', href: '/clients' },
         { icon: <Building2 size={20} />, label: 'Banks', href: '/banks' },
         { icon: <CreditCard size={20} />, label: 'Cards', href: '/cards' },
-        { icon: <Calculator size={20} />, label: 'Charge Calculator', href: '/calculator' },
+        { 
+            icon: <Calculator size={20} />, 
+            label: 'Calculators',
+            subItems: [
+                { icon: <Calculator size={20} />, label: 'Charge Calculator', href: '/calculator' },
+                { icon: <Percent size={20} />, label: 'Finkeda Calculator', href: '/finkeda' },
+            ]
+        },
     ];
+
+    // Auto-expand accordion if a sub-item is active
+    useEffect(() => {
+        navItems.forEach(item => {
+            if (item.subItems) {
+                const hasActiveSubItem = item.subItems.some(subItem => subItem.href === activeHref);
+                if (hasActiveSubItem && !expandedItems.includes(item.label)) {
+                    setExpandedItems(prev => [...prev, item.label]);
+                }
+            }
+        });
+    }, [activeHref]);
 
     return (
         <div className="navbar">
@@ -46,14 +75,47 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
             </div>
             <nav className="navbar__nav">
                 {navItems.map((item, index) => (
-                    <Link
-                        key={index}
-                        href={item.href}
-                        className={`navbar__item${activeHref === item.href ? ' navbar__item--active' : ''}`}
-                    >
-                        {item.icon}
-                        <span>{item.label}</span>
-                    </Link>
+                    <div key={index}>
+                        {item.subItems ? (
+                            // Parent item with sub-items (accordion)
+                            <>
+                                <div
+                                    className={`navbar__item navbar__item--parent ${expandedItems.includes(item.label) ? 'navbar__item--expanded' : ''}`}
+                                    onClick={() => toggleExpanded(item.label)}
+                                >
+                                    {item.icon}
+                                    <span>{item.label}</span>
+                                    <div className="navbar__chevron">
+                                        {expandedItems.includes(item.label) ? 
+                                            <ChevronDown size={16} /> : 
+                                            <ChevronRight size={16} />
+                                        }
+                                    </div>
+                                </div>
+                                <div className={`navbar__sub-items ${expandedItems.includes(item.label) ? 'navbar__sub-items--expanded' : ''}`}>
+                                    {item.subItems.map((subItem, subIndex) => (
+                                        <Link
+                                            key={subIndex}
+                                            href={subItem.href!}
+                                            className={`navbar__item navbar__item--sub${activeHref === subItem.href ? ' navbar__item--active' : ''}`}
+                                        >
+                                            {subItem.icon}
+                                            <span>{subItem.label}</span>
+                                        </Link>
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            // Regular item
+                            <Link
+                                href={item.href!}
+                                className={`navbar__item${activeHref === item.href ? ' navbar__item--active' : ''}`}
+                            >
+                                {item.icon}
+                                <span>{item.label}</span>
+                            </Link>
+                        )}
+                    </div>
                 ))}
             </nav>
 
