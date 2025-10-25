@@ -118,13 +118,8 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         clientSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Effect to fetch initial bank data when modal opens
+    // Effect to cleanup timers when modal closes
     useEffect(() => {
-        if (isOpen) {
-            dispatch(fetchBankAutocomplete({ limit: 5 }));
-            dispatch(fetchCardAutocomplete({ limit: 5 }));
-            dispatch(fetchClientAutocomplete({ limit: 5 }));
-        }
         return () => {
             if (bankSearchDebounceTimer.current) {
                 clearTimeout(bankSearchDebounceTimer.current);
