@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Moon, Sun, ChevronDown, ChevronRight } from 'lucide-react';
