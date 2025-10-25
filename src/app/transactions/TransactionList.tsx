@@ -29,6 +29,7 @@ import ExportTransactionModal, { ExportSettings } from './ExportTransaction';
 import DeleteTransactionConfirmModal from './DeleteTransactionConfirmModal';
 import './TransactionList.scss';
 import useStateWithRef from '@/hooks/useStateWithRef';
+import logger from '@/utils/logger';
 
 interface TransactionListProps {
     onDeposit: () => void;
@@ -233,11 +234,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         dispatch(setFilters(apiFilters));
         dispatch(applyFilters(apiFilters));
 
-        console.log('Applied filters:', filters);
+        logger.log('Applied filters:', filters);
     };
 
     const handleExport = (exportSettings: ExportSettings) => {
-        console.log('Exporting with settings:', exportSettings);
+        logger.log('Exporting with settings:', exportSettings);
         // Handle export logic here
     };
 
@@ -265,7 +266,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                 setSelectedTransactionWithRef(null);
             }
         } catch (error) {
-            console.error(`Failed to delete transaction ${transactionId}:`, error);
+            logger.error(`Failed to delete transaction ${transactionId}:`, error);
         } finally {
         }
     };
@@ -279,9 +280,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
 
         try {
             await dispatch(editTransaction(transaction)).unwrap();
-            console.log('Transaction updated successfully');
+            logger.log('Transaction updated successfully');
         } catch (error) {
-            console.error('Failed to update transaction:', error);
+            logger.error('Failed to update transaction:', error);
         } finally {
         }
     };

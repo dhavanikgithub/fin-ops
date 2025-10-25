@@ -5,6 +5,7 @@ import { Moon, Sun, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/Navbar.scss';
 import { navItems } from './NavbarItems';
+import logger from '@/utils/logger';
 
 interface NavbarProps {
     activeHref: string;
@@ -12,7 +13,7 @@ interface NavbarProps {
 
 
 const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
-    console.log(activeHref);
+    logger.log(activeHref);
     const { theme, toggleTheme } = useTheme();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 

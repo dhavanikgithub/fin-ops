@@ -6,6 +6,7 @@ import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { createTransaction } from '../../store/actions/transactionActions';
 import './AddDeposit.scss';
+import logger from '@/utils/logger';
 
 interface AddDepositScreenProps {
     onCancel: () => void;
@@ -153,26 +154,26 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
             const result = await dispatch(createTransaction(transactionData));
             
             if (createTransaction.fulfilled.match(result)) {
-                console.log('Deposit created successfully:', result.payload);
+                logger.log('Deposit created successfully:', result.payload);
                 // Navigate back to transactions list
                 onBackToTransactions();
             } else {
-                console.error('Failed to create deposit:', result.payload);
+                logger.error('Failed to create deposit:', result.payload);
                 alert(`Failed to create deposit: ${result.payload}`);
             }
         } catch (error) {
-            console.error('Error creating deposit:', error);
+            logger.error('Error creating deposit:', error);
             alert('An unexpected error occurred while creating the deposit');
         }
     };
 
     const handleCancel = () => {
-        console.log('Cancelled deposit creation');
+        logger.log('Cancelled deposit creation');
         onCancel();
     };
 
     const handleBackToTransactions = () => {
-        console.log('Back to transactions');
+        logger.log('Back to transactions');
         onBackToTransactions();
     };
 

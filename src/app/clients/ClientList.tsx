@@ -9,6 +9,7 @@ import { fetchClients, searchClients, updateClient, deleteClient } from '../../s
 import { Client } from '../../services/clientService';
 import { formatDateToMonthYear, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import useStateWithRef from '@/hooks/useStateWithRef';
+import logger from '@/utils/logger';
 
 interface ClientListProps {
     onNewClient: () => void;
@@ -76,7 +77,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
     }, [searchTimeout]);
 
     const handleNewClient = () => {
-        console.log('Navigate to new client');
+        logger.log('Navigate to new client');
         onNewClient();
     };
 
@@ -94,7 +95,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                 setSelectedClientWithRef(null);
             }
         } catch (error) {
-            console.error('Failed to delete client:', error);
+            logger.error('Failed to delete client:', error);
         }
     };
 
@@ -122,7 +123,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                 address: client.address ? client.address.trim() : undefined,
             })).unwrap();
         } catch (error) {
-            console.error('Failed to update client:', error);
+            logger.error('Failed to update client:', error);
         }
     };
 

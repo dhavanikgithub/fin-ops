@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createCard } from '../../store/actions/cardActions';
 import { clearError } from '../../store/slices/cardSlice';
 import './AddCard.scss';
+import logger from '@/utils/logger';
 
 interface AddCardScreenProps {
     onCancel: () => void;
@@ -62,7 +63,7 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
             }));
             // Success handling is done in the useEffect above
         } catch (error) {
-            console.error('Failed to create card:', error);
+            logger.error('Failed to create card:', error);
             setCreationAttempted(false);
         }
     };

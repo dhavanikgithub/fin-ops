@@ -1,5 +1,6 @@
 'use client';
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import logger from '@/utils/logger';
 
 type Theme = 'light' | 'dark';
 
@@ -42,7 +43,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
                     initialTheme = systemPrefersDark ? 'dark' : 'light';
                 }
             } catch (error) {
-                console.warn('Error accessing localStorage or matchMedia:', error);
+                logger.warn('Error accessing localStorage or matchMedia:', error);
             }
 
             setTheme(initialTheme);
@@ -64,7 +65,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
             document.documentElement.setAttribute('data-theme', theme);
             document.body.className = theme;
         } catch (error) {
-            console.warn('Error saving theme:', error);
+            logger.warn('Error saving theme:', error);
         }
     }, [theme, mounted]);
 

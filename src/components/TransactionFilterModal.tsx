@@ -11,7 +11,7 @@ import { clearCardAutocomplete } from '../store/slices/cardAutocompleteSlice';
 import { fetchClientAutocomplete } from '../store/actions/clientActions';
 import { clearClientAutocomplete } from '../store/slices/clientAutocompleteSlice';
 import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS } from '../utils/transactionUtils';
-
+import logger from '@/utils/logger';
 
 interface FilterModalProps {
     isOpen: boolean;
@@ -638,7 +638,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         enableYearDropdown: true,
                                         iconClickOpens: true,
                                         onSelect: (date) => {
-                                            console.log('Start date selected:', date);
+                                            logger.log('Start date selected:', date);
                                         }
                                     }}
                                 />
@@ -660,7 +660,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         enableYearDropdown: true,
                                         iconClickOpens: true,
                                         onSelect: (date) => {
-                                            console.log('End date selected:', date);
+                                            logger.log('End date selected:', date);
                                         }
                                     }}
                                 />

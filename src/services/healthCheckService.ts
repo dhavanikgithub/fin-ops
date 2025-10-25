@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from '@/constants/apiEndpoints';
 import api from './api';
+import logger from '@/utils/logger';
 
 export interface HealthCheckResult {
     isHealthy: boolean;
@@ -168,7 +169,7 @@ class HealthCheckService {
             try {
                 listener(result);
             } catch (error) {
-                console.error('Error in health check listener:', error);
+                logger.error('Error in health check listener:', error);
             }
         });
     }
@@ -178,7 +179,7 @@ class HealthCheckService {
             try {
                 listener(isRetrying);
             } catch (error) {
-                console.error('Error in retry state listener:', error);
+                logger.error('Error in retry state listener:', error);
             }
         });
     }

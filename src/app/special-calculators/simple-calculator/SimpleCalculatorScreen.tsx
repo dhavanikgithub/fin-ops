@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Download, SlidersHorizontal, RefreshCcw, Save, Percent, Wallet, Play, Search } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
+import logger from '@/utils/logger';
 
 const savedScenarios = [
     {
@@ -45,10 +46,10 @@ const CalculatorScreen: React.FC = () => {
     const totalBankWithGst = bankRate + (bankRate * (GST / 100));
     const markup = myRate - totalBankWithGst;
     const earned = amount * markup;
-    console.log("Earn: ",earned)
+    logger.log("Earn: ",earned)
     const payable = amount - (amount * myRate);
     const profit = earned - platformCharge;
-    console.log("Profit: ",profit)
+    logger.log("Profit: ",profit)
     const netReceivable = payable;
 
     

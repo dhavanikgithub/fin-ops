@@ -5,6 +5,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createBank } from '../../store/actions/bankActions';
 import { clearError } from '../../store/slices/bankSlice';
 import './AddBank.scss';
+import logger from '@/utils/logger';
 
 interface AddBankScreenProps {
     onCancel: () => void;
@@ -62,7 +63,7 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
             }));
             // Success handling is done in the useEffect above
         } catch (error) {
-            console.error('Failed to create bank:', error);
+            logger.error('Failed to create bank:', error);
             setCreationAttempted(false);
         }
     };

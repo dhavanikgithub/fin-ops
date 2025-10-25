@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
+import logger from '@/utils/logger';
 
 interface RecentCalculation {
     client: string;
@@ -66,7 +67,7 @@ const FinkedaScreen: React.FC = () => {
 
     const handleCalculate = () => {
         // This would trigger any additional calculations or validations
-        console.log('Calculating Finkeda charges...');
+        logger.log('Calculating Finkeda charges...');
     };
 
     const handleReset = () => {
@@ -81,7 +82,7 @@ const FinkedaScreen: React.FC = () => {
     };
 
     const handleSaveQuote = () => {
-        console.log('Saving quote...');
+        logger.log('Saving quote...');
     };
 
     return (

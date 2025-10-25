@@ -10,6 +10,7 @@ import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { createTransaction } from '../../store/actions/transactionActions';
 import './AddWithdraw.scss';
+import logger from '@/utils/logger';
 
 interface AddWithdrawScreenProps {
     onCancel: () => void;
@@ -345,26 +346,26 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
             const result = await dispatch(createTransaction(transactionData));
             
             if (createTransaction.fulfilled.match(result)) {
-                console.log('Withdraw created successfully:', result.payload);
+                logger.log('Withdraw created successfully:', result.payload);
                 // Navigate back to transactions list
                 onBackToTransactions();
             } else {
-                console.error('Failed to create withdraw:', result.payload);
+                logger.error('Failed to create withdraw:', result.payload);
                 alert(`Failed to create withdraw: ${result.payload}`);
             }
         } catch (error) {
-            console.error('Error creating withdraw:', error);
+            logger.error('Error creating withdraw:', error);
             alert('An unexpected error occurred while creating the withdraw');
         }
     };
 
     const handleCancel = () => {
-        console.log('Cancelled withdraw creation');
+        logger.log('Cancelled withdraw creation');
         onCancel();
     };
 
     const handleBackToTransactions = () => {
-        console.log('Back to transactions');
+        logger.log('Back to transactions');
         onBackToTransactions();
     };
 

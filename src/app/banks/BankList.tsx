@@ -18,6 +18,7 @@ import { Bank } from '../../services/bankService';
 import DeleteBankConfirmModal, { Bank as ModalBank } from './DeleteBankConfirmModal';
 import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './BankList.scss';
+import logger from '@/utils/logger';
 
 interface BankListProps {
     onNewBank: () => void;
@@ -95,7 +96,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
             }));
             // Success handling is done in the reducer
         } catch (error) {
-            console.error('Failed to update bank:', error);
+            logger.error('Failed to update bank:', error);
         }
     };
 
@@ -109,7 +110,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
             setIsDeleteModalOpen(false);
             dispatch(closeEditForm());
         } catch (error) {
-            console.error('Failed to delete bank:', error);
+            logger.error('Failed to delete bank:', error);
         }
     };
 

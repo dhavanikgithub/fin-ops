@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import healthCheckService, { HealthCheckResult } from '../services/healthCheckService';
 import useStateWithRef from '@/hooks/useStateWithRef';
+import logger from '@/utils/logger';
 
 interface HealthCheckContextType {
     isServerHealthy: boolean;
@@ -29,7 +30,7 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
 
     // Start countdown when server is down
     const startCountdown = useCallback(() => {
-        console.log('Starting countdown for health check retry');
+        logger.log('Starting countdown for health check retry');
         
         // Clear any existing countdown first
         setCountdownInterval(prev => {
@@ -57,7 +58,7 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
 
     // Stop countdown
     const stopCountdown = useCallback(() => {
-        console.log('Stopping countdown');
+        logger.log('Stopping countdown');
         setCountdownInterval(prev => {
             if (prev) {
                 clearInterval(prev);
@@ -105,7 +106,7 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
     const retryManually = useCallback(async () => {
         try {
             setIsRetrying(true);
-            console.log('Manual retry started');
+            logger.log('Manual retry started');
             
             const result = await healthCheckService.manualHealthCheck();
             handleHealthCheckResult(result);
@@ -113,11 +114,11 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
             // Don't manually start countdown here - let the useEffect handle it
             // This ensures consistent behavior for both manual and automatic retries
         } catch (error) {
-            console.error('Manual health check failed:', error);
+            logger.error('Manual health check failed:', error);
         } finally {
             setIsRetrying(false);
             startCountdown();
-            console.log('Manual retry completed');
+            logger.log('Manual retry completed');
         }
     }, [handleHealthCheckResult]);
 
@@ -140,7 +141,7 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
         // Subscribe to retry state changes
         const unsubscribeRetry = healthCheckService.subscribeToRetryState((retrying) => {
             setIsRetrying(retrying);
-            console.log('Automatic retry state:', retrying ? 'started' : 'completed');
+            logger.log('Automatic retry state:', retrying ? 'started' : 'completed');
         });
 
         // Start monitoring
@@ -161,7 +162,7 @@ export const HealthCheckProvider: React.FC<HealthCheckProviderProps> = ({ childr
         if (!isServerHealthy && isModalOpen && !isRetrying) {
             if (countdown === 0) {
                 // Countdown finished or retry just completed - restart immediately
-                console.log('Countdown at 0 and not retrying, server still down - restarting countdown');
+                logger.log('Countdown at 0 and not retrying, server still down - restarting countdown');
                 startCountdown();
             }
         }

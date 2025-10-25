@@ -5,6 +5,7 @@ import './AddClient.scss';
 import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createClient } from '../../store/actions/clientActions';
+import logger from '@/utils/logger';
 
 interface AddClientScreenProps {
     onCancel: () => void;
@@ -56,7 +57,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
 
     const handleSaveClient = async () => {
         if (!formData.fullName.trim()) {
-            console.error('Client name is required');
+            logger.error('Client name is required');
             return;
         }
 
@@ -72,18 +73,18 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
             
             // Success handled in useEffect
         } catch (error) {
-            console.error('Failed to create client:', error);
+            logger.error('Failed to create client:', error);
             setCreationAttempted(false); // Reset on error
         }
     };
 
     const handleCancel = () => {
-        console.log('Cancelled client creation');
+        logger.log('Cancelled client creation');
         onCancel();
     };
 
     const handleBackToClients = () => {
-        console.log('Back to clients');
+        logger.log('Back to clients');
         onBackToClients();
     };
 

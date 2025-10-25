@@ -1,3 +1,4 @@
+import logger from '@/utils/logger';
 
 // Function to generate consistent background color for a name
 const getAvatarColor = (name: string): string => {
@@ -95,7 +96,7 @@ const formatTime = (timeString: string): string => {
             });
         }
     } catch (error) {
-        console.warn('Failed to parse time string:', timeString);
+        logger.warn('Failed to parse time string:', timeString);
     }
 
     // Fallback: return original string

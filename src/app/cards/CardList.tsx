@@ -18,6 +18,7 @@ import { Card } from '../../services/cardService';
 import DeleteCardConfirmModal, { Card as ModalCard } from './DeleteCardConfirmModal';
 import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './CardList.scss';
+import logger from '@/utils/logger';
 
 interface CardListProps {
     onNewCard: () => void;
@@ -91,7 +92,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
             }));
             // Success handling is done in the reducer
         } catch (error) {
-            console.error('Failed to update card:', error);
+            logger.error('Failed to update card:', error);
         }
     };
 
@@ -105,7 +106,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
             setIsDeleteModalOpen(false);
             dispatch(closeEditForm());
         } catch (error) {
-            console.error('Failed to delete card:', error);
+            logger.error('Failed to delete card:', error);
         }
     };
 
