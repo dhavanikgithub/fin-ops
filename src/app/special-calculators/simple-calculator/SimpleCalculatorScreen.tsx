@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
 import { Download, SlidersHorizontal, RefreshCcw, Save, Percent, Wallet, Play, Search } from 'lucide-react';
-import './CalculatorScreen.scss';
+import './SimpleCalculatorScreen.scss';
 
 const savedScenarios = [
     {
@@ -57,7 +57,7 @@ const CalculatorScreen: React.FC = () => {
         <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <h1>Charge Calculator</h1>
+                    <Percent size={20} /> <h1>Simple Calculator</h1>
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button">

@@ -144,7 +144,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
         <>
             <header className="main__header">
                 <div className="main__header-left">
-                    <h1>Cards</h1>
+                    <CreditCard size={20} /> <h1>Cards</h1>
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={onNewCard}>

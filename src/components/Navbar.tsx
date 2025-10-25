@@ -1,46 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Banknote, Users, CreditCard, Calculator, Moon, Sun, Wallet, Building, Building2, Percent, ChevronDown, ChevronRight } from 'lucide-react';
+import { Moon, Sun, ChevronDown, ChevronRight } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext';
 import '../styles/Navbar.scss';
-
-interface NavItem {
-    icon: React.ReactNode;
-    label: string;
-    href?: string;
-    subItems?: NavItem[];
-}
+import { navItems } from './NavbarItems';
 
 interface NavbarProps {
     activeHref: string;
 }
 
+
 const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
+    console.log(activeHref);
     const { theme, toggleTheme } = useTheme();
     const [expandedItems, setExpandedItems] = useState<string[]>([]);
 
     const toggleExpanded = (label: string) => {
-        setExpandedItems(prev => 
-            prev.includes(label) 
+        setExpandedItems(prev =>
+            prev.includes(label)
                 ? prev.filter(item => item !== label)
                 : [...prev, label]
         );
     };
-
-    const navItems: NavItem[] = [
-        { icon: <Wallet size={20} />, label: 'Transactions', href: '/transactions' },
-        { icon: <Users size={20} />, label: 'Clients', href: '/clients' },
-        { icon: <Building2 size={20} />, label: 'Banks', href: '/banks' },
-        { icon: <CreditCard size={20} />, label: 'Cards', href: '/cards' },
-        { 
-            icon: <Calculator size={20} />, 
-            label: 'Special Calculators',
-            subItems: [
-                { icon: <Percent size={20} />, label: 'Simple', href: '/calculator' },
-                { icon: <Percent size={20} />, label: 'Finkeda Special', href: '/finkeda' },
-            ]
-        },
-    ];
 
     // Auto-expand accordion if a sub-item is active
     useEffect(() => {
@@ -58,9 +39,9 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
         <div className="navbar">
             <div className="navbar__logo">
                 <div className="navbar__brand">
-                    <img 
-                        src="/favicon.svg" 
-                        alt="FinOps Logo" 
+                    <img
+                        src="/favicon.svg"
+                        alt="FinOps Logo"
                         className="navbar__icon"
                         width={28}
                         height={28}
@@ -86,8 +67,8 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
                                     {item.icon}
                                     <span>{item.label}</span>
                                     <div className="navbar__chevron">
-                                        {expandedItems.includes(item.label) ? 
-                                            <ChevronDown size={16} /> : 
+                                        {expandedItems.includes(item.label) ?
+                                            <ChevronDown size={16} /> :
                                             <ChevronRight size={16} />
                                         }
                                     </div>
@@ -120,7 +101,7 @@ const Navbar: React.FC<NavbarProps> = ({ activeHref }) => {
             </nav>
 
             <div className="navbar__footer">
-                
+
             </div>
         </div>
     );

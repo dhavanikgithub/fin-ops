@@ -13,6 +13,7 @@ import {
     Eye
 } from 'lucide-react';
 import './FinkedaScreen.scss';
+import Finkeda from '@/components/Icons/Finkeda';
 
 interface RecentCalculation {
     client: string;
@@ -87,7 +88,7 @@ const FinkedaScreen: React.FC = () => {
         <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <h1>Finkeda Calculator</h1>
+                    <Finkeda size={20} /> <h1>Finkeda Calculator</h1>
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={handleReset}>
@@ -103,12 +104,6 @@ const FinkedaScreen: React.FC = () => {
 
             <div className="main__content">
                 <div className="main__view">
-                    <div className="main__view-header">
-                        <div className="main__title">
-                            <Percent size={20} />
-                            Configure Calculation
-                        </div>
-                    </div>
 
                     <div className="finkeda-two-col">
                         <div className="finkeda-card">
