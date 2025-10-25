@@ -48,13 +48,18 @@ export const CLIENT_ENDPOINTS = {
     GET_BY_NAME: `${API_CONFIG.BASE_URL}/clients/name`,
 } as const;
 
+// Health Check Endpoints
+export const HEALTH_ENDPOINTS = {
+    HEALTH: `${API_CONFIG.BASE_URL}/health`,
+} as const;
 
 // Export all endpoints as a single object for convenience
 export const API_ENDPOINTS = {
     TRANSACTION: TRANSACTION_ENDPOINTS,
     BANK: BANK_ENDPOINTS,
     CARD: CARD_ENDPOINTS,
-    CLIENT: CLIENT_ENDPOINTS
+    CLIENT: CLIENT_ENDPOINTS,
+    HEALTH: HEALTH_ENDPOINTS
 } as const;
 
 // Type definitions for endpoint parameters
