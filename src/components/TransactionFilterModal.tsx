@@ -37,14 +37,15 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
     const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
 
-
     const [cardSearch, setCardSearch] = useState('');
     const [clientSearch, setClientSearch] = useState('');
     const [bankSearch, setBankSearch] = useState('');
     const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
     const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
     const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
-    const [filters, setFilters] = useState<FilterValues>({
+    
+    // Initialize filters as a ref to avoid re-renders on modal open
+    const initialFilters: FilterValues = {
         types: [],
         minAmount: '',
         maxAmount: '',
@@ -53,17 +54,15 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         banks: [],
         cards: [],
         clients: [],
-    });
-
-    const [newTokenInputs, setNewTokenInputs] = useState({
-        banks: '',
-        cards: '',
-        clients: ''
-    });
-
-    // Debounced bank search
-    const bankSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    };
     
+    const [filters, setFilters] = useState<FilterValues>(initialFilters);
+
+    // Debounced timers as refs to persist across renders
+    const bankSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const cardSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+    // Memoized debounced search functions to prevent recreation on every render
     const debouncedBankSearch = useCallback((searchTerm: string) => {
         if (bankSearchDebounceTimer.current) {
             clearTimeout(bankSearchDebounceTimer.current);
@@ -80,9 +79,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         bankSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced card search
-    const cardSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
-    
+    // Memoized debounced card search
     const debouncedCardSearch = useCallback((searchTerm: string) => {
         if (cardSearchDebounceTimer.current) {
             clearTimeout(cardSearchDebounceTimer.current);
@@ -99,9 +96,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         cardSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced client search
-    const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
-    
+    // Memoized debounced client search
     const debouncedClientSearch = useCallback((searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
@@ -118,8 +113,18 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
         clientSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Effect to cleanup timers when modal closes
+    // Only cleanup timers when component unmounts or modal closes
     useEffect(() => {
+        if (!isOpen) {
+            // Clear search states when modal closes
+            setBankSearch('');
+            setCardSearch('');
+            setClientSearch('');
+            setBankHighlightedIndex(0);
+            setCardHighlightedIndex(0);
+            setClientHighlightedIndex(0);
+        }
+        
         return () => {
             if (bankSearchDebounceTimer.current) {
                 clearTimeout(bankSearchDebounceTimer.current);
@@ -131,35 +136,51 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                 clearTimeout(clientSearchDebounceTimer.current);
             }
         };
-    }, [isOpen, dispatch]);
+    }, [isOpen]);
 
-    // Effect to handle bank search changes
+    // Only trigger search when search terms actually change and have content
     useEffect(() => {
-        debouncedBankSearch(bankSearch);
-    }, [bankSearch, debouncedBankSearch]);
-
-    // Effect to handle card search changes
-    useEffect(() => {
-        debouncedCardSearch(cardSearch);
-    }, [cardSearch, debouncedCardSearch]);
-
-    // Effect to handle client search changes
-    useEffect(() => {
-        debouncedClientSearch(clientSearch);
-    }, [clientSearch, debouncedClientSearch]);
-
-    // Reset highlighted indices when items change
-    useEffect(() => {
-        setBankHighlightedIndex(0);
-    }, [bankAutocompleteItems]);
+        if (bankSearch.trim()) {
+            debouncedBankSearch(bankSearch);
+        } else if (bankSearch === '') {
+            dispatch(clearBankAutocomplete());
+        }
+    }, [bankSearch, debouncedBankSearch, dispatch]);
 
     useEffect(() => {
-        setCardHighlightedIndex(0);
-    }, [cardAutocompleteItems]);
+        if (cardSearch.trim()) {
+            debouncedCardSearch(cardSearch);
+        } else if (cardSearch === '') {
+            dispatch(clearCardAutocomplete());
+        }
+    }, [cardSearch, debouncedCardSearch, dispatch]);
 
     useEffect(() => {
-        setClientHighlightedIndex(0);
-    }, [clientAutocompleteItems]);
+        if (clientSearch.trim()) {
+            debouncedClientSearch(clientSearch);
+        } else if (clientSearch === '') {
+            dispatch(clearClientAutocomplete());
+        }
+    }, [clientSearch, debouncedClientSearch, dispatch]);
+
+    // Only reset highlighted indices when items actually change and have content
+    useEffect(() => {
+        if (bankAutocompleteItems.length > 0) {
+            setBankHighlightedIndex(0);
+        }
+    }, [bankAutocompleteItems.length]);
+
+    useEffect(() => {
+        if (cardAutocompleteItems.length > 0) {
+            setCardHighlightedIndex(0);
+        }
+    }, [cardAutocompleteItems.length]);
+
+    useEffect(() => {
+        if (clientAutocompleteItems.length > 0) {
+            setClientHighlightedIndex(0);
+        }
+    }, [clientAutocompleteItems.length]);
 
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
         setFilters(prev => ({
@@ -194,21 +215,13 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
     };
 
     const handleReset = () => {
-        setFilters({
-            types: [],
-            minAmount: '',
-            maxAmount: '',
-            startDate: '',
-            endDate: '',
-            banks: [],
-            cards: [],
-            clients: [],
-        });
-        setNewTokenInputs({
-            banks: '',
-            cards: '',
-            clients: ''
-        });
+        setFilters(initialFilters);
+        setBankSearch('');
+        setCardSearch('');
+        setClientSearch('');
+        setBankHighlightedIndex(0);
+        setCardHighlightedIndex(0);
+        setClientHighlightedIndex(0);
     };
 
     const handleApply = () => {
