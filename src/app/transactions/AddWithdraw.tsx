@@ -649,6 +649,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                     className="aw__input"
                                     value={formData.amount}
                                     onChange={(e) => handleInputChange('amount', e.target.value)}
+                                    onFocus={e => e.target.select()}
                                     placeholder="₹ 0.00"
                                 />
                                 <span className="aw__hint">Enter the amount to withdraw.</span>
@@ -664,6 +665,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                     className="aw__input"
                                     value={formData.chargesPct}
                                     onChange={(e) => handleInputChange('chargesPct', e.target.value)}
+                                    onFocus={e => e.target.select()}
                                     placeholder="0"
                                 />
                                 <span className="aw__hint">Enter fee percentage to apply.</span>
@@ -679,6 +681,7 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                 className="aw__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Optional notes for this withdrawal..."
                                 rows={5}
                             />

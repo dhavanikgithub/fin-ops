@@ -168,6 +168,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
                                 placeholder="Search cards..."
                                 value={localSearch}
                                 onChange={handleSearchChange}
+                                onFocus={e => e.target.select()}
                             />
                         </div>
                     </div>
@@ -252,6 +253,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
                                     className="control" 
                                     value={editForm.name}
                                     onChange={(e) => setEditForm({ name: e.target.value })}
+                                    onFocus={e => e.target.select()}
                                     disabled={isUpdating || isDeleting}
                                 />
                             </div>

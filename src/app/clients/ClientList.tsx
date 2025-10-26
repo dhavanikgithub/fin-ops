@@ -212,6 +212,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                 placeholder="Search clients..."
                                 value={localSearchQuery}
                                 onChange={e => handleSearchChange(e.target.value)}
+                                onFocus={e => e.target.select()}
                             />
                         </div>
                         {/* <div className="main__actions">
@@ -293,6 +294,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                         className="control"
                                         value={selectedClient.name || ''}
                                         onChange={(e) => handleEditFormChange('name', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                         placeholder="Enter client name"
                                         disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                     />
@@ -303,6 +305,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                         className="control"
                                         value={selectedClient.email || ''}
                                         onChange={(e) => handleEditFormChange('email', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                         placeholder="client@example.com"
                                         type="email"
                                         disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
@@ -314,6 +317,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                         className="control"
                                         value={selectedClient.contact || ''}
                                         onChange={(e) => handleEditFormChange('contact', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                         placeholder="+91 98765 43210"
                                         type="tel"
                                         disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
@@ -326,6 +330,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
                                         rows={4}
                                         value={selectedClient.address || ''}
                                         onChange={(e) => handleEditFormChange('address', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                         placeholder="Street address, city, state, pincode"
                                         disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                     />

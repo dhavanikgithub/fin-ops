@@ -119,6 +119,7 @@ const FinkedaScreen: React.FC = () => {
                                         placeholder="Enter amount ₹"
                                         value={amount || ''}
                                         onChange={e => setAmount(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
                                     />
                                 </div>
                                 <div className="finkeda-field">
@@ -129,6 +130,7 @@ const FinkedaScreen: React.FC = () => {
                                         placeholder="Enter %"
                                         value={tax || ''}
                                         onChange={e => setTax(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
                                     />
                                 </div>
                                 
@@ -143,6 +145,7 @@ const FinkedaScreen: React.FC = () => {
                                         placeholder="Fixed charge %"
                                         value={fixedCharge || ''}
                                         onChange={e => setFixedCharge(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
                                     />
                                 </div>
                                 <div className="finkeda-field">
@@ -153,6 +156,7 @@ const FinkedaScreen: React.FC = () => {
                                         placeholder="Enter %"
                                         value={finkedaFee || ''}
                                         onChange={e => setFinkedaFee(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
                                     />
                                 </div>
                                 

@@ -298,6 +298,7 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                 className="ad__input"
                                 value={formData.amount}
                                 onChange={(e) => handleInputChange('amount', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="0.00"
                             />
                             <span className="ad__hint">Amount received from client.</span>
@@ -312,6 +313,7 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                 className="ad__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Reference, purpose, or any internal notes..."
                                 rows={5}
                             />

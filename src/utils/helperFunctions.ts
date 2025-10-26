@@ -127,4 +127,27 @@ const formatAmountAsCurrency = (amount: number) => {
     }).format(amount);
 };
 
-export { getAvatarInitials, getAvatarColorClass, getAvatarColor, formatDateToReadable, formatDateWithTime, formatTime, debounce, formatCurrency, formatAmountWithSymbol, formatAmountAsCurrency, formatDateToMonthYear };
+const percentageToDecimal = (percent: number) => percent / 100;
+
+const decimalToPercentage = (decimal: number) => decimal * 100;
+
+const clampPercent = (value: number) => Math.max(0, Math.min(100, value));
+const clampPositive = (value: number) => Math.max(0, value);
+
+export { 
+    getAvatarInitials, 
+    getAvatarColorClass, 
+    getAvatarColor, 
+    formatDateToReadable, 
+    formatDateWithTime,
+    formatTime, 
+    debounce, 
+    formatCurrency, 
+    formatAmountWithSymbol, 
+    formatAmountAsCurrency, 
+    formatDateToMonthYear,
+    percentageToDecimal,
+    decimalToPercentage,
+    clampPercent,
+    clampPositive
+};

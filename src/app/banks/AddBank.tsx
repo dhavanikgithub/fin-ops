@@ -139,6 +139,7 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                                 className={`ab__input ${!isFormValid && creationAttempted ? 'ab__input--error' : ''}`}
                                 value={formData.bankName}
                                 onChange={(e) => handleInputChange('bankName', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Enter bank name"
                                 disabled={isDisabled}
                             />
@@ -157,6 +158,7 @@ const AddBankScreen: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }
                                 className="ab__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Any additional notes about this bank..."
                                 rows={4}
                                 disabled={isDisabled}

@@ -614,6 +614,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                     placeholder="Min amount"
                                     value={filters.minAmount}
                                     onChange={(e) => handleInputChange('minAmount', e.target.value)}
+                                    onFocus={e => e.target.select()}
                                 />
                                 <input
                                     type="number"
@@ -621,6 +622,7 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                     placeholder="Max amount"
                                     value={filters.maxAmount}
                                     onChange={(e) => handleInputChange('maxAmount', e.target.value)}
+                                    onFocus={e => e.target.select()}
                                 />
                             </div>
                         </div>
@@ -672,20 +674,6 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                                         }
                                     }}
                                 />
-                                {/* <input
-                                    type="date"
-                                    className="filter-modal__input"
-                                    placeholder="Start date"
-                                    value={filters.startDate}
-                                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                                /> */}
-                                {/* <input
-                                    type="date"
-                                    className="filter-modal__input"
-                                    placeholder="End date"
-                                    value={filters.endDate}
-                                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                                /> */}
                             </div>
                         </div>
                     </div>

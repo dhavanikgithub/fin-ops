@@ -173,6 +173,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                                 placeholder="Search banks..."
                                 value={localSearch}
                                 onChange={handleSearchChange}
+                                onFocus={e => e.target.select()}
                             />
                         </div>
                     </div>
@@ -254,6 +255,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                                     className="control" 
                                     value={editForm.name}
                                     onChange={(e) => setEditForm({ name: e.target.value })}
+                                    onFocus={e => e.target.select()}
                                     disabled={isUpdating || isDeleting}
                                 />
                             </div>

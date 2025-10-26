@@ -137,6 +137,7 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
                                 className={`ac__input ${!isFormValid && creationAttempted ? 'ac__input--error' : ''}`}
                                 value={formData.cardName}
                                 onChange={(e) => handleInputChange('cardName', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Enter card name"
                                 disabled={isDisabled}
                             />
@@ -155,6 +156,7 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
                                 className="ac__textarea"
                                 value={formData.notes}
                                 onChange={(e) => handleInputChange('notes', e.target.value)}
+                                onFocus={e => e.target.select()}
                                 placeholder="Any additional notes about this card..."
                                 rows={4}
                                 disabled={isDisabled}

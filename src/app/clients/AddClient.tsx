@@ -140,6 +140,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__input"
                                             value={formData.fullName}
                                             onChange={(e) => handleInputChange('fullName', e.target.value)}
+                                            onFocus={e => e.target.select()}
                                             placeholder="Enter client full name"
                                             disabled={creating}
                                         />
@@ -156,6 +157,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__input"
                                             value={formData.email}
                                             onChange={(e) => handleInputChange('email', e.target.value)}
+                                            onFocus={e => e.target.select()}
                                             placeholder="client@example.com"
                                             disabled={creating}
                                         />
@@ -171,6 +173,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__input"
                                             value={formData.phone}
                                             onChange={(e) => handleInputChange('phone', e.target.value)}
+                                            onFocus={e => e.target.select()}
                                             placeholder="+91 98765 43210"
                                             disabled={creating}
                                         />
@@ -185,6 +188,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
                                             className="ac__textarea"
                                             value={formData.address}
                                             onChange={(e) => handleInputChange('address', e.target.value)}
+                                            onFocus={e => e.target.select()}
                                             placeholder="Street address, city, state, pincode"
                                             rows={4}
                                             disabled={creating}
