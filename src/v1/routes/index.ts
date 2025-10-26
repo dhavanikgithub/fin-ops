@@ -5,6 +5,7 @@ import cardRoute from './cardRoute';
 import clientRoute from './clientRoute';
 import transactionRoute from './transactionRoute';
 import reportRoute from './reportRoute';
+import finkedaSettingsRoute from './finkedaSettingsRoute';
 
 const router = express.Router();
 
@@ -15,6 +16,7 @@ router.use('/cards', cardRoute);
 router.use('/clients', clientRoute);
 router.use('/transactions', transactionRoute);
 router.use('/reports', reportRoute);
+router.use('/finkeda-settings', finkedaSettingsRoute);
 
 
 export default router;
