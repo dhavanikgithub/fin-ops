@@ -1,32 +1,110 @@
 'use client'
 import React, { useState } from 'react';
-import { Download, SlidersHorizontal, RefreshCcw, Save, Percent, Wallet, Play, Search } from 'lucide-react';
+import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
 
-const savedScenarios = [
-    {
-        amount: 50000,
-        our: 2.5,
-        bank: 1.8,
-        platform: 25,
-        gst: 18,
-    }
-];
+interface SavedScenario {
+    id: string;
+    amount: number;
+    our: number;
+    bank: number;
+    platform: number;
+    gst: number;
+    savedAt: string;
+}
+
+const STORAGE_KEY = 'calculator_scenarios';
 
 const GST = 18;
 
-
-
 const CalculatorScreen: React.FC = () => {
-    const [search, setSearch] = useState('');
     const [amount, setAmount] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [platformRateAmt, setPlatformRateAmt] = useState(0);
+    const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
 
+    // Load saved scenarios from localStorage on component mount
+    React.useEffect(() => {
+        const loadSavedScenarios = () => {
+            try {
+                const stored = localStorage.getItem(STORAGE_KEY);
+                if (stored) {
+                    const scenarios = JSON.parse(stored) as SavedScenario[];
+                    setSavedScenarios(scenarios);
+                }
+            } catch (error) {
+                logger.error('Failed to load saved scenarios:', error);
+            }
+        };
 
+        loadSavedScenarios();
+    }, []);
+
+    // Save current scenario to localStorage
+    const handleSaveScenario = () => {
+        try {
+            // Check for duplicate scenario
+            const isDuplicate = savedScenarios.some(scenario => 
+                scenario.amount === amount &&
+                scenario.our === ourRatePercentage &&
+                scenario.bank === bankRatePercentage &&
+                scenario.platform === platformRateAmt &&
+                scenario.gst === GST
+            );
+
+            if (isDuplicate) {
+                logger.warn('Duplicate scenario detected - not saving');
+                return;
+            }
+
+            const newScenario: SavedScenario = {
+                id: Date.now().toString(),
+                amount,
+                our: ourRatePercentage,
+                bank: bankRatePercentage,
+                platform: platformRateAmt,
+                gst: GST,
+                savedAt: new Date().toISOString()
+            };
+
+            const updatedScenarios = [...savedScenarios, newScenario];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedScenarios));
+            setSavedScenarios(updatedScenarios);
+            
+            logger.log('Scenario saved successfully:', newScenario);
+        } catch (error) {
+            logger.error('Failed to save scenario:', error);
+        }
+    };
+
+    // Apply a saved scenario to current inputs
+    const handleApplyScenario = (scenario: SavedScenario) => {
+        setAmount(scenario.amount);
+        setOurRatePercentage(scenario.our);
+        setBankRatePercentage(scenario.bank);
+        setPlatformRateAmt(scenario.platform);
+        
+        logger.log('Applied scenario:', scenario);
+    };
+
+    // Reset all input fields to default values
+    const handleReset = () => {
+        setAmount(0);
+        setBankRatePercentage(0);
+        setOurRatePercentage(0);
+        setPlatformRateAmt(0);
+        
+        logger.log('Input fields reset to default values');
+    };
+
+    // Force recalculation (mainly for user feedback and validation)
+    const handleRecalculate = () => {
+        // Force a re-render
+        setAmount(amount);
+    };
 
     // Example calculations (replace with real logic as needed)
     const bankRateDecimal = percentageToDecimal(bankRatePercentage);
@@ -121,13 +199,17 @@ const CalculatorScreen: React.FC = () => {
                             </div>
                             <div className="inline">
                                 <div className="pill">GST: {GST}% (fixed)</div>
-                                <button className="main__icon-button" type="button">
+                                <button className="main__icon-button" type="button" onClick={handleRecalculate}>
                                     <RefreshCcw size={16} />
                                     Recalculate
                                 </button>
-                                <button className="main__button" type="button">
+                                <button className="main__button" type="button" onClick={handleSaveScenario}>
                                     <Save size={16} />
-                                    Save Scenario
+                                    Save
+                                </button>
+                                <button className="main__icon-button" type="button" onClick={handleReset}>
+                                    <RotateCcw size={16} />
+                                    Reset
                                 </button>
                             </div>
                         </div>
@@ -168,24 +250,37 @@ const CalculatorScreen: React.FC = () => {
                     </div>
 
                     <div className="panel">
-                        <div className="section-title">Saved Scenarios</div>
-                        <div className="calculator-grid-3">
-                            {savedScenarios.map((s, i) => (
-                                <div className="panel" key={i}>
-                                    <div className="line" style={{ fontWeight: 600 }}>
-                                        {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
+                        <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
+                        {savedScenarios.length === 0 ? (
+                            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                                No saved scenarios yet. Save your current calculation to get started.
+                            </div>
+                        ) : (
+                            <div className="calculator-grid-3">
+                                {savedScenarios.map((s: SavedScenario, i: number) => (
+                                    <div className="panel" key={s.id}>
+                                        <div className="line" style={{ fontWeight: 600 }}>
+                                            {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
+                                        </div>
+                                        <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
+                                        <div className="line" style={{ fontSize: '12px', color: '#666' }}>
+                                            <span>Saved: {new Date(s.savedAt).toLocaleDateString()} at {new Date(s.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                        </div>
+                                        <div className="inline" style={{ justifyContent: 'space-between', marginTop: 4 }}>
+                                            <div className="pill">GST {s.gst}%</div>
+                                            <button 
+                                                className="main__icon-button" 
+                                                type="button"
+                                                onClick={() => handleApplyScenario(s)}
+                                            >
+                                                <Play size={16} />
+                                                Apply
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
-                                    <div className="inline" style={{ justifyContent: 'space-between', marginTop: 4 }}>
-                                        <div className="pill">GST {s.gst}%</div>
-                                        <button className="main__icon-button" type="button">
-                                            <Play size={16} />
-                                            Apply
-                                        </button>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                 </div>
