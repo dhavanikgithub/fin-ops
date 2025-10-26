@@ -23,8 +23,8 @@ import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSl
 import { convertUIFiltersToAPI, getActiveFilterCount } from '../../utils/filterUtils';
 import { isDeposit, isWithdraw, getTransactionTypeLabel } from '../../utils/transactionUtils';
 import { Transaction } from '../../services/transactionService';
-import Table from '../../components/Tables/TransactionTable';
-import TransactionFilterModal, { FilterValues } from '../../components/TransactionFilterModal';
+import Table from './TransactionTable';
+import TransactionFilterModal, { FilterValues } from './TransactionFilterModal';
 import ExportTransactionModal, { ExportSettings } from './ExportTransaction';
 import DeleteTransactionConfirmModal from './DeleteTransactionConfirmModal';
 import './TransactionList.scss';

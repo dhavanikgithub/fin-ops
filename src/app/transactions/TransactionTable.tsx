@@ -4,7 +4,7 @@ import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizonta
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
 import { Transaction } from '../../services/transactionService';
-import '../../styles/TransactionTable.scss';
+import './TransactionTable.scss';
 import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transactionUtils';
 import { formatAmountWithSymbol, formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 

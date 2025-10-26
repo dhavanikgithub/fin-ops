@@ -1,4 +1,4 @@
-import { FilterValues } from '../components/TransactionFilterModal';
+import { FilterValues } from '../app/transactions/TransactionFilterModal';
 import { TransactionFilters } from '../services/transactionService';
 import { TRANSACTION_TYPES, TRANSACTION_TYPE_LABELS, getTransactionTypeValue } from './transactionUtils';
 

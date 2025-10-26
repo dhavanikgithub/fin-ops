@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { UserPlus, Edit, Search, UserMinus, ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import DeleteClientConfirmModal, { Client as ModalClient } from './DeleteClientConfirmModal';
 import './ClientList.scss';
-import ClientTable from '../../components/Tables/ClientTable';
+import ClientTable from './ClientTable';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClients, searchClients, updateClient, deleteClient } from '../../store/actions/clientActions';
 import { Client } from '../../services/clientService';

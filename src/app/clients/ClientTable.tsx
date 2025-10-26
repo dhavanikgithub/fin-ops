@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronDown, MoreHorizontal, MapPin, Wallet, ArrowDownLeft, ArrowUpRight, Check, X } from 'lucide-react';
-import '../../styles/ClientTable.scss';
+import './ClientTable.scss';
 import { formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import { Client } from '../../services/clientService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
