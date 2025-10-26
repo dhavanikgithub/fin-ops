@@ -2,17 +2,13 @@
 
 import React, { useState } from 'react';
 import {
-    Percent,
-    ArrowDownCircle,
-    ArrowUpCircle,
-    SlidersHorizontal,
-    Calculator,
-    FileText,
     RefreshCcw,
     Save,
-    Eye,
     Play,
-    RotateCcw
+    RotateCcw,
+    Settings,
+    Eye,
+    EyeOff
 } from 'lucide-react';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
@@ -58,6 +54,9 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
 
     // Saved scenarios state
     const [savedScenarios, setSavedScenarios] = useState<RecentCalculation[]>([]);
+
+    // Settings visibility state
+    const [showSettings, setShowSettings] = useState(false);
 
     // Load saved scenarios from localStorage on component mount
     React.useEffect(() => {
@@ -214,6 +213,12 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
         logger.log('Card type changed to:', cardType);
     };
 
+    // Toggle settings visibility
+    const handleToggleSettings = () => {
+        setShowSettings(!showSettings);
+        logger.log('Settings visibility toggled to:', !showSettings);
+    };
+
     // Update settings API call
     const handleUpdateSettings = async () => {
         if (!rupayChargeAmount || !masterChargeAmount) {
@@ -323,10 +328,10 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
 
                             <div className="finkeda-actions">
                                 <div className="pill">GST: {GST}% (fixed)</div>
-                                {/* <button className="main__icon-button">
-                                    <SlidersHorizontal size={16} />
-                                    Settings
-                                </button> */}
+                                <button className="main__icon-button" onClick={handleToggleSettings}>
+                                    <Settings size={16} />
+                                    {showSettings ? 'Hide Settings' : 'Show Settings'}
+                                </button>
                                 <button className="main__icon-button" onClick={handleRecalculate}>
                                     <RefreshCcw size={16} />
                                     Recalculate
@@ -341,43 +346,50 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
                                 </button>
                             </div>
 
-                            <div className="finkeda-form-row">
-                                <div className="finkeda-field">
-                                    <div className="finkeda-label">Rupay Charge (%)</div>
-                                    <input
-                                        className="finkeda-control"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Rupay charge %"
-                                        value={rupayChargeAmount}
-                                        onChange={e => setRupayChargeAmount(parseFloat(e.target.value) || 0)}
-                                        onFocus={e => e.target.select()}
-                                    />
-                                </div>
-                                <div className="finkeda-field">
-                                    <div className="finkeda-label">Master Charge (%)</div>
-                                    <input
-                                        className="finkeda-control"
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="Master charge %"
-                                        value={masterChargeAmount}
-                                        onChange={e => setMasterChargeAmount(parseFloat(e.target.value) || 0)}
-                                        onFocus={e => e.target.select()}
-                                    />
-                                </div>
-                            </div>
+                            {showSettings && (
+                                <>
+                                    <div className="finkeda-form-row">
+                                        <div className="finkeda-field">
+                                            <div className="finkeda-label">Rupay Charge (%)</div>
+                                            <input
+                                                className="finkeda-control"
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="Rupay charge %"
+                                                value={rupayChargeAmount}
+                                                onChange={e => setRupayChargeAmount(parseFloat(e.target.value) || 0)}
+                                                onFocus={e => e.target.select()}
+                                            />
+                                        </div>
+                                        <div className="finkeda-field">
+                                            <div className="finkeda-label">Master Charge (%)</div>
+                                            <input
+                                                className="finkeda-control"
+                                                type="number"
+                                                step="0.01"
+                                                placeholder="Master charge %"
+                                                value={masterChargeAmount}
+                                                onChange={e => setMasterChargeAmount(parseFloat(e.target.value) || 0)}
+                                                onFocus={e => e.target.select()}
+                                            />
+                                        </div>
+                                    </div>
 
-                            <div className="finkeda-actions">
-                                <button
-                                    className="main__button"
-                                    onClick={handleUpdateSettings}
-                                    disabled={isUpdatingSettings}
-                                >
-                                    <Save size={16} />
-                                    {isUpdatingSettings ? 'Updating...' : 'Update Settings'}
-                                </button>
-                            </div>
+                                    <div className="finkeda-actions">
+                                        <div className="finkeda-badge">
+                                            Current: {selectedCardType} ({selectedCardType === CARD_TYPES.RUPAY ? rupayChargeAmount : masterChargeAmount}%)
+                                        </div>
+                                        <button
+                                            className="main__button"
+                                            onClick={handleUpdateSettings}
+                                            disabled={isUpdatingSettings}
+                                        >
+                                            <Save size={16} />
+                                            {isUpdatingSettings ? 'Updating...' : 'Update Settings'}
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                         <div className="finkeda-card">
                             <div className="finkeda-card__title">Summary</div>
