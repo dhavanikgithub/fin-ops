@@ -10,42 +10,33 @@ import {
     FileText,
     RefreshCcw,
     Save,
-    Eye
+    Eye,
+    Play,
+    RotateCcw
 } from 'lucide-react';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
 import logger from '@/utils/logger';
-import { formatAmountAsCurrency } from '@/utils/helperFunctions';
+import { formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
 import { Check } from 'lucide-react';
 import finkedaSettingsService, { FinkedaSettings, UpdateFinkedaSettingsRequest } from '@/services/finkedaSettingsService';
-
-interface RecentCalculation {
-    client: string;
-    type: 'deposit' | 'withdraw';
-    amount: number;
-    fee: number;
-    net: number;
-    date: string;
-    time: string;
-}
-
-const recentCalculations: RecentCalculation[] = [
-    {
-        client: 'Akash Patel',
-        type: 'deposit',
-        amount: 24500,
-        fee: 735,
-        net: 23765,
-        date: 'Sep 02, 2025',
-        time: '02:20 PM'
-    }
-];
-const GST = 18;
-
 const CARD_TYPES = {
     RUPAY: 'Rupay',
     MASTER: 'Master'
 } as const;
+
+interface RecentCalculation {
+    id: string;
+    amount: number;
+    cardType: CardType;
+    ourRatePercentage: number;
+    bankRatePercentage: number;
+    platformRatePercentage: number;
+    savedAt: string;
+}
+
+const STORAGE_KEY = 'finkeda_saved_scenarios';
+const GST = 18;
 
 type CardType = typeof CARD_TYPES[keyof typeof CARD_TYPES];
 
@@ -58,12 +49,29 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [selectedCardType, setSelectedCardType] = useState<CardType>(CARD_TYPES.RUPAY);
-    
+
     // Settings state
     const [settings, setSettings] = useState<FinkedaSettings | null>(initialSettings);
     const [rupayChargeAmount, setRupayChargeAmount] = useState<number>(initialSettings?.rupay_card_charge_amount || 0);
     const [masterChargeAmount, setMasterChargeAmount] = useState<number>(initialSettings?.master_card_charge_amount || 0);
     const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
+
+    // Saved scenarios state
+    const [savedScenarios, setSavedScenarios] = useState<RecentCalculation[]>([]);
+
+    // Load saved scenarios from localStorage on component mount
+    React.useEffect(() => {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            try {
+                const parsedData = JSON.parse(savedData);
+                setSavedScenarios(parsedData);
+            } catch (error) {
+                logger.error('Error parsing saved scenarios:', error);
+                setSavedScenarios([]);
+            }
+        }
+    }, []);
 
     // Update local state when initialSettings changes
     React.useEffect(() => {
@@ -74,19 +82,124 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
         }
     }, [initialSettings]);
 
+
+
     // Calculations - use card-specific charges from settings
-    const baseAmount = amount;
-    const cardChargeAmount = selectedCardType === CARD_TYPES.RUPAY ? rupayChargeAmount : masterChargeAmount;
-    const feeAmount = (baseAmount * ourRatePercentage) / 100;
-    const cardSpecificCharge = (baseAmount * cardChargeAmount) / 100;
-    const taxAmount = ((feeAmount + bankRatePercentage + cardSpecificCharge) * GST) / 100;
-    const totalCharges = feeAmount + bankRatePercentage + cardSpecificCharge + taxAmount;
-    const netPayable = baseAmount + totalCharges;
-    const payoutToClient = baseAmount - totalCharges;
+    const bankRateDecimal = percentageToDecimal(bankRatePercentage);
+    const ourRateDecimal = percentageToDecimal(ourRatePercentage);
+    const platformRatePercentage = selectedCardType === CARD_TYPES.RUPAY ? rupayChargeAmount : masterChargeAmount;
+    const platformRateDecimal = percentageToDecimal(platformRatePercentage);
+
+    const markupRateDecimal = ourRateDecimal - bankRateDecimal;
+    const earned = amount * markupRateDecimal;
+
+    const platformAmount = amount * platformRateDecimal;
+    const payable = amount * (1 - markupRateDecimal);
+    const profit = earned - platformAmount;
+    const portalAmount = amount - platformAmount;
+
+    // Helper function to save scenarios to localStorage
+    const saveToLocalStorage = (scenarios: RecentCalculation[]) => {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
+        } catch (error) {
+            logger.error('Error saving scenarios to localStorage:', error);
+        }
+    };
+
+    // Check if scenario already exists (to prevent duplicates)
+    const isDuplicateScenario = (newScenario: Omit<RecentCalculation, 'id' | 'savedAt'>) => {
+        return savedScenarios.some(scenario => 
+            scenario.amount === newScenario.amount &&
+            scenario.cardType === newScenario.cardType &&
+            scenario.ourRatePercentage === newScenario.ourRatePercentage &&
+            scenario.bankRatePercentage === newScenario.bankRatePercentage &&
+            scenario.platformRatePercentage === newScenario.platformRatePercentage
+        );
+    };
+
+    // Save current scenario
+    const handleSaveScenario = () => {
+        if (!amount || !ourRatePercentage) {
+            logger.warn('Cannot save scenario: Amount and Our Rate are required');
+            return;
+        }
+
+        const newScenario: Omit<RecentCalculation, 'id' | 'savedAt'> = {
+            amount,
+            cardType: selectedCardType,
+            ourRatePercentage,
+            bankRatePercentage,
+            platformRatePercentage
+        };
+
+        if (isDuplicateScenario(newScenario)) {
+            logger.warn('Scenario already exists, skipping duplicate');
+            return;
+        }
+
+        const scenarioWithMetadata: RecentCalculation = {
+            ...newScenario,
+            id: Date.now().toString(),
+            savedAt: new Date().toLocaleString('en-US', {
+                month: 'short',
+                day: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            }).replace(',', ' •')
+        };
+
+        const updatedScenarios = [scenarioWithMetadata, ...savedScenarios].slice(0, 10); // Keep only 10 most recent
+        setSavedScenarios(updatedScenarios);
+        saveToLocalStorage(updatedScenarios);
+        
+        logger.log('Scenario saved successfully:', scenarioWithMetadata);
+    };
+
+    // Apply saved scenario
+    const handleApplyScenario = (scenario: RecentCalculation) => {
+        setAmount(scenario.amount);
+        setSelectedCardType(scenario.cardType);
+        setOurRatePercentage(scenario.ourRatePercentage);
+        setBankRatePercentage(scenario.bankRatePercentage);
+        
+        // Update the corresponding charge amounts based on card type
+        if (scenario.cardType === CARD_TYPES.RUPAY) {
+            setRupayChargeAmount(scenario.platformRatePercentage);
+        } else {
+            setMasterChargeAmount(scenario.platformRatePercentage);
+        }
+        
+        logger.log('Applied scenario:', scenario);
+    };
+
 
     const handleCalculate = () => {
         // This would trigger any additional calculations or validations
-        logger.log('Calculating Finkeda charges...');
+        logger.log('Calculating Finkeda charges...', {
+            amount,
+            selectedCardType,
+            ourRatePercentage,
+            bankRatePercentage,
+            platformRatePercentage,
+            profit,
+            payable
+        });
+    };
+
+    const handleRecalculate = () => {
+        // Force recalculation by updating the calculations
+        logger.log('Recalculating with current values...', {
+            amount,
+            selectedCardType,
+            ourRatePercentage,
+            bankRatePercentage,
+            platformRatePercentage
+        });
+        // The calculations are reactive, so they'll update automatically
+        // This function mainly provides user feedback and logging
     };
 
     const handleReset = () => {
@@ -104,7 +217,6 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
     // Update settings API call
     const handleUpdateSettings = async () => {
         if (!rupayChargeAmount || !masterChargeAmount) {
-            alert('Please enter valid charge amounts for both card types');
             return;
         }
 
@@ -117,19 +229,13 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
 
             const updatedSettings = await finkedaSettingsService.updateSettings(updateRequest);
             setSettings(updatedSettings);
-            
+
             logger.log('Settings updated successfully:', updatedSettings);
-            alert('Settings updated successfully!');
         } catch (error) {
             logger.error('Failed to update settings:', error);
-            alert('Failed to update settings. Please try again.');
         } finally {
             setIsUpdatingSettings(false);
         }
-    };
-
-    const handleSaveQuote = () => {
-        logger.log('Saving quote...');
     };
 
     return (
@@ -137,16 +243,6 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
             <header className="main__header">
                 <div className="main__header-left">
                     <Finkeda size={20} /> <h1>Finkeda Calculator</h1>
-                </div>
-                <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleReset}>
-                        <RefreshCcw size={16} />
-                        Reset
-                    </button>
-                    <button className="main__button" onClick={handleSaveQuote}>
-                        <Save size={16} />
-                        Save Quote
-                    </button>
                 </div>
             </header>
 
@@ -227,13 +323,21 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
 
                             <div className="finkeda-actions">
                                 <div className="pill">GST: {GST}% (fixed)</div>
-                                <button className="main__icon-button">
+                                {/* <button className="main__icon-button">
                                     <SlidersHorizontal size={16} />
                                     Settings
+                                </button> */}
+                                <button className="main__icon-button" onClick={handleRecalculate}>
+                                    <RefreshCcw size={16} />
+                                    Recalculate
                                 </button>
-                                <button className="main__button" onClick={handleCalculate}>
-                                    <Calculator size={16} />
-                                    Calculate
+                                <button className="main__button" type="button" onClick={handleSaveScenario}>
+                                    <Save size={16} />
+                                    Save
+                                </button>
+                                <button className="main__icon-button" type="button" onClick={handleReset}>
+                                    <RotateCcw size={16} />
+                                    Reset
                                 </button>
                             </div>
 
@@ -265,8 +369,8 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
                             </div>
 
                             <div className="finkeda-actions">
-                                <button 
-                                    className="main__button" 
+                                <button
+                                    className="main__button"
                                     onClick={handleUpdateSettings}
                                     disabled={isUpdatingSettings}
                                 >
@@ -280,32 +384,31 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
                             <div className="finkeda-summary">
                                 <div className="finkeda-summary__row">
                                     <span>Base Amount</span>
-                                    <span>{formatAmountAsCurrency(baseAmount)}</span>
+                                    <span>{formatAmountAsCurrency(amount)}</span>
+                                </div>
+
+
+                                <div className="finkeda-summary__row">
+                                    <span>{selectedCardType} Card Charge</span>
+                                    <span>{platformRatePercentage}%</span>
                                 </div>
                                 <div className="finkeda-summary__row">
-                                    <span>Finkeda Fee</span>
-                                    <span>{formatAmountAsCurrency(feeAmount)}</span>
+                                    <span>Platform Charges Amount</span>
+                                    <span>{formatAmountAsCurrency(platformAmount)}</span>
                                 </div>
                                 <div className="finkeda-summary__row">
-                                    <span>{selectedCardType} Card Charge ({cardChargeAmount}%)</span>
-                                    <span>{formatAmountAsCurrency(cardSpecificCharge)}</span>
+                                    <span>Portal Amount</span>
+                                    <span>{formatAmountAsCurrency(portalAmount)}</span>
                                 </div>
-                                <div className="finkeda-summary__row">
-                                    <span>Fixed Charge</span>
-                                    <span>{formatAmountAsCurrency(bankRatePercentage)}</span>
-                                </div>
-                                <div className="finkeda-summary__row">
-                                    <span>Tax</span>
-                                    <span>{formatAmountAsCurrency(taxAmount)}</span>
-                                </div>
+
                                 <div className="finkeda-divider"></div>
                                 <div className="finkeda-summary__row finkeda-summary__row--accent">
-                                    <span>Net Payable</span>
-                                    <span>{formatAmountAsCurrency(netPayable)}</span>
+                                    <span>Profit</span>
+                                    <span>{formatAmountAsCurrency(profit)}</span>
                                 </div>
-                                <div className="finkeda-summary__row">
+                                <div className="finkeda-summary__row finkeda-summary__row--accent">
                                     <span>Payout To Client</span>
-                                    <span>{formatAmountAsCurrency(payoutToClient)}</span>
+                                    <span>{formatAmountAsCurrency(payable)}</span>
                                 </div>
                             </div>
                             <div className="finkeda-summary-actions">
@@ -314,37 +417,49 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
                         </div>
                     </div>
                     <div className="finkeda-card">
-                        <div className="finkeda-card__title">Recent Calculations</div>
+                        <div className="finkeda-card__title">Saved Scenarios</div>
                         <div className="finkeda-table-wrap">
                             <table className="finkeda-table">
                                 <thead>
                                     <tr>
-                                        <th>Client</th>
                                         <th>Amount</th>
-                                        <th>Fee</th>
-                                        <th>Net</th>
+                                        <th>Card Type</th>
+                                        <th>Our Fee</th>
+                                        <th>Card Fee</th>
+                                        <th>Bank Fee</th>
                                         <th>Date & Time</th>
                                         <th></th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {recentCalculations.map((calc, index) => (
-                                        <tr key={index}>
-                                            <td>{calc.client}</td>
+                                    {savedScenarios.map((calc) => (
+                                        <tr key={calc.id}>
                                             <td>{formatAmountAsCurrency(calc.amount)}</td>
-                                            <td>{formatAmountAsCurrency(calc.fee)}</td>
-                                            <td>{formatAmountAsCurrency(calc.net)}</td>
+                                            <td>{calc.cardType}</td>
+                                            <td>{calc.ourRatePercentage}%</td>
+                                            <td>{calc.platformRatePercentage}%</td>
+                                            <td>{calc.bankRatePercentage}%</td>
                                             <td>
-                                                {calc.date} <span className="finkeda-time">• {calc.time}</span>
+                                                {calc.savedAt}
                                             </td>
                                             <td>
-                                                <button className="finkeda-row-actions">
-                                                    <Eye size={16} />
-                                                    View
+                                                <button 
+                                                    className="finkeda-row-actions"
+                                                    onClick={() => handleApplyScenario(calc)}
+                                                >
+                                                    <Play size={16} />
+                                                    Apply
                                                 </button>
                                             </td>
                                         </tr>
                                     ))}
+                                    {savedScenarios.length === 0 && (
+                                        <tr>
+                                            <td colSpan={7} style={{ textAlign: 'center', padding: '20px', color: '#666' }}>
+                                                No saved scenarios yet. Save your first calculation to see it here.
+                                            </td>
+                                        </tr>
+                                    )}
                                 </tbody>
                             </table>
                         </div>
