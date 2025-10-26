@@ -100,6 +100,15 @@
     align-items: center;
     justify-content: flex-end;
     gap: 8px;
+
+    .pill {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 6px 10px;
+        border-radius: var(--radius-xl);
+        font-size: 12px;
+        font-weight: 500;
+    }
 }
 
 .finkeda-summary {
@@ -144,6 +153,73 @@
     border-radius: var(--radius-xl);
     font-size: 12px;
     font-weight: 500;
+}
+
+.finkeda-pills {
+    display: flex;
+    gap: 12px;
+
+    .finkeda-pill-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--foreground);
+        transition:
+            background 0.18s,
+            border-color 0.18s,
+            color 0.18s;
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        .finkeda-custom-radio {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--muted-foreground);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--card);
+            transition: border-color 0.2s;
+            margin-right: 2px;
+
+            svg {
+                display: none;
+                width: 14px;
+                height: 14px;
+                color: var(--primary-foreground);
+            }
+        }
+
+        input[type="radio"]:checked + .finkeda-custom-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+
+            svg {
+                display: block;
+            }
+        }
+
+        span {
+            color: var(--foreground);
+        }
+
+        &:hover {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+    }
 }
 
 .finkeda-legend {
@@ -258,7 +334,7 @@ input[type="number"].finkeda-control::-webkit-inner-spin-button {
 
     .finkeda-actions {
         justify-content: stretch;
-        
+
         button {
             flex: 1;
         }

@@ -53,13 +53,21 @@ export const HEALTH_ENDPOINTS = {
     HEALTH: `${API_CONFIG.BASE_URL}/health`,
 } as const;
 
+// Finkeda Settings Endpoints
+export const FINKEDA_SETTINGS_ENDPOINTS = {
+    GET_LATEST: `${API_CONFIG.BASE_URL}/finkeda-settings`,
+    UPDATE: `${API_CONFIG.BASE_URL}/finkeda-settings`,
+    HISTORY: `${API_CONFIG.BASE_URL}/finkeda-settings/history`,
+} as const;
+
 // Export all endpoints as a single object for convenience
 export const API_ENDPOINTS = {
     TRANSACTION: TRANSACTION_ENDPOINTS,
     BANK: BANK_ENDPOINTS,
     CARD: CARD_ENDPOINTS,
     CLIENT: CLIENT_ENDPOINTS,
-    HEALTH: HEALTH_ENDPOINTS
+    HEALTH: HEALTH_ENDPOINTS,
+    FINKEDA_SETTINGS: FINKEDA_SETTINGS_ENDPOINTS
 } as const;
 
 // Type definitions for endpoint parameters

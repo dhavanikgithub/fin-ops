@@ -15,6 +15,9 @@ import {
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency } from '@/utils/helperFunctions';
+import { Check } from 'lucide-react';
+import finkedaSettingsService, { FinkedaSettings, UpdateFinkedaSettingsRequest } from '@/services/finkedaSettingsService';
 
 interface RecentCalculation {
     client: string;
@@ -35,35 +38,51 @@ const recentCalculations: RecentCalculation[] = [
         net: 23765,
         date: 'Sep 02, 2025',
         time: '02:20 PM'
-    },
-    {
-        client: 'Jia Lee',
-        type: 'withdraw',
-        amount: 8999,
-        fee: 270,
-        net: 8729,
-        date: 'Sep 02, 2025',
-        time: '09:50 AM'
     }
 ];
+const GST = 18;
 
-const FinkedaScreen: React.FC = () => {
-    const [selectedClient, setSelectedClient] = useState('');
-    const [selectedBank, setSelectedBank] = useState('');
-    const [transactionType, setTransactionType] = useState<'deposit' | 'withdraw'>('deposit');
+const CARD_TYPES = {
+    RUPAY: 'Rupay',
+    MASTER: 'Master'
+} as const;
+
+type CardType = typeof CARD_TYPES[keyof typeof CARD_TYPES];
+
+interface FinkedaScreenProps {
+    initialSettings: FinkedaSettings | null;
+}
+
+const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
     const [amount, setAmount] = useState(0);
-    const [finkedaFee, setFinkedaFee] = useState(0);
-    const [fixedCharge, setFixedCharge] = useState(0);
-    const [tax, setTax] = useState(0);
-    const [discount, setDiscount] = useState(0);
+    const [ourRatePercentage, setOurRatePercentage] = useState(0);
+    const [bankRatePercentage, setBankRatePercentage] = useState(0);
+    const [selectedCardType, setSelectedCardType] = useState<CardType>(CARD_TYPES.RUPAY);
+    
+    // Settings state
+    const [settings, setSettings] = useState<FinkedaSettings | null>(initialSettings);
+    const [rupayChargeAmount, setRupayChargeAmount] = useState<number>(initialSettings?.rupay_card_charge_amount || 0);
+    const [masterChargeAmount, setMasterChargeAmount] = useState<number>(initialSettings?.master_card_charge_amount || 0);
+    const [isUpdatingSettings, setIsUpdatingSettings] = useState(false);
 
-    // Calculations
+    // Update local state when initialSettings changes
+    React.useEffect(() => {
+        if (initialSettings) {
+            setSettings(initialSettings);
+            setRupayChargeAmount(parseFloat(initialSettings.rupay_card_charge_amount.toString()));
+            setMasterChargeAmount(parseFloat(initialSettings.master_card_charge_amount.toString()));
+        }
+    }, [initialSettings]);
+
+    // Calculations - use card-specific charges from settings
     const baseAmount = amount;
-    const feeAmount = (baseAmount * finkedaFee) / 100;
-    const taxAmount = ((feeAmount + fixedCharge) * tax) / 100;
-    const totalCharges = feeAmount + fixedCharge + taxAmount;
-    const netPayable = baseAmount + totalCharges - discount;
-    const payoutToClient = transactionType === 'deposit' ? baseAmount - discount : baseAmount - totalCharges;
+    const cardChargeAmount = selectedCardType === CARD_TYPES.RUPAY ? rupayChargeAmount : masterChargeAmount;
+    const feeAmount = (baseAmount * ourRatePercentage) / 100;
+    const cardSpecificCharge = (baseAmount * cardChargeAmount) / 100;
+    const taxAmount = ((feeAmount + bankRatePercentage + cardSpecificCharge) * GST) / 100;
+    const totalCharges = feeAmount + bankRatePercentage + cardSpecificCharge + taxAmount;
+    const netPayable = baseAmount + totalCharges;
+    const payoutToClient = baseAmount - totalCharges;
 
     const handleCalculate = () => {
         // This would trigger any additional calculations or validations
@@ -71,14 +90,42 @@ const FinkedaScreen: React.FC = () => {
     };
 
     const handleReset = () => {
-        setSelectedClient('');
-        setSelectedBank('');
-        setTransactionType('deposit');
         setAmount(0);
-        setFinkedaFee(0);
-        setFixedCharge(0);
-        setTax(0);
-        setDiscount(0);
+        setOurRatePercentage(0);
+        setBankRatePercentage(0);
+        setSelectedCardType(CARD_TYPES.RUPAY);
+    };
+
+    const handleCardTypeToggle = (cardType: CardType) => {
+        setSelectedCardType(cardType);
+        logger.log('Card type changed to:', cardType);
+    };
+
+    // Update settings API call
+    const handleUpdateSettings = async () => {
+        if (!rupayChargeAmount || !masterChargeAmount) {
+            alert('Please enter valid charge amounts for both card types');
+            return;
+        }
+
+        setIsUpdatingSettings(true);
+        try {
+            const updateRequest: UpdateFinkedaSettingsRequest = {
+                rupay_card_charge_amount: rupayChargeAmount,
+                master_card_charge_amount: masterChargeAmount
+            };
+
+            const updatedSettings = await finkedaSettingsService.updateSettings(updateRequest);
+            setSettings(updatedSettings);
+            
+            logger.log('Settings updated successfully:', updatedSettings);
+            alert('Settings updated successfully!');
+        } catch (error) {
+            logger.error('Failed to update settings:', error);
+            alert('Failed to update settings. Please try again.');
+        } finally {
+            setIsUpdatingSettings(false);
+        }
     };
 
     const handleSaveQuote = () => {
@@ -117,52 +164,69 @@ const FinkedaScreen: React.FC = () => {
                                         className="finkeda-control"
                                         type="number"
                                         placeholder="Enter amount ₹"
-                                        value={amount || ''}
+                                        value={amount}
                                         onChange={e => setAmount(parseFloat(e.target.value) || 0)}
                                         onFocus={e => e.target.select()}
                                     />
                                 </div>
                                 <div className="finkeda-field">
-                                    <div className="finkeda-label">GST (%)</div>
+                                    <div className="finkeda-label">Bank Charge (%)</div>
                                     <input
                                         className="finkeda-control"
                                         type="number"
-                                        placeholder="Enter %"
-                                        value={tax || ''}
-                                        onChange={e => setTax(parseFloat(e.target.value) || 0)}
+                                        placeholder="Bank charge %"
+                                        value={bankRatePercentage}
+                                        onChange={e => setBankRatePercentage(parseFloat(e.target.value) || 0)}
                                         onFocus={e => e.target.select()}
                                     />
                                 </div>
-                                
                             </div>
 
                             <div className="finkeda-form-row">
-                                <div className="finkeda-field">
-                                    <div className="finkeda-label">Fixed Charge (%)</div>
-                                    <input
-                                        className="finkeda-control"
-                                        type="number"
-                                        placeholder="Fixed charge %"
-                                        value={fixedCharge || ''}
-                                        onChange={e => setFixedCharge(parseFloat(e.target.value) || 0)}
-                                        onFocus={e => e.target.select()}
-                                    />
-                                </div>
                                 <div className="finkeda-field">
                                     <div className="finkeda-label">My Charges (%)</div>
                                     <input
                                         className="finkeda-control"
                                         type="number"
                                         placeholder="Enter %"
-                                        value={finkedaFee || ''}
-                                        onChange={e => setFinkedaFee(parseFloat(e.target.value) || 0)}
+                                        value={ourRatePercentage}
+                                        onChange={e => setOurRatePercentage(parseFloat(e.target.value) || 0)}
                                         onFocus={e => e.target.select()}
                                     />
                                 </div>
-                                
+                                <div className="finkeda-field">
+                                    <div className="finkeda-label">Card Type</div>
+                                    <div className="finkeda-pills">
+                                        <label className="finkeda-pill-checkbox">
+                                            <input
+                                                type="radio"
+                                                name="cardType"
+                                                checked={selectedCardType === CARD_TYPES.RUPAY}
+                                                onChange={() => handleCardTypeToggle(CARD_TYPES.RUPAY)}
+                                            />
+                                            <span className="finkeda-custom-radio">
+                                                {selectedCardType === CARD_TYPES.RUPAY && <Check size={14} />}
+                                            </span>
+                                            <span>Rupay ({rupayChargeAmount}%)</span>
+                                        </label>
+                                        <label className="finkeda-pill-checkbox">
+                                            <input
+                                                type="radio"
+                                                name="cardType"
+                                                checked={selectedCardType === CARD_TYPES.MASTER}
+                                                onChange={() => handleCardTypeToggle(CARD_TYPES.MASTER)}
+                                            />
+                                            <span className="finkeda-custom-radio">
+                                                {selectedCardType === CARD_TYPES.MASTER && <Check size={14} />}
+                                            </span>
+                                            <span>Master ({masterChargeAmount}%)</span>
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="finkeda-actions">
+                                <div className="pill">GST: {GST}% (fixed)</div>
                                 <button className="main__icon-button">
                                     <SlidersHorizontal size={16} />
                                     Settings
@@ -172,39 +236,76 @@ const FinkedaScreen: React.FC = () => {
                                     Calculate
                                 </button>
                             </div>
-                        </div>
 
+                            <div className="finkeda-form-row">
+                                <div className="finkeda-field">
+                                    <div className="finkeda-label">Rupay Charge (%)</div>
+                                    <input
+                                        className="finkeda-control"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Rupay charge %"
+                                        value={rupayChargeAmount}
+                                        onChange={e => setRupayChargeAmount(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
+                                    />
+                                </div>
+                                <div className="finkeda-field">
+                                    <div className="finkeda-label">Master Charge (%)</div>
+                                    <input
+                                        className="finkeda-control"
+                                        type="number"
+                                        step="0.01"
+                                        placeholder="Master charge %"
+                                        value={masterChargeAmount}
+                                        onChange={e => setMasterChargeAmount(parseFloat(e.target.value) || 0)}
+                                        onFocus={e => e.target.select()}
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="finkeda-actions">
+                                <button 
+                                    className="main__button" 
+                                    onClick={handleUpdateSettings}
+                                    disabled={isUpdatingSettings}
+                                >
+                                    <Save size={16} />
+                                    {isUpdatingSettings ? 'Updating...' : 'Update Settings'}
+                                </button>
+                            </div>
+                        </div>
                         <div className="finkeda-card">
                             <div className="finkeda-card__title">Summary</div>
                             <div className="finkeda-summary">
                                 <div className="finkeda-summary__row">
                                     <span>Base Amount</span>
-                                    <span>₹ {baseAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(baseAmount)}</span>
                                 </div>
                                 <div className="finkeda-summary__row">
                                     <span>Finkeda Fee</span>
-                                    <span>₹ {feeAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(feeAmount)}</span>
+                                </div>
+                                <div className="finkeda-summary__row">
+                                    <span>{selectedCardType} Card Charge ({cardChargeAmount}%)</span>
+                                    <span>{formatAmountAsCurrency(cardSpecificCharge)}</span>
                                 </div>
                                 <div className="finkeda-summary__row">
                                     <span>Fixed Charge</span>
-                                    <span>₹ {fixedCharge.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(bankRatePercentage)}</span>
                                 </div>
                                 <div className="finkeda-summary__row">
                                     <span>Tax</span>
-                                    <span>₹ {taxAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
-                                </div>
-                                <div className="finkeda-summary__row">
-                                    <span>Discount</span>
-                                    <span>- ₹ {discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(taxAmount)}</span>
                                 </div>
                                 <div className="finkeda-divider"></div>
                                 <div className="finkeda-summary__row finkeda-summary__row--accent">
                                     <span>Net Payable</span>
-                                    <span>₹ {netPayable.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(netPayable)}</span>
                                 </div>
                                 <div className="finkeda-summary__row">
                                     <span>Payout To Client</span>
-                                    <span>₹ {payoutToClient.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</span>
+                                    <span>{formatAmountAsCurrency(payoutToClient)}</span>
                                 </div>
                             </div>
                             <div className="finkeda-summary-actions">
@@ -212,7 +313,6 @@ const FinkedaScreen: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
                     <div className="finkeda-card">
                         <div className="finkeda-card__title">Recent Calculations</div>
                         <div className="finkeda-table-wrap">
@@ -231,9 +331,9 @@ const FinkedaScreen: React.FC = () => {
                                     {recentCalculations.map((calc, index) => (
                                         <tr key={index}>
                                             <td>{calc.client}</td>
-                                            <td>₹ {calc.amount.toLocaleString('en-IN')}</td>
-                                            <td>₹ {calc.fee.toLocaleString('en-IN')}</td>
-                                            <td>₹ {calc.net.toLocaleString('en-IN')}</td>
+                                            <td>{formatAmountAsCurrency(calc.amount)}</td>
+                                            <td>{formatAmountAsCurrency(calc.fee)}</td>
+                                            <td>{formatAmountAsCurrency(calc.net)}</td>
                                             <td>
                                                 {calc.date} <span className="finkeda-time">• {calc.time}</span>
                                             </td>
