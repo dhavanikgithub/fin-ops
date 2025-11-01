@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "set PORT=3001 && node dist/server.js",
+    "production": "tsc && set PORT=3001 && node dist/server.js",
     "dev": "set PORT=3001 && nodemon",
     "clean": "rimraf dist",
     "typecheck": "tsc --noEmit"
