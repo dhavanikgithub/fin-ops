@@ -2,12 +2,13 @@ import App from "@/components/App";
 import FinkedaScreen from "./FinkedaScreen";
 import { navItemsObject } from "@/components/NavbarItems";
 import finkedaSettingsService, { FinkedaSettings } from "@/services/finkedaSettingsService";
+import logger from "@/utils/logger";
 
 async function getInitialSettings(): Promise<FinkedaSettings | null> {
   try {
     return await finkedaSettingsService.getLatestSettings();
   } catch (error) {
-    console.error('Failed to fetch initial finkeda settings:', error);
+    logger.error('Failed to fetch initial finkeda settings:', error);
     return null;
   }
 }

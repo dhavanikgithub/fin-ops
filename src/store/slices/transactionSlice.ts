@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Transaction, PaginationInfo, FiltersApplied, SortApplied } from '../../services/transactionService';
-import { fetchTransactions, loadMoreTransactions, searchTransactions, applyFilters, sortTransactions, editTransaction, deleteTransaction, createTransaction } from '../actions/transactionActions';
+import { fetchTransactions, loadMoreTransactions, searchTransactions, applyFilters, sortTransactions, editTransaction, deleteTransaction, createTransaction, generateTransactionReport } from '../actions/transactionActions';
 
 export interface TransactionState {
     transactions: Transaction[];
@@ -14,6 +14,8 @@ export interface TransactionState {
     hasMore: boolean;
     editingTransactionIds: number[];
     deletingTransactionIds: number[];
+    reportLoading: boolean;
+    reportError: string | null;
 }
 
 const initialState: TransactionState = {
@@ -31,6 +33,8 @@ const initialState: TransactionState = {
     hasMore: false,
     editingTransactionIds: [],
     deletingTransactionIds: [],
+    reportLoading: false,
+    reportError: null,
 };
 
 const transactionSlice = createSlice({
@@ -271,6 +275,22 @@ const transactionSlice = createSlice({
                 // Remove from deleting list on failure
                 state.deletingTransactionIds = state.deletingTransactionIds.filter(id => id !== transactionId);
                 state.error = action.payload || 'Failed to delete transaction';
+            });
+
+        // Generate transaction report
+        builder
+            .addCase(generateTransactionReport.pending, (state) => {
+                state.reportLoading = true;
+                state.reportError = null;
+            })
+            .addCase(generateTransactionReport.fulfilled, (state, action) => {
+                state.reportLoading = false;
+                state.reportError = null;
+                // Report data is handled in the component for immediate download
+            })
+            .addCase(generateTransactionReport.rejected, (state, action) => {
+                state.reportLoading = false;
+                state.reportError = action.payload || 'Failed to generate report';
             });
     },
 });

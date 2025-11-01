@@ -1,5 +1,15 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import transactionService, { Transaction, TransactionFilters, TransactionResponse, CreateTransactionData, CreateTransactionResponse, EditTransactionResponse, DeleteTransactionResponse } from '../../services/transactionService';
+import transactionService, { 
+    Transaction, 
+    TransactionFilters, 
+    TransactionResponse, 
+    CreateTransactionData, 
+    CreateTransactionResponse, 
+    EditTransactionResponse, 
+    DeleteTransactionResponse,
+    TransactionReportRequest,
+    TransactionReportResponse
+} from '../../services/transactionService';
 import { RootState } from '../index';
 
 // Fetch transactions with filters and sorting
@@ -209,6 +219,25 @@ export const deleteTransaction = createAsyncThunk<
         } catch (error: any) {
             return rejectWithValue(
                 error.response?.data?.message || error.message || 'Failed to delete transaction'
+            );
+        }
+    }
+);
+
+// Generate transaction report (PDF)
+export const generateTransactionReport = createAsyncThunk<
+    TransactionReportResponse,
+    TransactionReportRequest,
+    { rejectValue: string }
+>(
+    'transactions/generateReport',
+    async (reportData, { rejectWithValue }) => {
+        try {
+            const response = await transactionService.generateReport(reportData);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to generate transaction report'
             );
         }
     }

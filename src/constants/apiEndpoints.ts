@@ -15,6 +15,9 @@ export const TRANSACTION_ENDPOINTS = {
     CREATE: `${API_CONFIG.BASE_URL}/transactions`,
     EDIT: `${API_CONFIG.BASE_URL}/transactions`,
     DELETE: `${API_CONFIG.BASE_URL}/transactions`,
+    REPORT: `${API_CONFIG.BASE_URL}/transactions/report`,
+    EXPORT: `${API_CONFIG.BASE_URL}/reports/export`,
+    REPORT_PREVIEW: `${API_CONFIG.BASE_URL}/reports/report-preview`,
 } as const;
 
 // Bank Endpoints

@@ -1,5 +1,6 @@
 import api from './api';
 import { FINKEDA_SETTINGS_ENDPOINTS } from '../constants/apiEndpoints';
+import logger from '@/utils/logger';
 
 export interface FinkedaSettings {
     id: number;
@@ -53,7 +54,7 @@ const finkedaSettingsService = {
             }
             return null;
         } catch (error) {
-            console.error('Error fetching latest finkeda settings:', error);
+            logger.error('Error fetching latest finkeda settings:', error);
             throw error;
         }
     },
@@ -67,7 +68,7 @@ const finkedaSettingsService = {
             }
             return [];
         } catch (error) {
-            console.error('Error fetching finkeda settings history:', error);
+            logger.error('Error fetching finkeda settings history:', error);
             throw error;
         }
     },
@@ -81,7 +82,7 @@ const finkedaSettingsService = {
             }
             throw new Error(response.data.message || 'Failed to update settings');
         } catch (error) {
-            console.error('Error updating finkeda settings:', error);
+            logger.error('Error updating finkeda settings:', error);
             throw error;
         }
     }
