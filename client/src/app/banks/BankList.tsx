@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
     fetchPaginatedBanks, 
@@ -25,8 +26,73 @@ interface BankListProps {
     onNewBank: () => void;
 }
 
-const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
+interface BankListErrorFallbackProps {
+    error: Error;
+    resetErrorBoundary: () => void;
+    onNewBank: () => void;
+}
+
+const BankListErrorFallback: React.FC<BankListErrorFallbackProps> = ({ 
+    error, 
+    resetErrorBoundary, 
+    onNewBank 
+}) => {
+    return (
+        <div className="bank-list-error-boundary">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <Building2 size={20} /> <h1>Banks</h1>
+                </div>
+                <div className="main__header-right">
+                    <button className="main__icon-button" onClick={onNewBank}>
+                        <Plus size={16} />
+                        Add New Bank
+                    </button>
+                </div>
+            </header>
+            
+            <div className="error-boundary__content">
+                <div className="error-boundary__icon">
+                    <Building2 size={48} />
+                </div>
+                <h2 className="error-boundary__title">Bank List Error</h2>
+                <p className="error-boundary__message">
+                    We're experiencing an issue with the bank list. This might be a temporary problem.
+                </p>
+                <div className="error-boundary__actions">
+                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
+                        <RotateCcw size={16} />
+                        Try Again
+                    </button>
+                    <button className="error-boundary__button error-boundary__button--secondary" onClick={onNewBank}>
+                        <Plus size={16} />
+                        Add New Bank
+                    </button>
+                    <button 
+                        className="error-boundary__button error-boundary__button--secondary"
+                        onClick={() => window.location.href = '/'}
+                    >
+                        <Home size={16} />
+                        Go to Dashboard
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <details className="error-boundary__details">
+                        <summary>Technical Details (Development)</summary>
+                        <pre className="error-boundary__error-text">
+                            {error.message}
+                            {error.stack && '\n\nStack trace:\n' + error.stack}
+                        </pre>
+                    </details>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { 
         banks, 
         loading, 
@@ -47,102 +113,179 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
 
     // Load banks on component mount
     useEffect(() => {
-        dispatch(fetchPaginatedBanks({ 
-            page: 1, 
-            limit: 50, 
-            search: searchQuery, 
-            sort_by: sortBy, 
-            sort_order: sortOrder 
-        }));
-    }, [dispatch, searchQuery, sortBy, sortOrder]);
+        try {
+            dispatch(fetchPaginatedBanks({ 
+                page: 1, 
+                limit: 50, 
+                search: searchQuery, 
+                sort_by: sortBy, 
+                sort_order: sortOrder 
+            }));
+        } catch (error) {
+            logger.error('Error loading banks:', error);
+            showBoundary(error);
+        }
+    }, [dispatch, searchQuery, sortBy, sortOrder, showBoundary]);
 
     // Update edit form when editing bank changes
     useEffect(() => {
-        if (editingBank) {
-            setEditForm({ name: editingBank.name });
+        try {
+            if (editingBank) {
+                setEditForm({ name: editingBank.name });
+            }
+        } catch (error) {
+            logger.error('Error updating edit form:', error);
+            showBoundary(error);
         }
-    }, [editingBank]);
+    }, [editingBank, showBoundary]);
 
     // Handle search input with debounce
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (localSearch !== searchQuery) {
-                dispatch(setSearchQuery(localSearch));
-            }
-        }, 500);
+        try {
+            const timer = setTimeout(() => {
+                if (localSearch !== searchQuery) {
+                    dispatch(setSearchQuery(localSearch));
+                }
+            }, 500);
 
-        return () => clearTimeout(timer);
-    }, [localSearch, searchQuery, dispatch]);
+            return () => clearTimeout(timer);
+        } catch (error) {
+            logger.error('Error handling search debounce:', error);
+            showBoundary(error);
+        }
+    }, [localSearch, searchQuery, dispatch, showBoundary]);
 
     // Event handlers
     const handleNewBank = () => {
-        onNewBank();
+        try {
+            logger.debug('Navigating to add new bank');
+            onNewBank();
+        } catch (error) {
+            logger.error('Error navigating to add bank:', error);
+            toast.error('Failed to open add bank form');
+            showBoundary(error);
+        }
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalSearch(e.target.value);
+        try {
+            setLocalSearch(e.target.value);
+            logger.debug('Search query updated:', { query: e.target.value });
+        } catch (error) {
+            logger.error('Error updating search:', error);
+            toast.error('Failed to update search');
+            showBoundary(error);
+        }
     };
 
     const handleEditBank = (bank: Bank) => {
-        dispatch(setEditingBank(bank));
+        try {
+            dispatch(setEditingBank(bank));
+            logger.debug('Editing bank:', { bankId: bank.id, bankName: bank.name });
+        } catch (error) {
+            logger.error('Error setting editing bank:', error);
+            toast.error('Failed to open bank for editing');
+            showBoundary(error);
+        }
     };
 
     const handleSaveBank = async () => {
-        if (!editingBank || !editForm.name.trim()) return;
-
         try {
+            if (!editingBank || !editForm.name.trim()) {
+                toast.error('Bank name is required');
+                return;
+            }
+
+            logger.info('Attempting to update bank:', { 
+                bankId: editingBank.id, 
+                newName: editForm.name.trim() 
+            });
+
             await dispatch(updateBank({
                 id: editingBank.id,
                 name: editForm.name.trim()
             }));
-            toast.success('Bank saved.');
+            toast.success('Bank updated successfully!');
+            logger.info('Bank updated successfully');
             // Success handling is done in the reducer
         } catch (error) {
             logger.error('Failed to update bank:', error);
-            toast.error('Failed to update bank.');
+            toast.error('Failed to update bank. Please try again.');
+            showBoundary(error);
         }
     };
 
     const handleDeleteBank = () => {
-        setIsDeleteModalOpen(true);
+        try {
+            logger.debug('Opening delete confirmation modal');
+            setIsDeleteModalOpen(true);
+        } catch (error) {
+            logger.error('Error opening delete modal:', error);
+            toast.error('Failed to open delete confirmation');
+            showBoundary(error);
+        }
     };
 
     const handleDeleteConfirm = async (bankId: string, deleteTransactions: boolean) => {
         try {
+            logger.info('Attempting to delete bank:', { bankId, deleteTransactions });
             await dispatch(deleteBank({ id: parseInt(bankId) }));
             setIsDeleteModalOpen(false);
             dispatch(closeEditForm());
+            toast.success('Bank deleted successfully!');
+            logger.info('Bank deleted successfully');
         } catch (error) {
             logger.error('Failed to delete bank:', error);
-            toast.error('Failed to delete bank.');
+            toast.error('Failed to delete bank. Please try again.');
+            showBoundary(error);
         }
     };
 
     const handleDeleteCancel = () => {
-        setIsDeleteModalOpen(false);
+        try {
+            logger.debug('Cancelled bank deletion');
+            setIsDeleteModalOpen(false);
+        } catch (error) {
+            logger.error('Error cancelling delete:', error);
+            showBoundary(error);
+        }
     };
 
     const handleCancelEdit = () => {
-        dispatch(closeEditForm());
-        setEditForm({ name: '' });
+        try {
+            logger.debug('Cancelled bank edit');
+            dispatch(closeEditForm());
+            setEditForm({ name: '' });
+        } catch (error) {
+            logger.error('Error cancelling edit:', error);
+            toast.error('Failed to cancel edit');
+            showBoundary(error);
+        }
     };
 
     // Convert Bank to ModalBank format
     const getModalBank = (bank: Bank | null): ModalBank | null => {
-        if (!bank) return null;
-        return {
-            id: bank.id.toString(),
-            name: bank.name,
-            accountNumber: `XXXX${bank.id.toString().padStart(4, '0')}`, // Mock account number
-            linkedTransactionsCount: bank.transaction_count,
-        };
+        try {
+            if (!bank) return null;
+            return {
+                id: bank.id.toString(),
+                name: bank.name,
+                accountNumber: `XXXX${bank.id.toString().padStart(4, '0')}`, // Mock account number
+                linkedTransactionsCount: bank.transaction_count,
+            };
+        } catch (error) {
+            logger.error('Error converting bank to modal format:', error);
+            showBoundary(error);
+            return null;
+        }
     };
 
     // Format date for display
     const formatDisplayDate = (dateStr: string): string => {
         try {
             return formatDateToMonthYear(dateStr);
-        } catch {
+        } catch (error) {
+            logger.error('Error formatting date:', error);
             return dateStr;
         }
     };
@@ -150,182 +293,209 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
     const isUpdating = editingBank ? updating.includes(editingBank.id) : false;
     const isDeleting = editingBank ? deleting.includes(editingBank.id) : false;
 
-    return (
-        <div className="main">
-            <header className="main__header">
-                <div className="main__header-left">
-                    <h1>Banks</h1>
-                </div>
-                <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleNewBank}>
-                        <Plus size={16} />
-                        Add New Bank
-                    </button>
-                </div>
-            </header>
+    try {
+        return (
+            <div className="main">
+                <header className="main__header">
+                    <div className="main__header-left">
+                        <h1>Banks</h1>
+                    </div>
+                    <div className="main__header-right">
+                        <button className="main__icon-button" onClick={handleNewBank}>
+                            <Plus size={16} />
+                            Add New Bank
+                        </button>
+                    </div>
+                </header>
 
-            <div className="main__content">
-                <div className="main__view">
-                    <div className="main__view-header">
-                        <div className="main__search-row">
-                            <span className="main__search-icon">
-                                <Search size={16} />
-                            </span>
-                            <input
-                                type="text"
-                                className="main__input"
-                                placeholder="Search banks..."
-                                value={localSearch}
-                                onChange={handleSearchChange}
-                                onFocus={e => e.target.select()}
-                            />
+                <div className="main__content">
+                    <div className="main__view">
+                        <div className="main__view-header">
+                            <div className="main__search-row">
+                                <span className="main__search-icon">
+                                    <Search size={16} />
+                                </span>
+                                <input
+                                    type="text"
+                                    className="main__input"
+                                    placeholder="Search banks..."
+                                    value={localSearch}
+                                    onChange={handleSearchChange}
+                                    onFocus={e => e.target.select()}
+                                />
+                            </div>
+                        </div>
+
+                        {loading && (
+                            <div className="main__loading">
+                                <Loader className="spinner" size={20} />
+                                Loading banks...
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="main__error">
+                                Error: {error}
+                                <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                            </div>
+                        )}
+
+                        <div className="banks-grid">
+                            {banks.map(bank => (
+                                <div 
+                                    className={`bank-card ${editingBank?.id === bank.id ? 'bank-card--selected' : ''}`}
+                                    key={bank.id}
+                                >
+                                    <div className="bank-left">
+                                        {deleting.includes(bank.id) && (
+                                            <div className="bank-card__overlay">
+                                                <Loader className="spinner" size={20} />
+                                            </div>
+                                        )}
+                                        <Building2 size={22} />
+                                        <div>
+                                            <div className="bank-title">{bank.name}</div>
+                                            <div className="bank-sub">Created: {formatDisplayDate(bank.create_date)}</div>
+                                        </div>
+                                    </div>
+                                    <div className="bank-meta">
+                                        <div className="meta-block">
+                                            <div className="meta-label">Transactions</div>
+                                            <div className="meta-value">{bank.transaction_count.toLocaleString()}</div>
+                                        </div>
+                                        <button 
+                                            className="row-actions"
+                                            onClick={() => handleEditBank(bank)}
+                                            disabled={deleting.includes(bank.id)}
+                                        >
+                                            <MoreHorizontal size={16} />
+                                            Manage
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {!loading && banks.length === 0 && (
+                                <div className="bank-card bank-card--empty">
+                                    {searchQuery ? 'No banks found matching your search.' : 'No banks found.'}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {loading && (
-                        <div className="main__loading">
-                            <Loader className="spinner" size={20} />
-                            Loading banks...
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="main__error">
-                            Error: {error}
-                            <button onClick={() => dispatch(clearError())}>Dismiss</button>
-                        </div>
-                    )}
-
-                    <div className="banks-grid">
-                        {banks.map(bank => (
-                            <div 
-                                className={`bank-card ${editingBank?.id === bank.id ? 'bank-card--selected' : ''}`}
-                                key={bank.id}
-                            >
-                                <div className="bank-left">
-                                    {deleting.includes(bank.id) && (
-                                        <div className="bank-card__overlay">
-                                            <Loader className="spinner" size={20} />
-                                        </div>
-                                    )}
-                                    <Building2 size={22} />
-                                    <div>
-                                        <div className="bank-title">{bank.name}</div>
-                                        <div className="bank-sub">Created: {formatDisplayDate(bank.create_date)}</div>
-                                    </div>
+                    {showEditForm && editingBank && (
+                        <div className="detail">
+                            {isUpdating && (
+                                <div className="detail__overlay">
+                                    <Loader className="spinner" size={24} />
                                 </div>
-                                <div className="bank-meta">
-                                    <div className="meta-block">
-                                        <div className="meta-label">Transactions</div>
-                                        <div className="meta-value">{bank.transaction_count.toLocaleString()}</div>
-                                    </div>
+                            )}
+                            <div className="detail__header">
+                                <Building2 size={28} />
+                                <div>
+                                    <div className="detail__name">Edit Bank</div>
+                                    <div className="label">Update bank details or delete</div>
+                                </div>
+                            </div>
+                            <div className="form">
+                                <div>
+                                    <div className="label">Bank Name</div>
+                                    <input 
+                                        className="control" 
+                                        value={editForm.name}
+                                        onChange={(e) => setEditForm({ name: e.target.value })}
+                                        onFocus={e => e.target.select()}
+                                        disabled={isUpdating || isDeleting}
+                                    />
+                                </div>
+                                <div>
+                                    <div className="label">Created On</div>
+                                    <input 
+                                        className="control" 
+                                        value={formatDisplayDate(editingBank.create_date)} 
+                                        readOnly 
+                                    />
+                                </div>
+                                <div>
+                                    <div className="label">Transactions</div>
+                                    <input 
+                                        className="control" 
+                                        value={editingBank.transaction_count.toLocaleString()} 
+                                        readOnly 
+                                    />
+                                </div>
+                                <div className="inline-actions">
                                     <button 
-                                        className="row-actions"
-                                        onClick={() => handleEditBank(bank)}
-                                        disabled={deleting.includes(bank.id)}
+                                        className="main__button"
+                                        onClick={handleSaveBank}
+                                        disabled={isUpdating || isDeleting || !editForm.name.trim()}
                                     >
-                                        <MoreHorizontal size={16} />
-                                        Manage
+                                        {isUpdating ? (
+                                            <>
+                                                <Loader className="spinner" size={16} />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Edit size={16} />
+                                                Save
+                                            </>
+                                        )}
+                                    </button>
+                                    <button 
+                                        className="main__icon-button" 
+                                        onClick={handleDeleteBank}
+                                        disabled={isUpdating || isDeleting}
+                                    >
+                                        <Trash size={16} />
+                                        Delete
+                                    </button>
+                                    <button 
+                                        className="main__secondary-button" 
+                                        onClick={handleCancelEdit}
+                                        disabled={isUpdating || isDeleting}
+                                    >
+                                        <X size={16} />
+                                        Cancel
                                     </button>
                                 </div>
                             </div>
-                        ))}
-                        {!loading && banks.length === 0 && (
-                            <div className="bank-card bank-card--empty">
-                                {searchQuery ? 'No banks found matching your search.' : 'No banks found.'}
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
-                {showEditForm && editingBank && (
-                    <div className="detail">
-                        {isUpdating && (
-                            <div className="detail__overlay">
-                                <Loader className="spinner" size={24} />
-                            </div>
-                        )}
-                        <div className="detail__header">
-                            <Building2 size={28} />
-                            <div>
-                                <div className="detail__name">Edit Bank</div>
-                                <div className="label">Update bank details or delete</div>
-                            </div>
-                        </div>
-                        <div className="form">
-                            <div>
-                                <div className="label">Bank Name</div>
-                                <input 
-                                    className="control" 
-                                    value={editForm.name}
-                                    onChange={(e) => setEditForm({ name: e.target.value })}
-                                    onFocus={e => e.target.select()}
-                                    disabled={isUpdating || isDeleting}
-                                />
-                            </div>
-                            <div>
-                                <div className="label">Created On</div>
-                                <input 
-                                    className="control" 
-                                    value={formatDisplayDate(editingBank.create_date)} 
-                                    readOnly 
-                                />
-                            </div>
-                            <div>
-                                <div className="label">Transactions</div>
-                                <input 
-                                    className="control" 
-                                    value={editingBank.transaction_count.toLocaleString()} 
-                                    readOnly 
-                                />
-                            </div>
-                            <div className="inline-actions">
-                                <button 
-                                    className="main__button"
-                                    onClick={handleSaveBank}
-                                    disabled={isUpdating || isDeleting || !editForm.name.trim()}
-                                >
-                                    {isUpdating ? (
-                                        <>
-                                            <Loader className="spinner" size={16} />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Edit size={16} />
-                                            Save
-                                        </>
-                                    )}
-                                </button>
-                                <button 
-                                    className="main__icon-button" 
-                                    onClick={handleDeleteBank}
-                                    disabled={isUpdating || isDeleting}
-                                >
-                                    <Trash size={16} />
-                                    Delete
-                                </button>
-                                <button 
-                                    className="main__secondary-button" 
-                                    onClick={handleCancelEdit}
-                                    disabled={isUpdating || isDeleting}
-                                >
-                                    <X size={16} />
-                                    Cancel
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
+                <DeleteBankConfirmModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={handleDeleteCancel}
+                    onDelete={handleDeleteConfirm}
+                    bank={getModalBank(editingBank)}
+                />
             </div>
+        );
+    } catch (error) {
+        logger.error('Error rendering bank list:', error);
+        showBoundary(error);
+        return null;
+    }
+};
 
-            <DeleteBankConfirmModal
-                isOpen={isDeleteModalOpen}
-                onClose={handleDeleteCancel}
-                onDelete={handleDeleteConfirm}
-                bank={getModalBank(editingBank)}
-            />
-        </div>
+// Main wrapper component with ErrorBoundary
+const BankList: React.FC<BankListProps> = (props) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={(fallbackProps) => (
+                <BankListErrorFallback {...fallbackProps} onNewBank={props.onNewBank} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Bank list error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <BankListContent {...props} />
+        </ErrorBoundary>
     );
 };
 
