@@ -32,25 +32,7 @@ router.get('/', TransactionController.getAllTransactions);
  */
 router.get('/paginated', TransactionController.getPaginatedTransactions);
 
-/**
- * @route GET /api/v1/transactions/report-preview
- * @description Get report preview with estimated rows and file size based on filters
- * @access Public
- * @query {
- *   transaction_type?: number (1=Deposit, 0=Withdraw),
- *   min_amount?: number,
- *   max_amount?: number,
- *   start_date?: string (YYYY-MM-DD),
- *   end_date?: string (YYYY-MM-DD),
- *   bank_ids?: number[],
- *   card_ids?: number[],
- *   client_ids?: number[],
- *   search?: string,
- *   format?: string (CSV|Excel|JSON|PDF),
- *   fields?: string[] (selected export fields)
- * }
- */
-router.get('/report-preview', TransactionController.getReportPreview);
+
 
 /**
  * @route GET /api/v1/transactions/:id
@@ -59,6 +41,7 @@ router.get('/report-preview', TransactionController.getReportPreview);
  */
 router.get('/:id', TransactionController.getTransactionById);
 
+
 /**
  * @route POST /api/v1/transactions
  * @description Create a new transaction
@@ -66,6 +49,18 @@ router.get('/:id', TransactionController.getTransactionById);
  * @body { client_id: number, transaction_type: number, widthdraw_charges: number, transaction_amount: number, bank_id?: number, card_id?: number, remark?: string }
  */
 router.post('/', TransactionController.createTransaction);
+
+/**
+ * @route POST /api/v1/transactions/report
+ * @description Generate transaction report (PDF)
+ * @access Public
+ * @body {
+ *   startDate: string (YYYY-MM-DD),
+ *   endDate: string (YYYY-MM-DD),
+ *   clientId?: string | null
+ * }
+ */
+router.post('/report', TransactionController.generateReport);
 
 /**
  * @route PUT /api/v1/transactions

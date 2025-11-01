@@ -87,18 +87,18 @@ const cleanupOldLogs = (baseLogPath: string, retentionDays: number = 14): void =
         const cutoffDate = new Date(now.getTime() - (retentionDays * 24 * 60 * 60 * 1000));
 
         const entries = fs.readdirSync(baseLogPath, { withFileTypes: true });
-        
+
         for (const entry of entries) {
             if (entry.isDirectory()) {
                 const dirName = entry.name;
                 // Check if directory name matches date pattern (DD-MM-YYYY)
                 const dateMatch = dirName.match(/^(\d{2})-(\d{2})-(\d{4})$/);
-                
+
                 if (dateMatch) {
                     const [, day, month, year] = dateMatch;
                     if (day && month && year) {
                         const dirDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
-                        
+
                         if (dirDate < cutoffDate) {
                             const dirPath = path.join(baseLogPath, dirName);
                             console.log(`🗑️  Removing old log directory: ${dirPath}`);
@@ -112,43 +112,75 @@ const cleanupOldLogs = (baseLogPath: string, retentionDays: number = 14): void =
         console.error('❌ Error cleaning up old logs:', error);
     }
 };
+function getThirdErrorStackInfo(stack: string): { file?: string; line?: number; column?: number } | null {
+    // Split stack trace into individual lines
+    const lines = stack.split('\n').map(line => line.trim());
 
+    // Ignore the first line ("Error")
+    // Find the third stack frame (index 3 if 0-based and first line is 'Error')
+    const targetLine = lines[3]; // e.g., at Server.<anonymous> (file:///E:/path/to/file.ts:38:12)
+
+    if (!targetLine) {
+        return null;
+    }
+
+    // Regex to match both file:// URIs and normal Windows/Unix paths
+    const regex = /\(?((?:file:\/\/\/)?[A-Za-z]:[^\s:()]+):(\d+):(\d+)\)?/;
+
+    const match = targetLine.match(regex);
+    if (!match) {
+        return null;
+    }
+
+    const [, file, line, column] = match;
+
+    const result: { file?: string; line?: number; column?: number } = {};
+    
+    if (file) {
+        result.file = file.replace(/^file:\/\/\//, ''); // clean up "file:///"
+    }
+    if (line) {
+        result.line = Number(line);
+    }
+    if (column) {
+        result.column = Number(column);
+    }
+    
+    return result;
+}
 // Custom format for logging with Indian timezone
 const customFormat = format.printf((info: any) => {
     const { level, message, timestamp, stack, moduleName, includeModule = true } = info;
     // Extracting file path and line number from the stack trace
-    const match = stack && stack.split('\n')[3]?.match(/at (.*) \\((.*?):(\\d+):(\\d+)\\)/);
-    const filePath = match ? match[2] : 'unknown';
-    const normalizePath = normalizePathFrom(filePath);
-    const lineNumber = match ? match[3] : 'unknown';
+    const match = getThirdErrorStackInfo(stack ? stack : '');
+    const filePath = match ? match.file : 'unknown';
+    const lineNumber = match ? match.line : 'unknown';
     const module = moduleName || 'general';
 
     // Include module name only if specified
     const moduleTag = includeModule ? `[${module}] ` : '';
 
-    return `${timestamp} - [${level.toUpperCase()}] ${moduleTag}[${normalizePath}:${lineNumber}] - ${message}`;
+    return `${timestamp} - [${level.toUpperCase()}] ${moduleTag}[${filePath}:${lineNumber}] - ${message}`;
 });
 
 // Custom format for module-specific logs (without module name)
 const moduleFormat = format.printf((info: any) => {
     const { level, message, timestamp, stack } = info;
-    const match = stack && stack.split('\n')[3]?.match(/at (.*) \\((.*?):(\\d+):(\\d+)\\)/);
-    const filePath = match ? match[2] : 'unknown';
-    const normalizePath = normalizePathFrom(filePath);
-    const lineNumber = match ? match[3] : 'unknown';
+    const match = getThirdErrorStackInfo(stack ? stack : '');
+    const filePath = match ? match.file : 'unknown';
+    const lineNumber = match ? match.line : 'unknown';
 
-    return `${timestamp} - [${level.toUpperCase()}] - [${normalizePath}:${lineNumber}] - ${message}`;
+    return `${timestamp} - [${level.toUpperCase()}] - [${filePath}:${lineNumber}] - ${message}`;
 });
 
 // Custom format for console logs (with module name and colored)
 const consoleFormat = format.printf((info: any) => {
     const { level, message, timestamp, stack, moduleName } = info;
-    const match = stack && stack.split('\n')[3]?.match(/at (.*) \\((.*?):(\\d+):(\\d+)\\)/);
-    const filePath = match ? match[2] : 'unknown';
-    const normalizePath = normalizePathFrom(filePath);
-    const lineNumber = match ? match[3] : 'unknown';
+    const match = getThirdErrorStackInfo(stack ? stack : '');
+    const filePath = match ? match.file : 'unknown';
+    const lineNumber = match ? match.line : 'unknown';
 
-    return `${timestamp} - [${level}] [${normalizePath}:${lineNumber}] - ${message}`;
+    return `${timestamp} - [${level}] [${filePath}:${lineNumber}] - ${message}`;
 });
 
 // Logger factory to create module-specific loggers
@@ -167,7 +199,7 @@ class ModuleLogger {
         this.logLevel = config.logLevel || 'debug';
         this.enableConsole = config.enableConsole !== false;
         this.logger = this.createLogger();
-        
+
         // Run cleanup on initialization
         this.cleanupOldLogs();
     }
@@ -205,7 +237,7 @@ class ModuleLogger {
 
         // Daily rotate file transports for different log levels
         const logLevels = ['error', 'warn', 'info', 'debug'];
-        
+
         for (const logLevel of logLevels) {
             transportsList.push(
                 new (winston.transports as any).DailyRotateFile({
@@ -358,7 +390,7 @@ class LoggerManager {
     constructor(globalConfig?: Partial<LogRotationConfig>) {
         this.loggers = new Map();
         this.globalRotationConfig = globalConfig || {};
-        
+
         // Set up daily cleanup schedule (runs at midnight)
         this.scheduleCleanup();
     }
@@ -407,15 +439,15 @@ class LoggerManager {
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
         tomorrow.setHours(0, 0, 0, 0);
-        
+
         const msUntilMidnight = tomorrow.getTime() - now.getTime();
-        
+
         setTimeout(() => {
             this.runDailyCleanup();
             // Schedule for every 24 hours after first run
             setInterval(() => this.runDailyCleanup(), 24 * 60 * 60 * 1000);
         }, msUntilMidnight);
-        
+
         console.log(`🕒 Scheduled daily log cleanup in ${Math.round(msUntilMidnight / (1000 * 60))} minutes`);
     }
 
@@ -425,7 +457,7 @@ class LoggerManager {
         const baseLogPath = path.join(process.cwd(), 'logs');
         const retentionDays = parseInt(this.globalRotationConfig.maxFiles?.replace('d', '') || '14');
         cleanupOldLogs(baseLogPath, retentionDays);
-        
+
         // Force rotation for all loggers to handle date change
         this.forceRotationAll();
     }
@@ -457,7 +489,7 @@ export {
     logger
 };
 
-export const getLogger = (moduleName?: string, config?: Partial<LoggerConfig>): ModuleLogger => 
+export const getLogger = (moduleName?: string, config?: Partial<LoggerConfig>): ModuleLogger =>
     loggerManager.getLogger(moduleName, config);
 
 export const forceRotationAll = (): void => loggerManager.forceRotationAll();
@@ -466,7 +498,7 @@ export const getActiveModules = (): string[] => loggerManager.getActiveModules()
 
 export const getAllLoggerStats = () => loggerManager.getAllLoggerStats();
 
-export const updateGlobalRotationConfig = (config: Partial<LogRotationConfig>): void => 
+export const updateGlobalRotationConfig = (config: Partial<LogRotationConfig>): void =>
     loggerManager.updateGlobalRotationConfig(config);
 
 export const closeAllLoggers = (): void => loggerManager.closeAll();

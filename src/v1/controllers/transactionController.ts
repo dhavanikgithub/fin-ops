@@ -1,8 +1,27 @@
 import { Request, Response } from 'express';
 import { TransactionService } from '../services/transactionService';
-import { TransactionInput, TransactionUpdateInput, DeleteTransactionInput, GetTransactionsInput, ReportPreviewInput } from '../types/transaction';
+import { TransactionInput, TransactionUpdateInput, DeleteTransactionInput, GetTransactionsInput } from '../types/transaction';
+import { 
+    ReportRequestBody, 
+    TransactionRecord, 
+    GroupedData, 
+    ReportData,
+    TransactionReportData 
+} from '../types/transaction';
 import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, asyncHandler } from '../../common/errors/index';
+import { ValidationError, PDFGenerationError, asyncHandler } from '../../common/errors/index';
+import { 
+    formatAmount, 
+    formatDate, 
+    formatTime, 
+    getTransactionTypeStr, 
+    isTransactionTypeDeposit, 
+    isTransactionTypeWidthdraw 
+} from '../../utils/helper';
+import TransactionReportPDF from '../pdf-template/transactionReportPDF';
+import fs from 'fs';
+import path from 'path';
+import { logger } from '../../utils/logger';
 
 /**
  * Controller for transaction operations
@@ -491,159 +510,178 @@ export class TransactionController {
     });
 
     /**
-     * Get report preview with estimated rows and file size
+     * POST generate transaction report (PDF)
      */
-    static getReportPreview = asyncHandler(async (req: Request, res: Response) => {
-        const {
-            transaction_type,
-            min_amount,
-            max_amount,
-            start_date,
-            end_date,
-            bank_ids,
-            card_ids,
-            client_ids,
-            search,
-            format,
-            fields
-        } = req.query;
+    static generateReport = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+        const requestData: ReportRequestBody = req.body;
+        const { clientId, startDate, endDate } = requestData;
+        const isClientSpecific = clientId !== undefined && clientId !== null;
 
-        // Parse and validate query parameters
-        const input: ReportPreviewInput = {};
-
-        // Parse transaction_type
-        if (transaction_type !== undefined) {
-            const parsedType = parseInt(transaction_type as string);
-            if (isNaN(parsedType) || (parsedType !== 1 && parsedType !== 2)) {
-                throw new ValidationError('Transaction type must be 1 (Deposit) or 2 (Withdraw)');
-            }
-            input.transaction_type = parsedType;
+        // Validate required fields
+        if (!startDate || !endDate) {
+            throw new ValidationError('Start date and end date are required', {
+                field: 'dates',
+                value: { startDate, endDate },
+                expected: 'Both startDate and endDate required'
+            });
         }
 
-        // Parse amounts
-        if (min_amount !== undefined) {
-            const parsedMin = parseFloat(min_amount as string);
-            if (isNaN(parsedMin) || parsedMin < 0) {
-                throw new ValidationError('Minimum amount must be a non-negative number');
-            }
-            input.min_amount = parsedMin;
-        }
-
-        if (max_amount !== undefined) {
-            const parsedMax = parseFloat(max_amount as string);
-            if (isNaN(parsedMax) || parsedMax < 0) {
-                throw new ValidationError('Maximum amount must be a non-negative number');
-            }
-            input.max_amount = parsedMax;
-        }
-
-        // Validate amount range
-        if (input.min_amount !== undefined && input.max_amount !== undefined && input.min_amount > input.max_amount) {
-            throw new ValidationError('Minimum amount cannot be greater than maximum amount');
-        }
-
-        // Parse dates
-        if (start_date) {
-            if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(start_date as string)) {
-                throw new ValidationError('Start date must be in YYYY-MM-DD format');
-            }
-            input.start_date = start_date as string;
-        }
-
-        if (end_date) {
-            if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(end_date as string)) {
-                throw new ValidationError('End date must be in YYYY-MM-DD format');
-            }
-            input.end_date = end_date as string;
-        }
-
-        // Parse ID arrays
-        if (bank_ids) {
-            try {
-                const parsedBankIds = Array.isArray(bank_ids) 
-                    ? bank_ids.map(id => parseInt(id as string))
-                    : [parseInt(bank_ids as string)];
-                
-                if (parsedBankIds.some(id => isNaN(id) || id <= 0)) {
-                    throw new ValidationError('Bank IDs must be positive integers');
-                }
-                input.bank_ids = parsedBankIds;
-            } catch {
-                throw new ValidationError('Invalid bank IDs format');
-            }
-        }
-
-        if (card_ids) {
-            try {
-                const parsedCardIds = Array.isArray(card_ids)
-                    ? card_ids.map(id => parseInt(id as string))
-                    : [parseInt(card_ids as string)];
-                
-                if (parsedCardIds.some(id => isNaN(id) || id <= 0)) {
-                    throw new ValidationError('Card IDs must be positive integers');
-                }
-                input.card_ids = parsedCardIds;
-            } catch {
-                throw new ValidationError('Invalid card IDs format');
-            }
-        }
-
-        if (client_ids) {
-            try {
-                const parsedClientIds = Array.isArray(client_ids)
-                    ? client_ids.map(id => parseInt(id as string))
-                    : [parseInt(client_ids as string)];
-                
-                if (parsedClientIds.some(id => isNaN(id) || id <= 0)) {
-                    throw new ValidationError('Client IDs must be positive integers');
-                }
-                input.client_ids = parsedClientIds;
-            } catch {
-                throw new ValidationError('Invalid client IDs format');
-            }
-        }
-
-        // Parse search
-        if (search && typeof search === 'string') {
-            input.search = search.trim();
-        }
-
-        // Parse format
-        if (format) {
-            const validFormats = ['CSV', 'Excel', 'JSON', 'PDF'];
-            if (!validFormats.includes(format as string)) {
-                throw new ValidationError(`Format must be one of: ${validFormats.join(', ')}`);
-            }
-            input.format = format as 'CSV' | 'Excel' | 'JSON' | 'PDF';
-        }
-
-        // Parse fields
-        if (fields) {
-            try {
-                const parsedFields = Array.isArray(fields) ? fields as string[] : [fields as string];
-                const validFields = [
-                    'client_name', 'bank_name', 'card_name', 'transaction_amount', 
-                    'transaction_type', 'create_date', 'create_time', 'remark', 'widthdraw_charges'
-                ];
-                
-                const invalidFields = parsedFields.filter(field => !validFields.includes(field));
-                if (invalidFields.length > 0) {
-                    throw new ValidationError(`Invalid fields: ${invalidFields.join(', ')}. Valid fields are: ${validFields.join(', ')}`);
-                }
-                input.fields = parsedFields;
-            } catch {
-                throw new ValidationError('Invalid fields format');
-            }
-        }
-
-        const data = await TransactionService.getReportPreview(input);
-        
-        const response = createSuccessResponse(
-            data,
-            200,
-            SUCCESS_CODES.DATA_RETRIEVED,
-            'Report preview generated successfully'
+        // Get transactions data
+        const transactions = await TransactionService.getTransactionsForReport(
+            startDate,
+            endDate,
+            clientId
         );
-        res.status(200).json(response);
+
+        if (transactions.length === 0) {
+            throw new ValidationError(
+                'No transactions found for the specified criteria'
+            );
+        }
+
+        let isOnlyWithdraw = true;
+
+        // Group data by client and adjust to the required format
+        const groupedData: { [clientName: string]: GroupedData } = transactions.reduce(
+            (acc: { [clientName: string]: GroupedData }, row: TransactionRecord) => {
+                if (!acc[row.client_name]) {
+                    acc[row.client_name] = {
+                        total: {
+                            final_amount: "0",
+                            transaction_amount: "0",
+                            widthdraw_charges: "0",
+                        },
+                        data: []
+                    };
+                }
+
+                const clientData = acc[row.client_name]!;
+                const widthdraw_charges = (row.transaction_amount * row.widthdraw_charges) / 100;
+
+                // Add transaction data to 'data' array
+                const transactionData: TransactionReportData = {
+                    transaction_type: getTransactionTypeStr(row.transaction_type),
+                    transaction_amount: `Rs. ${formatAmount(row.transaction_amount.toString())}/-`,
+                    widthdraw_charges: `Rs. ${formatAmount(widthdraw_charges.toString())}/-`,
+                    widthdraw_charges_pr: `${row.widthdraw_charges.toString()}%`,
+                    date: row.create_date ? formatDate(row.create_date) : '-',
+                    time: row.create_time ? formatTime(row.create_time) : '-',
+                    is_widthdraw_transaction: isTransactionTypeWidthdraw(row.transaction_type),
+                    bank_name: row.bank_name || '',
+                    card_name: row.card_name || '',
+                };
+
+                clientData.data.push(transactionData);
+
+                // Update totals
+                if (isTransactionTypeDeposit(row.transaction_type)) {
+                    isOnlyWithdraw = false;
+                    clientData.total.transaction_amount = (
+                        parseFloat(clientData.total.transaction_amount) + row.transaction_amount
+                    ).toString();
+                } else {
+                    clientData.total.transaction_amount = (
+                        parseFloat(clientData.total.transaction_amount) - row.transaction_amount
+                    ).toString();
+                }
+
+                clientData.total.widthdraw_charges = (
+                    parseFloat(clientData.total.widthdraw_charges) + widthdraw_charges
+                ).toString();
+
+                clientData.total.final_amount = (
+                    parseFloat(clientData.total.transaction_amount) + 
+                    parseFloat(clientData.total.widthdraw_charges)
+                ).toString();
+
+                return acc;
+            }, 
+            {}
+        );
+
+        // Helper functions for amount formatting
+        const transactionAmountWithSign = (amount: string): string => {
+            let num = parseFloat(amount.toString());
+            if (isOnlyWithdraw) {
+                num = 0;
+            }
+            return `Rs. ${formatAmount(Math.abs(num).toString())}/-`;
+        };
+
+        const finalAmountWithSign = (amount: string, widthdraw_charges: string): string => {
+            let num = parseFloat(amount.toString());
+            if (isOnlyWithdraw) {
+                return `Rs. ${formatAmount(widthdraw_charges)}/-`;
+            } else {
+                return `Rs. ${formatAmount(Math.abs(num).toString())}/-`;
+            }
+        };
+
+        // Format the totals as currency
+        Object.keys(groupedData).forEach(clientName => {
+            const clientData = groupedData[clientName]!;
+            clientData.total.widthdraw_charges = `Rs. ${formatAmount(clientData.total.widthdraw_charges)}/-`;
+            clientData.total.final_amount = finalAmountWithSign(
+                clientData.total.final_amount, 
+                clientData.total.widthdraw_charges
+            );
+            clientData.total.transaction_amount = transactionAmountWithSign(
+                clientData.total.transaction_amount
+            );
+        });
+
+        // Prepare the report data object
+        const reportData: ReportData = {
+            isClientSpecific,
+            startDate: formatDate(startDate),
+            endDate: formatDate(endDate),
+            groupedData,
+            columns: ['transaction_type', 'transaction_amount', 'widthdraw_charges', 'bank_name', 'card_name', 'date_and_time'],
+        };
+
+        try {
+            // Create PDF generator instance
+            const reportGenerator = new TransactionReportPDF();
+
+            // Generate temporary file path
+            const tempFileName = `transaction_report_${Date.now()}.pdf`;
+            const tempDir = path.join(process.cwd(), 'temp');
+            const tempFilePath = path.join(tempDir, tempFileName);
+
+            // Ensure temp directory exists
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            // Generate PDF file
+            await reportGenerator.generatePDF(reportData, tempFilePath);
+
+            // Read the generated PDF file
+            const pdfBuffer = fs.readFileSync(tempFilePath);
+
+            // Convert to base64
+            const bodyBufferBase64 = pdfBuffer.toString('base64');
+
+            // Clean up temporary file
+            fs.unlinkSync(tempFilePath);
+
+            // Return success response with PDF content
+            const response = createSuccessResponse(
+                { pdfContent: bodyBufferBase64 },
+                200,
+                SUCCESS_CODES.REPORT_GENERATED_SUCCESS,
+                'Transaction report generated successfully'
+            );
+            res.status(200).json(response);
+
+        } catch (pdfError) {
+            logger.error('Error generating PDF:', pdfError);
+            throw new PDFGenerationError(
+                'Failed to generate PDF report',
+                pdfError
+            );
+        }
     });
+
+
 }

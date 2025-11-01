@@ -1,7 +1,7 @@
 import { QueryResult } from 'pg';
 import { query } from '../../utils/db';
 import { TRANSACTION_QUERIES } from '../queries/transactionQueries';
-import { Transaction, TransactionInput, TransactionUpdateInput, GetTransactionsInput, PaginatedTransactionResponse, TransactionFilters, ReportPreviewInput, ReportPreviewResponse } from '../types/transaction';
+import { Transaction, TransactionInput, TransactionUpdateInput, GetTransactionsInput, PaginatedTransactionResponse, TransactionFilters, TransactionRecord } from '../types/transaction';
 import { DatabaseError, NotFoundError } from '../../common/errors/index';
 import { logger } from '../../utils/logger'
 
@@ -408,264 +408,33 @@ export class TransactionService {
     }
 
     /**
-     * Get report preview with estimated rows and file size
+     * Get transactions for report generation
      */
-    static async getReportPreview(input: ReportPreviewInput): Promise<ReportPreviewResponse> {
+    static async getTransactionsForReport(
+        startDate: string, 
+        endDate: string, 
+        clientId?: string | null
+    ): Promise<TransactionRecord[]> {
         try {
-            logger.info('getReportPreview service started', { input });
+            const isClientSpecific = clientId !== undefined && clientId !== null;
+            
+            let sql: string;
+            let params: (string | number)[];
 
-            const {
-                transaction_type,
-                min_amount,
-                max_amount,
-                start_date,
-                end_date,
-                bank_ids,
-                card_ids,
-                client_ids,
-                search,
-                format = 'CSV',
-                fields = ['client_name', 'bank_name', 'card_name', 'transaction_amount', 'transaction_type', 'create_date']
-            } = input;
-
-            // Build the count query with same filters as paginated transactions
-            let countQuery = TRANSACTION_QUERIES.COUNT_TRANSACTIONS_FOR_REPORT;
-            let queryParams: any[] = [];
-            let whereConditions: string[] = [];
-            let paramIndex = 1;
-
-            // Apply filters
-            if (transaction_type !== undefined) {
-                whereConditions.push(`tr.transaction_type = $${paramIndex}`);
-                queryParams.push(transaction_type);
-                paramIndex++;
+            if (isClientSpecific) {
+                sql = TRANSACTION_QUERIES.GET_TRANSACTIONS_FOR_REPORT_BY_CLIENT;
+                params = [startDate, endDate, parseInt(clientId as string, 10)];
+            } else {
+                sql = TRANSACTION_QUERIES.GET_TRANSACTIONS_FOR_REPORT;
+                params = [startDate, endDate];
             }
 
-            if (min_amount !== undefined) {
-                whereConditions.push(`tr.transaction_amount >= $${paramIndex}`);
-                queryParams.push(min_amount);
-                paramIndex++;
-            }
-
-            if (max_amount !== undefined) {
-                whereConditions.push(`tr.transaction_amount <= $${paramIndex}`);
-                queryParams.push(max_amount);
-                paramIndex++;
-            }
-
-            if (start_date) {
-                whereConditions.push(`tr.create_date >= $${paramIndex}`);
-                queryParams.push(start_date);
-                paramIndex++;
-            }
-
-            if (end_date) {
-                whereConditions.push(`tr.create_date <= $${paramIndex}`);
-                queryParams.push(end_date);
-                paramIndex++;
-            }
-
-            if (bank_ids && bank_ids.length > 0) {
-                const placeholders = bank_ids.map((_, index) => `$${paramIndex + index}`).join(', ');
-                whereConditions.push(`tr.bank_id IN (${placeholders})`);
-                queryParams.push(...bank_ids);
-                paramIndex += bank_ids.length;
-            }
-
-            if (card_ids && card_ids.length > 0) {
-                const placeholders = card_ids.map((_, index) => `$${paramIndex + index}`).join(', ');
-                whereConditions.push(`tr.card_id IN (${placeholders})`);
-                queryParams.push(...card_ids);
-                paramIndex += card_ids.length;
-            }
-
-            if (client_ids && client_ids.length > 0) {
-                const placeholders = client_ids.map((_, index) => `$${paramIndex + index}`).join(', ');
-                whereConditions.push(`tr.client_id IN (${placeholders})`);
-                queryParams.push(...client_ids);
-                paramIndex += client_ids.length;
-            }
-
-            // Apply search if provided
-            if (search && search.trim()) {
-                const searchConditions = [
-                    `COALESCE(c.name, '') ILIKE $${paramIndex}`,
-                    `COALESCE(b.name, '') ILIKE $${paramIndex}`,
-                    `COALESCE(ca.name, '') ILIKE $${paramIndex}`,
-                    `COALESCE(tr.remark, '') ILIKE $${paramIndex}`
-                ];
-                whereConditions.push(`(${searchConditions.join(' OR ')})`);
-                queryParams.push(`%${search.trim()}%`);
-                paramIndex++;
-            }
-
-            // Add WHERE clause if there are conditions
-            if (whereConditions.length > 0) {
-                countQuery += ` WHERE ${whereConditions.join(' AND ')}`;
-            }
-
-            logger.debug('Executing count query for report preview', { 
-                query: countQuery.replace(/\\s+/g, ' ').trim(),
-                params: queryParams
-            });
-
-            // Execute count query
-            const countResult: QueryResult<{ total_count: string }> = await query(countQuery, queryParams);
-            const totalRows = parseInt(countResult.rows[0]?.total_count || '0');
-
-            // Calculate estimated file size based on format and fields
-            const sizeCalculation = this.calculateEstimatedSize(totalRows, format, fields);
-
-            // Format the size in human-readable format
-            const formattedSize = this.formatFileSize(sizeCalculation.totalBytes);
-
-            // Build filters_applied object with only defined properties
-            const filtersApplied: TransactionFilters = {};
-            if (transaction_type !== undefined) filtersApplied.transaction_type = transaction_type;
-            if (min_amount !== undefined) filtersApplied.min_amount = min_amount;
-            if (max_amount !== undefined) filtersApplied.max_amount = max_amount;
-            if (start_date !== undefined) filtersApplied.start_date = start_date;
-            if (end_date !== undefined) filtersApplied.end_date = end_date;
-            if (bank_ids !== undefined) filtersApplied.bank_ids = bank_ids;
-            if (card_ids !== undefined) filtersApplied.card_ids = card_ids;
-            if (client_ids !== undefined) filtersApplied.client_ids = client_ids;
-
-            const response: ReportPreviewResponse = {
-                estimated_rows: totalRows,
-                estimated_size: formattedSize,
-                estimated_size_bytes: sizeCalculation.totalBytes,
-                format,
-                filters_applied: filtersApplied,
-                selected_fields: fields,
-                preview_calculation: sizeCalculation.breakdown
-            };
-
-            if (search !== undefined) {
-                response.search_applied = search;
-            }
-
-            logger.debug('getReportPreview service completed', {
-                estimatedRows: totalRows,
-                estimatedSize: formattedSize,
-                format,
-                fieldsCount: fields.length
-            });
-
-            return response;
+            const result = await query<TransactionRecord>(sql, params);
+            return result.rows;
         } catch (error) {
-            logger.error('Error in getReportPreview service', { error });
-            throw new DatabaseError('Failed to generate report preview', error);
+            logger.error('Error fetching transactions for report:', error);
+            throw new DatabaseError('Failed to fetch transactions for report', error);
         }
     }
 
-    /**
-     * Calculate estimated file size based on rows, format, and fields
-     */
-    private static calculateEstimatedSize(rows: number, format: string, fields: string[]): {
-        totalBytes: number;
-        breakdown: {
-            base_size_per_row: number;
-            field_overhead: number;
-            format_overhead: number;
-            compression_factor: number;
-        };
-    } {
-        // Base size per field (average characters per field)
-        const fieldSizes: Record<string, number> = {
-            'client_name': 25,
-            'bank_name': 20,
-            'card_name': 25,
-            'transaction_amount': 12,
-            'transaction_type': 8,
-            'create_date': 20,
-            'create_time': 12,
-            'remark': 50,
-            'widthdraw_charges': 12
-        };
-
-        // Calculate base size per row
-        let baseSizePerRow = 0;
-        fields.forEach(field => {
-            baseSizePerRow += fieldSizes[field] || 15; // Default 15 chars for unknown fields
-        });
-
-        // Add separators/formatting overhead per row
-        let formatOverhead = 0;
-        let compressionFactor = 1;
-
-        switch (format.toUpperCase()) {
-            case 'CSV':
-                formatOverhead = fields.length - 1; // Commas between fields
-                formatOverhead += 2; // Newline characters
-                compressionFactor = 0.8; // CSV compresses well
-                break;
-            case 'EXCEL':
-                formatOverhead = fields.length * 2; // Excel overhead per cell
-                formatOverhead += 50; // Row overhead in Excel format
-                compressionFactor = 0.6; // Excel compresses very well
-                break;
-            case 'JSON':
-                formatOverhead = fields.length * 8; // JSON key names and quotes
-                formatOverhead += 20; // JSON object structure overhead
-                compressionFactor = 0.9; // JSON doesn't compress as well
-                break;
-            case 'PDF':
-                formatOverhead = fields.length * 5; // PDF formatting
-                formatOverhead += 100; // PDF structure overhead per row
-                compressionFactor = 0.95; // PDF doesn't compress much
-                break;
-            default:
-                formatOverhead = 10; // Default overhead
-                compressionFactor = 0.85;
-        }
-
-        const totalSizePerRow = baseSizePerRow + formatOverhead;
-        const rawTotalBytes = rows * totalSizePerRow;
-        const compressedBytes = Math.round(rawTotalBytes * compressionFactor);
-
-        // Add file header/footer overhead
-        let fileOverhead = 0;
-        switch (format.toUpperCase()) {
-            case 'CSV':
-                fileOverhead = fields.join(',').length + 2; // Header row
-                break;
-            case 'EXCEL':
-                fileOverhead = 1024; // Excel file structure
-                break;
-            case 'JSON':
-                fileOverhead = 50; // JSON array structure
-                break;
-            case 'PDF':
-                fileOverhead = 5000; // PDF document structure
-                break;
-        }
-
-        const totalBytes = compressedBytes + fileOverhead;
-
-        return {
-            totalBytes,
-            breakdown: {
-                base_size_per_row: baseSizePerRow,
-                field_overhead: formatOverhead,
-                format_overhead: fileOverhead,
-                compression_factor: compressionFactor
-            }
-        };
-    }
-
-    /**
-     * Format file size in human-readable format
-     */
-    private static formatFileSize(bytes: number): string {
-        if (bytes === 0) return '0 B';
-        
-        const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
-        const i = Math.floor(Math.log(bytes) / Math.log(k));
-        
-        const size = bytes / Math.pow(k, i);
-        const formattedSize = i === 0 ? size.toString() : size.toFixed(1);
-        
-        return `~${formattedSize} ${sizes[i]}`;
-    }
 }

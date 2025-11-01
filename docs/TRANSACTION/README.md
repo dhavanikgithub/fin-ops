@@ -2,20 +2,32 @@
 
 ## Overview
 
-The new paginated transaction API provides comprehensive filtering, searching, and sorting capabilities with full pagination support designed specifically for modern frontend implementations, including infinite scroll. The enhancement was implemented to support all these features, following the same structure as the client and card paginated APIs for consistency.
+The Transaction API provides comprehensive functionality for managing transactions and generating reports. It includes paginated transaction retrieval with advanced filtering, searching, sorting capabilities, and PDF report generation for transaction data analysis.
 
-## Endpoint
+## Endpoints
 
+### 1. Paginated Transactions
 `GET /api/v1/transactions/paginated`
+
+### 2. Transaction Report Generation
+`POST /api/v1/transactions/report`
 
 ## Key Features
 
+### Paginated Transactions
 - **Pagination**: 50 records per page by default (configurable up to 100).
 - **Filtering**: Multiple filter options for precise data retrieval (Type, Amount Range, Date Range, Entity IDs).
 - **Searching**: Case-insensitive search with exact match priority across multiple fields.
 - **Sorting**: Flexible sorting with multiple field options.
 - **Infinite Scroll Ready**: Designed for efficient frontend infinite scroll implementations using `has_next_page` metadata.
 - **API Consistency**: Follows the same structure, validation, and search priority logic as the Client and Card APIs.
+
+### Transaction Report Generation
+- **PDF Report Generation**: Create comprehensive transaction reports in PDF format.
+- **Date Range Filtering**: Generate reports for specific date ranges.
+- **Client-Specific Reports**: Generate reports for specific clients or all clients.
+- **Detailed Transaction Data**: Includes client, bank, card information with calculated totals and charges.
+- **Professional Formatting**: Well-formatted PDF reports with proper calculations and summaries.
 
 ## Query Parameters
 
@@ -195,15 +207,143 @@ All validation errors return a standardized error response:
 - Rate limiting considerations (recommended for production).
 - Case-insensitive search optimization.
 
-### Implementation Summary (Files Modified)
+---
 
-The implementation involved adding new components to support the paginated structure:
+## Transaction Report API
 
-1.  **Types (`src/v1/types/transaction.ts`):** Added new interfaces for `TransactionFilters`, `TransactionSearch`, `TransactionSort`, `TransactionPagination`, `GetTransactionsInput`, and `PaginatedTransactionResponse`.
-2.  **Queries (`src/v1/queries/transactionQueries.ts`):** Added `GET_PAGINATED_TRANSACTIONS` (base query) and `COUNT_TRANSACTIONS` (metadata count query).
-3.  **Service (`src/v1/services/transactionService.ts`):** Added `getPaginatedTransactions()` for core logic (dynamic WHERE for filters, exact match priority search, sorting, offset/limit).
-4.  **Controller (`src/v1/controllers/transactionController.ts`):** Added `getPaginatedTransactions()` for request handling, validation, type conversion, and error handling.
-5.  **Routes (`src/v1/routes/transactionRoute.ts`):** Added the new endpoint `GET /api/v1/transactions/paginated`.
-6.  **Documentation:** Created this comprehensive documentation (`docs/TRANSACTION/README.md`).
+### Endpoint
+`POST /api/v1/transactions/report`
+
+### Description
+Generate comprehensive PDF reports for transaction data with optional client-specific filtering and date range selection.
+
+### Request Body
+
+```json
+{
+  "startDate": "2024-01-01",    // Required: Start date (YYYY-MM-DD format)
+  "endDate": "2024-12-31",      // Required: End date (YYYY-MM-DD format)  
+  "clientId": "1"               // Optional: Client ID (string), null for all clients
+}
+```
+
+### Request Body Parameters
+
+- **`startDate`** (required): Start date for the report in YYYY-MM-DD format
+- **`endDate`** (required): End date for the report in YYYY-MM-DD format
+- **`clientId`** (optional): Client ID as string, set to `null` or omit for all clients
+
+### Validation Rules
+
+1. **Start Date**: Required, must be in YYYY-MM-DD format
+2. **End Date**: Required, must be in YYYY-MM-DD format  
+3. **Client ID**: Optional, must be a valid client ID string or null
+4. **Date Range**: End date must be >= start date
+
+### Example Requests
+
+#### Generate Report for All Clients
+```bash
+curl -X POST http://localhost:3000/api/v1/transactions/report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31",
+    "clientId": null
+  }'
+```
+
+#### Generate Report for Specific Client
+```bash
+curl -X POST http://localhost:3000/api/v1/transactions/report \
+  -H "Content-Type: application/json" \
+  -d '{
+    "startDate": "2024-10-01", 
+    "endDate": "2024-10-31",
+    "clientId": "5"
+  }'
+```
+
+### Response Format
+
+#### Success Response
+```json
+{
+  "success": true,
+  "data": {
+    "pdfContent": "JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI..."
+  },
+  "code": "REPORT_GENERATED_SUCCESS",
+  "message": "Transaction report generated successfully"
+}
+```
+
+#### Error Response
+```json
+{
+  "success": false,
+  "error": {
+    "type": "ValidationError",
+    "message": "No transactions found for the specified criteria"
+  }
+}
+```
+
+### Response Details
+
+- **`pdfContent`**: Base64 encoded PDF content that can be downloaded or displayed
+- **PDF Features**:
+  - Professional formatting with company branding
+  - Detailed transaction listings grouped by client
+  - Calculated totals including transaction amounts and withdrawal charges
+  - Date range and client information in header
+  - Summary calculations and final amounts
+
+### Report Contents
+
+The generated PDF report includes:
+
+1. **Header Information**:
+   - Report title and date range
+   - Client information (if client-specific)
+   - Generation timestamp
+
+2. **Transaction Details**:
+   - Transaction type (Deposit/Withdraw)
+   - Transaction amount with proper formatting
+   - Withdrawal charges (percentage and amount)
+   - Bank and card information
+   - Transaction date and time
+   - Remarks/notes
+
+3. **Summary Calculations**:
+   - Total transaction amounts by client
+   - Total withdrawal charges
+   - Final amounts after charges
+   - Grand totals for all clients
+
+4. **Professional Formatting**:
+   - Currency formatting (Rs. X,XXX/-)
+   - Proper date/time formatting
+   - Organized client grouping
+   - Clean table layouts
+
+---
+
+## Implementation Summary (Files Modified)
+
+The implementation involved adding new components to support both paginated transactions and report generation:
+
+1. **Types (`src/v1/types/transaction.ts`):** Added interfaces for `TransactionFilters`, `TransactionSearch`, `TransactionSort`, `TransactionPagination`, `GetTransactionsInput`, `PaginatedTransactionResponse`, `ReportRequestBody`, `TransactionReportData`, `GroupedData`, `ReportData`, and `TransactionRecord`.
+
+2. **Queries (`src/v1/queries/transactionQueries.ts`):** Added `GET_PAGINATED_TRANSACTIONS`, `COUNT_TRANSACTIONS`, `GET_TRANSACTIONS_FOR_REPORT`, and `GET_TRANSACTIONS_FOR_REPORT_BY_CLIENT` queries.
+
+3. **Service (`src/v1/services/transactionService.ts`):** Added `getPaginatedTransactions()` and `getTransactionsForReport()` methods for core business logic.
+
+4. **Controller (`src/v1/controllers/transactionController.ts`):** Added `getPaginatedTransactions()` and `generateReport()` methods for request handling, validation, and response formatting.
+
+5. **Routes (`src/v1/routes/transactionRoute.ts`):** Added endpoints `GET /api/v1/transactions/paginated` and `POST /api/v1/transactions/report`.
+
+6. **Documentation:** Created comprehensive documentation (`docs/TRANSACTION/README.md`) and examples (`docs/TRANSACTION/TRANSACTION_API_EXAMPLES.ts`).
 
 ---

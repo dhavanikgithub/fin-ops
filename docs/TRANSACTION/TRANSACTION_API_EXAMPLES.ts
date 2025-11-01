@@ -1,7 +1,11 @@
 /**
- * Example usage of the new paginated transactions API
- * This file demonstrates various use cases for the enhanced API
+ * Example usage of the Transaction API
+ * This file demonstrates various use cases for both paginated transactions and report generation
  */
+
+// ========================
+// PAGINATED TRANSACTIONS API EXAMPLES
+// ========================
 
 // Example 1: Basic pagination (first page, 50 records)
 export const basicPaginationExample = {
@@ -59,52 +63,156 @@ export const infiniteScrollExample = {
   description: 'Load page 3 for infinite scroll implementation'
 };
 
-/**
- * Expected response structure
- */
-export const expectedResponseStructure = {
-  success: true,
-  data: {
-    data: [
-      {
-        id: 1,
-        transaction_type: 1,
-        client_id: 1,
-        widthdraw_charges: 5.00,
-        transaction_amount: 1000.00,
-        client_name: "John Doe",
-        bank_name: "Bank of America",
-        card_name: "Visa Card",
-        bank_id: 1,
-        card_id: 1,
-        remark: "Monthly deposit",
-        create_date: "2025-01-15T00:00:00.000Z",
-        create_time: "14:30:00",
-        modify_date: null,
-        modify_time: null
-      }
-      // ... more transactions
-    ],
-    pagination: {
-      current_page: 1,
-      per_page: 50,
-      total_count: 150,
-      total_pages: 3,
-      has_next_page: true,
-      has_previous_page: false
-    },
-    filters_applied: {
-      transaction_type: 1,
-      min_amount: 100
-    },
-    search_applied: "john",
-    sort_applied: {
-      sort_by: "create_date",
-      sort_order: "desc"
-    }
+// ========================
+// TRANSACTION REPORT API EXAMPLES
+// ========================
+
+// Example 9: Generate report for all clients
+export const reportAllClientsExample = {
+  method: 'POST',
+  url: '/api/v1/transactions/report',
+  body: {
+    startDate: '2024-01-01',
+    endDate: '2024-12-31',
+    clientId: null
   },
-  code: "TRANSACTIONS_RETRIEVED",
-  message: "Paginated transactions retrieved successfully"
+  description: 'Generate PDF report for all clients for the year 2024'
+};
+
+// Example 10: Generate report for specific client
+export const reportSpecificClientExample = {
+  method: 'POST',
+  url: '/api/v1/transactions/report',
+  body: {
+    startDate: '2024-10-01',
+    endDate: '2024-10-31',
+    clientId: '5'
+  },
+  description: 'Generate PDF report for client ID 5 for October 2024'
+};
+
+// Example 11: Monthly report for all clients
+export const monthlyReportExample = {
+  method: 'POST',
+  url: '/api/v1/transactions/report',
+  body: {
+    startDate: '2024-11-01',
+    endDate: '2024-11-30',
+    clientId: null
+  },
+  description: 'Generate monthly report for November 2024 for all clients'
+};
+
+// Example 12: Weekly report for specific client
+export const weeklyReportExample = {
+  method: 'POST',
+  url: '/api/v1/transactions/report',
+  body: {
+    startDate: '2024-11-01',
+    endDate: '2024-11-07',
+    clientId: '3'
+  },
+  description: 'Generate weekly report for client ID 3 for first week of November 2024'
+};
+
+// Example 13: Quarterly report for all clients
+export const quarterlyReportExample = {
+  method: 'POST',
+  url: '/api/v1/transactions/report',
+  body: {
+    startDate: '2024-07-01',
+    endDate: '2024-09-30',
+    clientId: null
+  },
+  description: 'Generate Q3 2024 report for all clients'
+};
+
+// ========================
+// CURL COMMAND EXAMPLES
+// ========================
+
+export const curlExamples = {
+  // Paginated transactions
+  paginatedTransactions: `curl -X GET "http://localhost:3000/api/v1/transactions/paginated?page=1&limit=25&transaction_type=1&search=john"`,
+  
+  // Report for all clients
+  reportAllClients: `curl -X POST http://localhost:3000/api/v1/transactions/report \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "startDate": "2024-01-01",
+    "endDate": "2024-12-31",
+    "clientId": null
+  }'`,
+  
+  // Report for specific client
+  reportSpecificClient: `curl -X POST http://localhost:3000/api/v1/transactions/report \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "startDate": "2024-10-01",
+    "endDate": "2024-10-31", 
+    "clientId": "5"
+  }'`
+};
+
+/**
+ * Expected response structures for Transaction API
+ */
+export const expectedResponseStructures = {
+  // Paginated transactions response
+  paginatedTransactions: {
+    success: true,
+    data: {
+      data: [
+        {
+          id: 1,
+          transaction_type: 1,
+          client_id: 1,
+          widthdraw_charges: 5.00,
+          transaction_amount: 1000.00,
+          client_name: "John Doe",
+          bank_name: "Bank of America",
+          card_name: "Visa Card",
+          bank_id: 1,
+          card_id: 1,
+          remark: "Monthly deposit",
+          create_date: "2025-01-15T00:00:00.000Z",
+          create_time: "14:30:00",
+          modify_date: null,
+          modify_time: null
+        }
+        // ... more transactions
+      ],
+      pagination: {
+        current_page: 1,
+        per_page: 50,
+        total_count: 150,
+        total_pages: 3,
+        has_next_page: true,
+        has_previous_page: false
+      },
+      filters_applied: {
+        transaction_type: 1,
+        min_amount: 100
+      },
+      search_applied: "john",
+      sort_applied: {
+        sort_by: "create_date",
+        sort_order: "desc"
+      }
+    },
+    code: "TRANSACTIONS_RETRIEVED",
+    message: "Paginated transactions retrieved successfully"
+  },
+
+  // Transaction report response
+  transactionReport: {
+    success: true,
+    data: {
+      pdfContent: "JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzMgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCj4+CmVuZG9iago..."
+    },
+    code: "REPORT_GENERATED_SUCCESS",
+    message: "Transaction report generated successfully"
+  }
 };
 
 /**
@@ -273,6 +381,30 @@ export const TRANSACTION_RESPONSE_EXAMPLES = {
         "message": "Transaction deleted successfully",
         "timestamp": "2024-10-04T10:30:00.000Z",
         "statusCode": 200
+    },
+
+    // POST /api/v1/transactions/report - Success (All Clients)
+    GENERATE_REPORT_ALL_CLIENTS_SUCCESS: {
+        "success": true,
+        "data": {
+            "pdfContent": "JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzMgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCj4+CmVuZG9iago..."
+        },
+        "successCode": "REPORT_GENERATED_SUCCESS",
+        "message": "Transaction report generated successfully",
+        "timestamp": "2024-10-04T10:30:00.000Z",
+        "statusCode": 200
+    },
+
+    // POST /api/v1/transactions/report - Success (Specific Client)
+    GENERATE_REPORT_SPECIFIC_CLIENT_SUCCESS: {
+        "success": true,
+        "data": {
+            "pdfContent": "JVBERi0xLjQKMSAwIG9iago8PAovVHlwZSAvQ2F0YWxvZwovUGFnZXMgMiAwIFI+PgplbmRvYmoKMiAwIG9iago8PAovVHlwZSAvUGFnZXMKL0tpZHMgWzMgMCBSXQovQ291bnQgMQo+PgplbmRvYmoKMyAwIG9iago8PAovVHlwZSAvUGFnZQovUGFyZW50IDIgMCBSCi9NZWRpYUJveCBbMCAwIDYxMiA3OTJdCj4+CmVuZG9iago..."
+        },
+        "successCode": "REPORT_GENERATED_SUCCESS", 
+        "message": "Transaction report generated successfully",
+        "timestamp": "2024-10-04T10:30:00.000Z",
+        "statusCode": 200
     }
 };
 
@@ -372,5 +504,234 @@ export const TRANSACTION_ERROR_EXAMPLES = {
             "path": "/api/v1/transactions",
             "method": "GET"
         }
+    },
+
+    // Report Generation Errors
+    REPORT_VALIDATION_ERROR_MISSING_DATES: {
+        "success": false,
+        "error": {
+            "statusCode": 422,
+            "message": "Start date and end date are required",
+            "errorCode": "VALIDATION_ERROR",
+            "details": {
+                "field": "dates",
+                "value": { "startDate": null, "endDate": null },
+                "expected": "Both startDate and endDate required"
+            },
+            "timestamp": "2024-10-04T10:30:00.000Z",
+            "path": "/api/v1/transactions/report",
+            "method": "POST"
+        }
+    },
+
+    REPORT_NO_DATA_ERROR: {
+        "success": false,
+        "error": {
+            "statusCode": 422,
+            "message": "No transactions found for the specified criteria",
+            "errorCode": "VALIDATION_ERROR",
+            "timestamp": "2024-10-04T10:30:00.000Z",
+            "path": "/api/v1/transactions/report",
+            "method": "POST"
+        }
+    },
+
+    REPORT_PDF_GENERATION_ERROR: {
+        "success": false,
+        "error": {
+            "statusCode": 500,
+            "message": "Failed to generate PDF report",
+            "errorCode": "PDF_GENERATION_ERROR",
+            "timestamp": "2024-10-04T10:30:00.000Z",
+            "path": "/api/v1/transactions/report",
+            "method": "POST"
+        }
     }
+};
+
+// ========================
+// PRACTICAL USAGE EXAMPLES
+// ========================
+
+/**
+ * Frontend Integration Examples
+ */
+export const frontendIntegrationExamples = {
+  // JavaScript fetch for paginated transactions
+  fetchPaginatedTransactions: `
+async function fetchTransactions(page = 1, filters = {}) {
+  const queryParams = new URLSearchParams({
+    page: page.toString(),
+    limit: '50',
+    ...filters
+  });
+  
+  const response = await fetch(\`/api/v1/transactions/paginated?\${queryParams}\`);
+  const data = await response.json();
+  
+  if (data.success) {
+    return {
+      transactions: data.data.data,
+      pagination: data.data.pagination,
+      hasMore: data.data.pagination.has_next_page
+    };
+  }
+  throw new Error(data.error.message);
+}
+
+// Usage
+const result = await fetchTransactions(1, {
+  transaction_type: '1',
+  search: 'john',
+  sort_by: 'create_date'
+});`,
+
+  // JavaScript fetch for report generation
+  generateReport: `
+async function generateTransactionReport(startDate, endDate, clientId = null) {
+  const response = await fetch('/api/v1/transactions/report', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      startDate,
+      endDate,
+      clientId
+    })
+  });
+  
+  const data = await response.json();
+  
+  if (data.success) {
+    // Convert base64 to blob and download
+    const pdfBlob = new Blob([
+      Uint8Array.from(atob(data.data.pdfContent), c => c.charCodeAt(0))
+    ], { type: 'application/pdf' });
+    
+    const url = URL.createObjectURL(pdfBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = \`transaction-report-\${startDate}-to-\${endDate}.pdf\`;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    return data.data.pdfContent;
+  }
+  throw new Error(data.error.message);
+}
+
+// Usage
+await generateTransactionReport('2024-01-01', '2024-12-31', '5');`,
+
+  // React hook example
+  reactHookExample: `
+import { useState, useEffect } from 'react';
+
+function useTransactions(filters = {}) {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState(null);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function loadTransactions() {
+      try {
+        setLoading(true);
+        const result = await fetchTransactions(1, filters);
+        setTransactions(result.transactions);
+        setPagination(result.pagination);
+        setError(null);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    loadTransactions();
+  }, [JSON.stringify(filters)]);
+
+  return { transactions, loading, pagination, error };
+}`
+};
+
+/**
+ * PowerShell/Windows Examples
+ */
+export const powershellExamples = {
+  // Get paginated transactions
+  getPaginatedTransactions: `
+# Basic pagination
+$response = Invoke-RestMethod -Uri "http://localhost:3000/api/v1/transactions/paginated?page=1&limit=25" -Method GET
+
+# With filters
+$uri = "http://localhost:3000/api/v1/transactions/paginated?transaction_type=1&min_amount=100&search=john"
+$response = Invoke-RestMethod -Uri $uri -Method GET
+
+# Display results
+$response.data.data | Format-Table id, client_name, transaction_amount, transaction_type`,
+
+  // Generate report
+  generateReport: `
+# Generate report for all clients
+$body = @{
+    startDate = "2024-01-01"
+    endDate = "2024-12-31"
+    clientId = $null
+} | ConvertTo-Json
+
+$response = Invoke-RestMethod -Uri "http://localhost:3000/api/v1/transactions/report" -Method POST -Body $body -ContentType "application/json"
+
+# Save PDF file
+$pdfBytes = [System.Convert]::FromBase64String($response.data.pdfContent)
+[System.IO.File]::WriteAllBytes("transaction-report.pdf", $pdfBytes)
+
+Write-Host "Report saved as transaction-report.pdf"`
+};
+
+/**
+ * Complete Test Scenarios
+ */
+export const testScenarios = {
+  // Scenario 1: Dashboard data loading
+  dashboardScenario: {
+    description: "Load initial dashboard data with recent transactions",
+    steps: [
+      "1. Fetch first 10 most recent transactions",
+      "2. Get transaction count for current month", 
+      "3. Generate monthly report if needed"
+    ],
+    requests: [
+      "GET /api/v1/transactions/paginated?page=1&limit=10&sort_by=create_date&sort_order=desc",
+      "GET /api/v1/transactions/paginated?start_date=2024-11-01&end_date=2024-11-30&page=1&limit=1",
+      "POST /api/v1/transactions/report (if report needed)"
+    ]
+  },
+
+  // Scenario 2: Client-specific analysis
+  clientAnalysisScenario: {
+    description: "Analyze transactions for a specific client",
+    steps: [
+      "1. Filter transactions by client ID",
+      "2. Sort by amount to see largest transactions",
+      "3. Generate client-specific report"
+    ],
+    requests: [
+      "GET /api/v1/transactions/paginated?client_ids=5&sort_by=transaction_amount&sort_order=desc",
+      "POST /api/v1/transactions/report with clientId: '5'"
+    ]
+  },
+
+  // Scenario 3: Infinite scroll implementation
+  infiniteScrollScenario: {
+    description: "Implement infinite scroll for transaction list",
+    steps: [
+      "1. Load initial page of transactions",
+      "2. Check has_next_page flag",
+      "3. Load subsequent pages as user scrolls",
+      "4. Append new data to existing list"
+    ],
+    implementation: "Use pagination.has_next_page to determine if more data is available"
+  }
 };

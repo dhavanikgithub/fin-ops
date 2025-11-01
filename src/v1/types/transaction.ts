@@ -94,23 +94,60 @@ export interface PaginatedTransactionResponse {
     };
 }
 
-export interface ReportPreviewInput extends TransactionFilters, TransactionSearch {
-    format?: 'CSV' | 'Excel' | 'JSON' | 'PDF';
-    fields?: string[]; // Selected fields for export
+// Report request types
+export interface ReportRequestBody {
+    clientId?: string | null;
+    startDate?: string;
+    endDate?: string;
 }
 
-export interface ReportPreviewResponse {
-    estimated_rows: number;
-    estimated_size: string;
-    estimated_size_bytes: number;
-    format: string;
-    filters_applied: TransactionFilters;
-    search_applied?: string;
-    selected_fields: string[];
-    preview_calculation: {
-        base_size_per_row: number;
-        field_overhead: number;
-        format_overhead: number;
-        compression_factor: number;
-    };
+// Report response types
+export interface TransactionReportData {
+    transaction_type: string;
+    transaction_amount: string;
+    widthdraw_charges: string;
+    widthdraw_charges_pr: string;
+    date: string;
+    time: string;
+    is_widthdraw_transaction: boolean;
+    bank_name: string;
+    card_name: string;
 }
+
+export interface ClientTotal {
+    final_amount: string;
+    transaction_amount: string;
+    widthdraw_charges: string;
+}
+
+export interface GroupedData {
+    total: ClientTotal;
+    data: TransactionReportData[];
+}
+
+export interface ReportData {
+    isClientSpecific: boolean;
+    startDate: string;
+    endDate: string;
+    groupedData: { [clientName: string]: GroupedData };
+    columns: string[];
+}
+
+export interface TransactionRecord {
+    id: number;
+    transaction_type: number;
+    client_id: number;
+    widthdraw_charges: number;
+    transaction_amount: number;
+    client_name: string;
+    bank_name?: string | null;
+    card_name?: string | null;
+    bank_id?: number | null;
+    card_id?: number | null;
+    remark: string;
+    create_date?: string | null;
+    create_time?: string | null;
+    modify_date?: string | null;
+    modify_time?: string | null;
+}
+
