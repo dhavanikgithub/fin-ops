@@ -174,3 +174,112 @@
         transform: rotate(360deg);
     }
 }
+
+// Error Boundary Styles
+.add-bank-error-boundary {
+    .error-boundary__content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 400px;
+        padding: 40px 20px;
+        text-align: center;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        margin: 20px;
+    }
+
+    .error-boundary__icon {
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        opacity: 0.6;
+    }
+
+    .error-boundary__title {
+        font-size: 24px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 0 0 12px 0;
+    }
+
+    .error-boundary__message {
+        font-size: 16px;
+        color: var(--text-secondary);
+        margin: 0 0 30px 0;
+        max-width: 500px;
+        line-height: 1.5;
+    }
+
+    .error-boundary__actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .error-boundary__button {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 6px;
+        background: var(--accent-primary);
+        color: white;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--accent-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        &--secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+
+            &:hover {
+                background: var(--bg-hover);
+                border-color: var(--border-hover);
+            }
+        }
+    }
+
+    .error-boundary__details {
+        margin-top: 30px;
+        text-align: left;
+        max-width: 600px;
+        width: 100%;
+
+        summary {
+            cursor: pointer;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            user-select: none;
+
+            &:hover {
+                color: var(--text-primary);
+            }
+        }
+    }
+
+    .error-boundary__error-text {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+        padding: 15px;
+        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        font-size: 12px;
+        color: var(--text-secondary);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        line-height: 1.4;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+}
