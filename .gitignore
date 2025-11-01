@@ -1,9 +1,1 @@
-logs/
-node_modules/
-.env
-.DS_Store
 .vscode/
-dist/
-package-lock.json
-src/test/
-.idea/
