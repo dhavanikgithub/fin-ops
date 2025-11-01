@@ -94,7 +94,6 @@ const AddClientErrorFallback: React.FC<{
 };
 
 const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBackToClients }) => {
-    throw new Error('Test error boundary');
     const dispatch = useAppDispatch();
     const { creating, error } = useAppSelector((state) => state.clients);
     const { showBoundary } = useErrorBoundary();

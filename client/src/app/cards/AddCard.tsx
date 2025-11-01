@@ -92,7 +92,6 @@ const AddCardErrorFallback: React.FC<{
 };
 
 const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }) => {
-    throw new Error('Test error boundary');
     const dispatch = useAppDispatch();
     const { showBoundary } = useErrorBoundary();
     const { creating, error } = useAppSelector(state => state.cards);
