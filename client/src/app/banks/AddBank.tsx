@@ -92,7 +92,6 @@ const AddBankErrorFallback: React.FC<{
 };
 
 const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }) => {
-    throw new Error('Test error boundary');
     const dispatch = useAppDispatch();
     const { creating, error } = useAppSelector(state => state.banks);
     
