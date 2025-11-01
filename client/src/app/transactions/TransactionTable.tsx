@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal, Check, X } from 'lucide-react';
+import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal, Check, X, AlertTriangle } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
 import { Transaction } from '../../services/transactionService';
@@ -8,14 +9,62 @@ import './TransactionTable.scss';
 import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transactionUtils';
 import { formatAmountWithSymbol, formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import toast from 'react-hot-toast';
+import logger from '@/utils/logger';
 
 interface TableProps {
     selectedTransaction?: Transaction | null;
     onTransactionSelect?: (transaction: Transaction) => void;
 }
 
-const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
+// Error Fallback Component for Transaction Table
+const TransactionTableErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+}> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="table-wrap">
+            <div className="table__container">
+                <div className="table__error-boundary">
+                    <div className="table__error-boundary-content">
+                        <AlertTriangle size={48} className="table__error-boundary-icon" />
+                        <h3 className="table__error-boundary-title">Something went wrong with the transaction table</h3>
+                        <p className="table__error-boundary-message">
+                            We encountered an unexpected error while displaying the transactions. 
+                            Don't worry, your data is safe.
+                        </p>
+                        {process.env.NODE_ENV === 'development' && (
+                            <details className="table__error-boundary-details">
+                                <summary>Technical Details (Development)</summary>
+                                <pre className="table__error-boundary-stack">
+                                    {error.message}
+                                    {error.stack && `\n${error.stack}`}
+                                </pre>
+                            </details>
+                        )}
+                        <div className="table__error-boundary-actions">
+                            <button 
+                                className="table__error-boundary-retry"
+                                onClick={resetErrorBoundary}
+                            >
+                                Try Again
+                            </button>
+                            <button 
+                                className="table__error-boundary-refresh"
+                                onClick={() => window.location.reload()}
+                            >
+                                Refresh Page
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const {
         transactions,
         loading,
@@ -164,60 +213,89 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
         };
     }, []);
 
-    // Handle sorting
-    const handleSort = (field: string) => {
-        let newDirection: 'asc' | 'desc';
+    // Handle sorting with error handling
+    const handleSort = async (field: string) => {
+        try {
+            let newDirection: 'asc' | 'desc';
 
-        if (sortField === field) {
-            // If clicking on the same column, toggle between asc and desc
-            newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
-        } else {
-            // If clicking on a different column, start with asc
-            newDirection = 'asc';
+            if (sortField === field) {
+                // If clicking on the same column, toggle between asc and desc
+                newDirection = sortDirection === 'desc' ? 'asc' : 'desc';
+            } else {
+                // If clicking on a different column, start with asc
+                newDirection = 'asc';
+            }
+
+            setSortField(field);
+            setSortDirection(newDirection);
+
+            await dispatch(sortTransactions({
+                sort_by: field,
+                sort_order: newDirection
+            })).unwrap();
+        } catch (error) {
+            // Handle expected API errors
+            logger.error('Failed to sort transactions:', error);
+            toast.error('Failed to sort transactions. Please try again.');
+            
+            // Reset sort state on error
+            setSortField(sortConfig.sort_by);
+            setSortDirection(sortConfig.sort_order);
         }
-
-        setSortField(field);
-        setSortDirection(newDirection);
-
-        dispatch(sortTransactions({
-            sort_by: field,
-            sort_order: newDirection
-        }));
     };
 
-    // Load more items function
-    const loadMore = useCallback(() => {
+    // Load more items function with error handling
+    const loadMore = useCallback(async () => {
         if (loadingMore || !hasMore) return;
-        dispatch(loadMoreTransactions());
+        
+        try {
+            await dispatch(loadMoreTransactions()).unwrap();
+        } catch (error) {
+            // Handle expected API errors (network issues, server errors)
+            logger.error('Failed to load more transactions:', error);
+            toast.error('Failed to load more transactions. Please try again.');
+        }
     }, [dispatch, loadingMore, hasMore]);
 
-    // Intersection Observer for infinite scroll
+    // Intersection Observer for infinite scroll with error handling
     useEffect(() => {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const first = entries[0];
-                if (first.isIntersecting) {
-                    loadMore();
+        try {
+            const observer = new IntersectionObserver(
+                (entries) => {
+                    try {
+                        const first = entries[0];
+                        if (first.isIntersecting) {
+                            loadMore();
+                        }
+                    } catch (error) {
+                        // Handle unexpected errors in intersection callback
+                        logger.error('Error in intersection observer callback:', error);
+                        showBoundary(error);
+                    }
+                },
+                {
+                    threshold: 0.1,
+                    rootMargin: '50px',
+                    root: tableContainerRef.current
                 }
-            },
-            {
-                threshold: 0.1,
-                rootMargin: '50px',
-                root: tableContainerRef.current
-            }
-        );
+            );
 
-        const currentObserverRef = observerRef.current;
-        if (currentObserverRef) {
-            observer.observe(currentObserverRef);
-        }
-
-        return () => {
+            const currentObserverRef = observerRef.current;
             if (currentObserverRef) {
-                observer.unobserve(currentObserverRef);
+                observer.observe(currentObserverRef);
             }
-        };
-    }, [loadMore, transactions]);
+
+            return () => {
+                if (currentObserverRef) {
+                    observer.unobserve(currentObserverRef);
+                }
+            };
+        } catch (error) {
+            // Handle unexpected errors in observer setup
+            logger.error('Error setting up intersection observer:', error);
+            showBoundary(error);
+        }
+    }, [loadMore, transactions, showBoundary]);
 
     // Modal state for viewing full notes with position
     const [notesModal, setNotesModal] = useState<{
@@ -229,6 +307,39 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
         text: '',
         position: { x: 0, y: 0 }
     });
+
+    // Safe transaction selection handler
+    const handleTransactionSelect = useCallback((transaction: Transaction) => {
+        try {
+            if (onTransactionSelect) {
+                onTransactionSelect(transaction);
+            }
+        } catch (error) {
+            // Handle unexpected errors in transaction selection
+            logger.error('Error selecting transaction:', error);
+            showBoundary(error);
+        }
+    }, [onTransactionSelect, showBoundary]);
+
+    // Safe notes modal handler
+    const handleNotesView = useCallback((e: React.MouseEvent, remark: string) => {
+        try {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setNotesModal({
+                open: true,
+                text: remark,
+                position: {
+                    x: rect.left + rect.width / 2,
+                    y: rect.top - 8
+                }
+            });
+        } catch (error) {
+            // Handle unexpected errors in notes modal
+            logger.error('Error opening notes modal:', error);
+            // For notes modal errors, don't crash the whole table
+            toast.error('Unable to display notes. Please try again.');
+        }
+    }, []);
 
     const SortIcon: React.FC<{ field: string }> = ({ field }) => {
         if (sortField !== field) {
@@ -444,17 +555,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                                                         {transaction.remark.slice(0, 30)}
                                                         <button
                                                             className="table__notes-viewmore"
-                                                            onClick={(e) => {
-                                                                const rect = e.currentTarget.getBoundingClientRect();
-                                                                setNotesModal({
-                                                                    open: true,
-                                                                    text: transaction.remark,
-                                                                    position: {
-                                                                        x: rect.left + rect.width / 2,
-                                                                        y: rect.top - 8
-                                                                    }
-                                                                });
-                                                            }}
+                                                            onClick={(e) => handleNotesView(e, transaction.remark)}
                                                         >
                                                             ...
                                                         </button>
@@ -471,7 +572,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                                         <td>
                                             <button
                                                 className="row-actions"
-                                                onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
+                                                onClick={() => handleTransactionSelect(transaction)}
                                             >
                                                 <MoreHorizontal size={16} />
                                                 Manage
@@ -527,6 +628,29 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                 </div>
             )}
         </div>
+    );
+};
+
+// Main wrapper component with ErrorBoundary
+const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect }) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={TransactionTableErrorFallback}
+            onError={(error, errorInfo) => {
+                logger.error('Transaction Table Error Boundary caught an error:', error, errorInfo);
+                toast.error('Transaction table encountered an error');
+            }}
+            onReset={() => {
+                logger.log('Transaction Table Error Boundary reset');
+                // Optionally refresh the transaction data
+                window.location.reload();
+            }}
+        >
+            <TransactionTableContent 
+                selectedTransaction={selectedTransaction}
+                onTransactionSelect={onTransactionSelect}
+            />
+        </ErrorBoundary>
     );
 };
 

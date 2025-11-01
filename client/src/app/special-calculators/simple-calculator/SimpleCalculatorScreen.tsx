@@ -1,6 +1,7 @@
 'use client'
 import React, { useState } from 'react';
-import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
@@ -17,10 +18,62 @@ interface SavedScenario {
 }
 
 const STORAGE_KEY = 'calculator_scenarios';
-
 const GST = 18;
 
-const CalculatorScreen: React.FC = () => {
+interface SimpleCalculatorErrorFallbackProps {
+    error: Error;
+    resetErrorBoundary: () => void;
+}
+
+const SimpleCalculatorErrorFallback: React.FC<SimpleCalculatorErrorFallbackProps> = ({ 
+    error, 
+    resetErrorBoundary 
+}) => {
+    return (
+        <div className="simple-calculator-error-boundary">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <Percent size={20} /> <h1>Simple Calculator</h1>
+                </div>
+            </header>
+            
+            <div className="error-boundary__content">
+                <div className="error-boundary__icon">
+                    <Percent size={48} />
+                </div>
+                <h2 className="error-boundary__title">Simple Calculator Error</h2>
+                <p className="error-boundary__message">
+                    We encountered an issue with the simple calculator. Your saved scenarios are safe.
+                </p>
+                <div className="error-boundary__actions">
+                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
+                        <RotateCcw size={16} />
+                        Try Again
+                    </button>
+                    <button 
+                        className="error-boundary__button error-boundary__button--secondary"
+                        onClick={() => window.location.href = '/'}
+                    >
+                        <Home size={16} />
+                        Go to Dashboard
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <details className="error-boundary__details">
+                        <summary>Technical Details (Development)</summary>
+                        <pre className="error-boundary__error-text">
+                            {error.message}
+                            {error.stack && '\n\nStack trace:\n' + error.stack}
+                        </pre>
+                    </details>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const CalculatorScreenContent: React.FC = () => {
+    const { showBoundary } = useErrorBoundary();
     const [amount, setAmount] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
@@ -35,6 +88,7 @@ const CalculatorScreen: React.FC = () => {
                 if (stored) {
                     const scenarios = JSON.parse(stored) as SavedScenario[];
                     setSavedScenarios(scenarios);
+                    logger.debug('Loaded saved scenarios from localStorage', { count: scenarios.length });
                 }
             } catch (error) {
                 logger.error('Failed to load saved scenarios:', error);
@@ -43,8 +97,13 @@ const CalculatorScreen: React.FC = () => {
             }
         };
 
-        loadSavedScenarios();
-    }, []);
+        try {
+            loadSavedScenarios();
+        } catch (error) {
+            logger.error('Error during component initialization:', error);
+            showBoundary(error);
+        }
+    }, [showBoundary]);
 
     // Save current scenario to localStorage
     const handleSaveScenario = () => {
@@ -60,6 +119,7 @@ const CalculatorScreen: React.FC = () => {
 
             if (isDuplicate) {
                 logger.warn('Duplicate scenario detected - not saving');
+                toast.error('This scenario has already been saved');
                 return;
             }
 
@@ -77,37 +137,61 @@ const CalculatorScreen: React.FC = () => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedScenarios));
             setSavedScenarios(updatedScenarios);
             
+            toast.success('Scenario saved successfully!');
             logger.log('Scenario saved successfully:', newScenario);
         } catch (error) {
             logger.error('Failed to save scenario:', error);
-            toast.error('Failed to save scenario.');
+            toast.error('Failed to save scenario. Please try again.');
+            showBoundary(error);
         }
     };
 
     // Apply a saved scenario to current inputs
     const handleApplyScenario = (scenario: SavedScenario) => {
-        setAmount(scenario.amount);
-        setOurRatePercentage(scenario.our);
-        setBankRatePercentage(scenario.bank);
-        setPlatformRateAmt(scenario.platform);
-        
-        logger.log('Applied scenario:', scenario);
+        try {
+            setAmount(scenario.amount);
+            setOurRatePercentage(scenario.our);
+            setBankRatePercentage(scenario.bank);
+            setPlatformRateAmt(scenario.platform);
+            
+            toast.success('Scenario applied successfully!');
+            logger.log('Applied scenario:', scenario);
+        } catch (error) {
+            logger.error('Failed to apply scenario:', error);
+            toast.error('Failed to apply scenario');
+            showBoundary(error);
+        }
     };
 
     // Reset all input fields to default values
     const handleReset = () => {
-        setAmount(0);
-        setBankRatePercentage(0);
-        setOurRatePercentage(0);
-        setPlatformRateAmt(0);
-        
-        logger.log('Input fields reset to default values');
+        try {
+            setAmount(0);
+            setBankRatePercentage(0);
+            setOurRatePercentage(0);
+            setPlatformRateAmt(0);
+            
+            toast.success('Calculator reset successfully!');
+            logger.log('Input fields reset to default values');
+        } catch (error) {
+            logger.error('Failed to reset calculator:', error);
+            toast.error('Failed to reset calculator');
+            showBoundary(error);
+        }
     };
 
     // Force recalculation (mainly for user feedback and validation)
     const handleRecalculate = () => {
-        // Force a re-render
-        setAmount(amount);
+        try {
+            // Force a re-render
+            setAmount(amount);
+            toast.success('Recalculated successfully!');
+            logger.log('Recalculation triggered');
+        } catch (error) {
+            logger.error('Failed to recalculate:', error);
+            toast.error('Failed to recalculate');
+            showBoundary(error);
+        }
     };
 
     // Example calculations (replace with real logic as needed)
@@ -129,167 +213,190 @@ const CalculatorScreen: React.FC = () => {
     const netProfit = grossEarnings - platformRateAmt;
     const netReceivableAmount = customerPayableAmount;
 
-
-
-    return (
-        <div className="main">
-            <header className="main__header">
-                <div className="main__header-left">
-                    <Percent size={20} /> <h1>Simple Calculator</h1>
-                </div>
-            </header>
-
-            <div className="main__content">
-                <div className="main__view">
-
-                    <div className="calculator-two-col">
-                        <div className="panel">
-                            <div className="section-title">Inputs</div>
-                            <div className="inputs-grid">
-                                <div className="input-field">
-                                    <div className="label">Amount (₹)</div>
-                                    <input
-                                        className="control"
-                                        type="number"
-                                        min={0}
-                                        step="0.01"
-                                        value={amount}
-                                        onChange={e => setAmount(clampPositive(parseFloat(e.target.value) || 0))}
-                                        onFocus={e => e.target.select()}
-                                        placeholder="Enter amount"
-                                    />
-                                </div>
-                                <div className="input-field">
-                                    <div className="label">Bank Charge (%)</div>
-                                    <input
-                                        className="control"
-                                        type="number"
-                                        min={0}
-                                        max={100}
-                                        step="0.01"
-                                        value={bankRatePercentage}
-                                        onChange={e => setBankRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
-                                        onFocus={e => e.target.select()}
-                                        placeholder="0 - 100"
-                                    />
-                                </div>
-                                <div className="input-field">
-                                    <div className="label">Our Charge (%)</div>
-                                    <input
-                                        className="control"
-                                        type="number"
-                                        min={0}
-                                        max={100}
-                                        step="0.01"
-                                        value={ourRatePercentage}
-                                        onChange={e => setOurRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
-                                        onFocus={e => e.target.select()}
-                                        placeholder="0 - 100"
-                                    />
-                                </div>
-                                <div className="input-field">
-                                    <div className="label">Platform Charge (₹)</div>
-                                    <input
-                                        className="control"
-                                        type="number"
-                                        min={0}
-                                        step="0.01"
-                                        value={platformRateAmt}
-                                        onChange={e => setPlatformRateAmt(clampPositive(parseFloat(e.target.value) || 0))}
-                                        onFocus={e => e.target.select()}
-                                        placeholder="Enter platform charge"
-                                    />
-                                </div>
-                            </div>
-                            <div className="inline">
-                                <div className="pill">GST: {GST}% (fixed)</div>
-                                <button className="main__icon-button" type="button" onClick={handleRecalculate}>
-                                    <RefreshCcw size={16} />
-                                    Recalculate
-                                </button>
-                                <button className="main__button" type="button" onClick={handleSaveScenario}>
-                                    <Save size={16} />
-                                    Save
-                                </button>
-                                <button className="main__icon-button" type="button" onClick={handleReset}>
-                                    <RotateCcw size={16} />
-                                    Reset
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="panel">
-                            <div className="section-title">Results</div>
-                            <div className="summary">
-                                <div className="line"><span>Total Amount</span><span>{formatAmountAsCurrency(amount)}</span></div>
-                                <div className="line"><span>Payable Amount</span><span>{formatAmountAsCurrency(customerPayableAmount)}</span></div>
-                                <div className="line" style={{ fontWeight: 600 }}><span>Profit</span><span>{formatAmountAsCurrency(netProfit)}</span></div>
-                            </div>
-                            <div className="breakdown">
-                                <div className="line"><span>Bank Rate</span><span>{bankRatePercentage.toFixed(2)}%</span></div>
-                                <div className="line"><span>GST on Bank</span><span>{GSTOnBankPercentage.toFixed(2)}% (of amount)</span></div>
-                                <div className="line"><span>Total Bank w/ GST</span><span>{bankRateWithGstPercentage.toFixed(2)}%</span></div>
-                                <div className="line"><span>Our Charge</span><span>{ourRatePercentage.toFixed(2)}%</span></div>
-                                <div className="line"><span>Markup (Our − Bank w/ GST)</span><span>{markupRatePercentage.toFixed(2)}%</span></div>
-                                <div className="line"><span>Earned (amount × markup)</span><span>{formatAmountAsCurrency(grossEarnings)}</span></div>
-                                <div className="line"><span>Platform Charge</span><span>{formatAmountAsCurrency(platformRateAmt)}</span></div>
-                                <div className="line" style={{ fontWeight: 600 }}><span>Profit</span><span>{formatAmountAsCurrency(netProfit)}</span></div>
-                                <div className="note">Payable = Amount − (Amount × Our Charge)</div>
-                            </div>
-                            <div className="total">
-                                <div>Net Receivable</div>
-                                <div>{formatAmountAsCurrency(netReceivableAmount)}</div>
-                            </div>
-                            <div className="badges">
-                                <div className="badge">
-                                    <Percent size={14} style={{ marginRight: 4 }} />
-                                    Bank + GST: {bankRateWithGstPercentage.toFixed(2)}%
-                                </div>
-                                <div className="badge">
-                                    <Wallet size={14} style={{ marginRight: 4 }} />
-                                    Platform: {formatAmountAsCurrency(platformRateAmt)}
-                                </div>
-                            </div>
-                        </div>
+    try {
+        return (
+            <div className="main">
+                <header className="main__header">
+                    <div className="main__header-left">
+                        <Percent size={20} /> <h1>Simple Calculator</h1>
                     </div>
+                </header>
 
-                    <div className="panel">
-                        <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
-                        {savedScenarios.length === 0 ? (
-                            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
-                                No saved scenarios yet. Save your current calculation to get started.
-                            </div>
-                        ) : (
-                            <div className="calculator-grid-3">
-                                {savedScenarios.map((s: SavedScenario, i: number) => (
-                                    <div className="panel" key={s.id}>
-                                        <div className="line" style={{ fontWeight: 600 }}>
-                                            {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
-                                        </div>
-                                        <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
-                                        <div className="line" style={{ fontSize: '12px', color: '#666' }}>
-                                            <span>Saved: {new Date(s.savedAt).toLocaleDateString()} at {new Date(s.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
-                                        </div>
-                                        <div className="inline" style={{ justifyContent: 'space-between', marginTop: 4 }}>
-                                            <div className="pill">GST {s.gst}%</div>
-                                            <button 
-                                                className="main__icon-button" 
-                                                type="button"
-                                                onClick={() => handleApplyScenario(s)}
-                                            >
-                                                <Play size={16} />
-                                                Apply
-                                            </button>
-                                        </div>
+                <div className="main__content">
+                    <div className="main__view">
+
+                        <div className="calculator-two-col">
+                            <div className="panel">
+                                <div className="section-title">Inputs</div>
+                                <div className="inputs-grid">
+                                    <div className="input-field">
+                                        <div className="label">Amount (₹)</div>
+                                        <input
+                                            className="control"
+                                            type="number"
+                                            min={0}
+                                            step="0.01"
+                                            value={amount}
+                                            onChange={e => setAmount(clampPositive(parseFloat(e.target.value) || 0))}
+                                            onFocus={e => e.target.select()}
+                                            placeholder="Enter amount"
+                                        />
                                     </div>
-                                ))}
+                                    <div className="input-field">
+                                        <div className="label">Bank Charge (%)</div>
+                                        <input
+                                            className="control"
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            step="0.01"
+                                            value={bankRatePercentage}
+                                            onChange={e => setBankRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
+                                            onFocus={e => e.target.select()}
+                                            placeholder="0 - 100"
+                                        />
+                                    </div>
+                                    <div className="input-field">
+                                        <div className="label">Our Charge (%)</div>
+                                        <input
+                                            className="control"
+                                            type="number"
+                                            min={0}
+                                            max={100}
+                                            step="0.01"
+                                            value={ourRatePercentage}
+                                            onChange={e => setOurRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
+                                            onFocus={e => e.target.select()}
+                                            placeholder="0 - 100"
+                                        />
+                                    </div>
+                                    <div className="input-field">
+                                        <div className="label">Platform Charge (₹)</div>
+                                        <input
+                                            className="control"
+                                            type="number"
+                                            min={0}
+                                            step="0.01"
+                                            value={platformRateAmt}
+                                            onChange={e => setPlatformRateAmt(clampPositive(parseFloat(e.target.value) || 0))}
+                                            onFocus={e => e.target.select()}
+                                            placeholder="Enter platform charge"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="inline">
+                                    <div className="pill">GST: {GST}% (fixed)</div>
+                                    <button className="main__icon-button" type="button" onClick={handleRecalculate}>
+                                        <RefreshCcw size={16} />
+                                        Recalculate
+                                    </button>
+                                    <button className="main__button" type="button" onClick={handleSaveScenario}>
+                                        <Save size={16} />
+                                        Save
+                                    </button>
+                                    <button className="main__icon-button" type="button" onClick={handleReset}>
+                                        <RotateCcw size={16} />
+                                        Reset
+                                    </button>
+                                </div>
                             </div>
-                        )}
-                    </div>
 
+                            <div className="panel">
+                                <div className="section-title">Results</div>
+                                <div className="summary">
+                                    <div className="line"><span>Total Amount</span><span>{formatAmountAsCurrency(amount)}</span></div>
+                                    <div className="line"><span>Payable Amount</span><span>{formatAmountAsCurrency(customerPayableAmount)}</span></div>
+                                    <div className="line" style={{ fontWeight: 600 }}><span>Profit</span><span>{formatAmountAsCurrency(netProfit)}</span></div>
+                                </div>
+                                <div className="breakdown">
+                                    <div className="line"><span>Bank Rate</span><span>{bankRatePercentage.toFixed(2)}%</span></div>
+                                    <div className="line"><span>GST on Bank</span><span>{GSTOnBankPercentage.toFixed(2)}% (of amount)</span></div>
+                                    <div className="line"><span>Total Bank w/ GST</span><span>{bankRateWithGstPercentage.toFixed(2)}%</span></div>
+                                    <div className="line"><span>Our Charge</span><span>{ourRatePercentage.toFixed(2)}%</span></div>
+                                    <div className="line"><span>Markup (Our − Bank w/ GST)</span><span>{markupRatePercentage.toFixed(2)}%</span></div>
+                                    <div className="line"><span>Earned (amount × markup)</span><span>{formatAmountAsCurrency(grossEarnings)}</span></div>
+                                    <div className="line"><span>Platform Charge</span><span>{formatAmountAsCurrency(platformRateAmt)}</span></div>
+                                    <div className="line" style={{ fontWeight: 600 }}><span>Profit</span><span>{formatAmountAsCurrency(netProfit)}</span></div>
+                                    <div className="note">Payable = Amount − (Amount × Our Charge)</div>
+                                </div>
+                                <div className="total">
+                                    <div>Net Receivable</div>
+                                    <div>{formatAmountAsCurrency(netReceivableAmount)}</div>
+                                </div>
+                                <div className="badges">
+                                    <div className="badge">
+                                        <Percent size={14} style={{ marginRight: 4 }} />
+                                        Bank + GST: {bankRateWithGstPercentage.toFixed(2)}%
+                                    </div>
+                                    <div className="badge">
+                                        <Wallet size={14} style={{ marginRight: 4 }} />
+                                        Platform: {formatAmountAsCurrency(platformRateAmt)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="panel">
+                            <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
+                            {savedScenarios.length === 0 ? (
+                                <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+                                    No saved scenarios yet. Save your current calculation to get started.
+                                </div>
+                            ) : (
+                                <div className="calculator-grid-3">
+                                    {savedScenarios.map((s: SavedScenario, i: number) => (
+                                        <div className="panel" key={s.id}>
+                                            <div className="line" style={{ fontWeight: 600 }}>
+                                                {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
+                                            </div>
+                                            <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
+                                            <div className="line" style={{ fontSize: '12px', color: '#666' }}>
+                                                <span>Saved: {new Date(s.savedAt).toLocaleDateString()} at {new Date(s.savedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</span>
+                                            </div>
+                                            <div className="inline" style={{ justifyContent: 'space-between', marginTop: 4 }}>
+                                                <div className="pill">GST {s.gst}%</div>
+                                                <button 
+                                                    className="main__icon-button" 
+                                                    type="button"
+                                                    onClick={() => handleApplyScenario(s)}
+                                                >
+                                                    <Play size={16} />
+                                                    Apply
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                    </div>
                 </div>
             </div>
-        </div>
+        );
+    } catch (error) {
+        logger.error('Error rendering simple calculator:', error);
+        showBoundary(error);
+        return null;
+    }
+};
+
+// Main wrapper component with ErrorBoundary
+const CalculatorScreen: React.FC = () => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={SimpleCalculatorErrorFallback}
+            onError={(error, errorInfo) => {
+                logger.error('Simple calculator error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <CalculatorScreenContent />
+        </ErrorBoundary>
     );
 };
 

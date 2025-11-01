@@ -1,51 +1,128 @@
 'use client';
 import React, { useState } from 'react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import TransactionList from './TransactionList';
 import AddDepositScreen from './AddDeposit';
 import AddWithdrawScreen from './AddWithdraw';
 import './TransactionsScreen.scss';
+import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 type ViewState = 'list' | 'deposit' | 'withdraw';
 
-const TransactionScreen: React.FC = () => {
+// Error Fallback Component for Transaction Screen
+const TransactionScreenErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+}> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="main">
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="ts__error-boundary">
+                        <div className="ts__error-boundary-content">
+                            <AlertTriangle size={64} className="ts__error-boundary-icon" />
+                            <h2 className="ts__error-boundary-title">Something went wrong</h2>
+                            <p className="ts__error-boundary-message">
+                                We encountered an unexpected error in the transactions section. 
+                                Don't worry, your data is safe. You can try again or go back to the main dashboard.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="ts__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="ts__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="ts__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TransactionScreenContent: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>('list');
 
     const handleShowDeposit = () => {
-        setCurrentView('deposit');
+        try {
+            logger.info('Navigating to deposit view');
+            setCurrentView('deposit');
+        } catch (error) {
+            logger.error('Error navigating to deposit view:', error);
+            toast.error('Failed to open deposit form. Please try again.');
+        }
     };
 
     const handleShowWithdraw = () => {
-        setCurrentView('withdraw');
+        try {
+            logger.info('Navigating to withdraw view');
+            setCurrentView('withdraw');
+        } catch (error) {
+            logger.error('Error navigating to withdraw view:', error);
+            toast.error('Failed to open withdraw form. Please try again.');
+        }
     };
 
     const handleBackToTransactions = () => {
-        setCurrentView('list');
+        try {
+            logger.info('Navigating back to transaction list');
+            setCurrentView('list');
+        } catch (error) {
+            logger.error('Error navigating back to transaction list:', error);
+            toast.error('Failed to return to transaction list. Please try again.');
+        }
     };
 
     const renderCurrentView = () => {
-        switch (currentView) {
-            case 'deposit':
-                return (
-                    <AddDepositScreen 
-                        onCancel={handleBackToTransactions}
-                        onBackToTransactions={handleBackToTransactions}
-                    />
-                );
-            case 'withdraw':
-                return (
-                    <AddWithdrawScreen 
-                        onCancel={handleBackToTransactions}
-                        onBackToTransactions={handleBackToTransactions}
-                    />
-                );
-            case 'list':
-            default:
-                return (
-                    <TransactionList 
-                        onDeposit={handleShowDeposit}
-                        onWithdraw={handleShowWithdraw}
-                    />
-                );
+        try {
+            switch (currentView) {
+                case 'deposit':
+                    return (
+                        <AddDepositScreen 
+                            onCancel={handleBackToTransactions}
+                            onBackToTransactions={handleBackToTransactions}
+                        />
+                    );
+                case 'withdraw':
+                    return (
+                        <AddWithdrawScreen 
+                            onCancel={handleBackToTransactions}
+                            onBackToTransactions={handleBackToTransactions}
+                        />
+                    );
+                case 'list':
+                default:
+                    return (
+                        <TransactionList 
+                            onDeposit={handleShowDeposit}
+                            onWithdraw={handleShowWithdraw}
+                        />
+                    );
+            }
+        } catch (error) {
+            logger.error('Error rendering transaction view:', error);
+            throw error; // Let error boundary handle this
         }
     };
 
@@ -53,6 +130,24 @@ const TransactionScreen: React.FC = () => {
         <div className="main">
             {renderCurrentView()}
         </div>
+    );
+};
+
+const TransactionScreen: React.FC = () => {
+    return (
+        <ErrorBoundary 
+            FallbackComponent={TransactionScreenErrorFallback}
+            onError={(error, errorInfo) => {
+                logger.error('Transaction screen error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <TransactionScreenContent />
+        </ErrorBoundary>
     );
 };
 

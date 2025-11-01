@@ -230,3 +230,133 @@
         transform: rotate(360deg);
     }
 }
+
+// Error Boundary Styles for Add Card Screen
+.ac__error-boundary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+
+    &-content {
+        text-align: center;
+        max-width: 500px;
+        padding: 2rem;
+        background: var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &-icon {
+        color: var(--destructive);
+        margin-bottom: 1rem;
+    }
+
+    &-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--foreground);
+        margin-bottom: 1rem;
+    }
+
+    &-message {
+        color: var(--muted-foreground);
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+
+    &-details {
+        text-align: left;
+        margin-bottom: 1.5rem;
+        
+        summary {
+            cursor: pointer;
+            color: var(--muted-foreground);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            
+            &:hover {
+                color: var(--foreground);
+            }
+        }
+    }
+
+    &-stack {
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+    }
+
+    &-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        
+        button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            
+            &.main__button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                
+                &:hover {
+                    background: var(--primary);
+                    opacity: 0.9;
+                    transform: translateY(-1px);
+                }
+            }
+            
+            &.main__icon-button {
+                background: transparent;
+                color: var(--muted-foreground);
+                border: 1px solid var(--border);
+                
+                &:hover {
+                    background: var(--muted);
+                    color: var(--foreground);
+                    border-color: var(--primary);
+                }
+            }
+        }
+    }
+}
+
+// Responsive design for error boundary
+@media (max-width: 768px) {
+    .ac__error-boundary {
+        padding: 1rem;
+        
+        &-content {
+            padding: 1.5rem;
+        }
+        
+        &-actions {
+            flex-direction: column;
+            
+            button {
+                width: 100%;
+            }
+        }
+    }
+}

@@ -1,5 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { X, RotateCcw, Filter, Banknote, CreditCard, User, Plus, Check } from 'lucide-react';
 import './TransactionFilterModal.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
@@ -31,7 +32,41 @@ export interface FilterValues {
 }
 
 
-const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, onApplyFilters }) => {
+// Error Fallback Component for Filter Modal
+const FilterModalErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void; onClose: () => void }> = ({ error, resetErrorBoundary, onClose }) => {
+    return (
+        <div className="filter-modal-overlay" onClick={onClose}>
+            <div className="filter-modal" onClick={e => e.stopPropagation()}>
+                <div className="filter-modal__header">
+                    <h2 className="filter-modal__title">Filter Error</h2>
+                    <button className="filter-modal__close" onClick={onClose}>
+                        <X size={16} />
+                        Close
+                    </button>
+                </div>
+                <div className="filter-modal__body">
+                    <div className="filter-modal__error-section">
+                        <span className="filter-modal__error">
+                            Something went wrong while preparing the filter. Please try again.
+                        </span>
+                        {process.env.NODE_ENV === 'development' && (
+                            <details style={{ marginTop: 12 }}>
+                                <summary>Technical Details (Development)</summary>
+                                <pre style={{ fontSize: 12, color: '#b91c1c', margin: 0 }}>{error.message}\n{error.stack}</pre>
+                            </details>
+                        )}
+                        <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
+                            <button className="filter-modal__apply" onClick={resetErrorBoundary}>Try Again</button>
+                            <button className="filter-modal__reset" onClick={onClose}>Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onClose, onApplyFilters }) => {
     const dispatch = useAppDispatch();
     const { items: bankAutocompleteItems, loading: bankLoading } = useAppSelector(state => state.bankAutocomplete);
     const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
@@ -713,6 +748,26 @@ const TransactionFilterModal: React.FC<FilterModalProps> = ({ isOpen, onClose, o
                 </div>
             </div>
         </div>
+    );
+};
+
+// Main wrapper component with ErrorBoundary
+const TransactionFilterModal: React.FC<FilterModalProps> = (props) => {
+    if (!props.isOpen) return null;
+    return (
+        <ErrorBoundary
+            FallbackComponent={(fallbackProps) => (
+                <FilterModalErrorFallback {...fallbackProps} onClose={props.onClose} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Transaction Filter Modal Error Boundary caught an error:', error, errorInfo);
+            }}
+            onReset={() => {
+                logger.log('Transaction Filter Modal Error Boundary reset');
+            }}
+        >
+            <TransactionFilterModalContent {...props} />
+        </ErrorBoundary>
     );
 };
 

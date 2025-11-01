@@ -214,3 +214,91 @@
         }
     }
 }
+
+// Error boundary styles for delete modal
+.delete-modal--error {
+    .delete-modal__title {
+        color: var(--destructive);
+    }
+
+    .delete-modal__description {
+        margin-bottom: 1.5rem;
+    }
+
+    .delete-modal__error-details {
+        margin-bottom: 1.5rem;
+        
+        summary {
+            cursor: pointer;
+            color: var(--muted-foreground);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            
+            &:hover {
+                color: var(--foreground);
+            }
+        }
+    }
+
+    .delete-modal__error-stack {
+        background: var(--muted);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        max-height: 200px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+    }
+
+    .delete-modal__warning {
+        background: var(--muted);
+        border-left: 4px solid var(--primary);
+        padding: 1rem;
+        border-radius: 0 4px 4px 0;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
+
+        svg {
+            color: var(--primary);
+            flex-shrink: 0;
+        }
+    }
+
+    .delete-modal__footer {
+        button {
+            &.delete-modal__delete {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                
+                &:hover {
+                    background: var(--primary);
+                    opacity: 0.9;
+                }
+            }
+        }
+    }
+}
+
+// Responsive adjustments for error state
+@media (max-width: 768px) {
+    .delete-modal--error {
+        .delete-modal__error-details {
+            summary {
+                font-size: 0.875rem;
+            }
+        }
+        
+        .delete-modal__error-stack {
+            font-size: 0.75rem;
+            padding: 0.75rem;
+        }
+    }
+}

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
     fetchPaginatedCards, 
@@ -21,12 +22,68 @@ import './CardList.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
 
+interface CardListErrorFallbackProps {
+    error: Error;
+    resetErrorBoundary: () => void;
+    onNewCard: () => void;
+}
+
+const CardListErrorFallback: React.FC<CardListErrorFallbackProps> = ({ 
+    error, 
+    resetErrorBoundary, 
+    onNewCard 
+}) => {
+    return (
+        <div className="card-list-error-boundary">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <CreditCard size={20} /> <h1>Cards</h1>
+                </div>
+                <div className="main__header-right">
+                    <button className="main__icon-button" onClick={onNewCard}>
+                        <Plus size={16} />
+                        New Card
+                    </button>
+                </div>
+            </header>
+            
+            <div className="error-boundary__content">
+                <div className="error-boundary__icon">
+                    <CreditCard size={48} />
+                </div>
+                <h2 className="error-boundary__title">Card List Error</h2>
+                <p className="error-boundary__message">
+                    We're experiencing an issue with the card list. This might be a temporary problem.
+                </p>
+                <div className="error-boundary__actions">
+                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
+                        Try Again
+                    </button>
+                    <button className="error-boundary__button error-boundary__button--secondary" onClick={onNewCard}>
+                        Add New Card
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <details className="error-boundary__details">
+                        <summary>Technical Details (Development)</summary>
+                        <pre className="error-boundary__error-text">
+                            {error.message}
+                            {error.stack && '\n\nStack trace:\n' + error.stack}
+                        </pre>
+                    </details>
+                )}
+            </div>
+        </div>
+    );
+};
+
 interface CardListProps {
     onNewCard: () => void;
 }
 
-const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
+const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { 
         cards, 
         loading, 
@@ -47,80 +104,121 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
 
     // Load cards on component mount
     useEffect(() => {
-        dispatch(fetchPaginatedCards({ 
-            page: 1, 
-            limit: 50, 
-            search: searchQuery, 
-            sort_by: sortBy, 
-            sort_order: sortOrder 
-        }));
-    }, [dispatch, searchQuery, sortBy, sortOrder]);
+        try {
+            dispatch(fetchPaginatedCards({ 
+                page: 1, 
+                limit: 50, 
+                search: searchQuery, 
+                sort_by: sortBy, 
+                sort_order: sortOrder 
+            }));
+        } catch (error) {
+            logger.error('Error fetching cards:', error);
+            showBoundary(error);
+        }
+    }, [dispatch, searchQuery, sortBy, sortOrder, showBoundary]);
 
     // Update edit form when editing card changes
     useEffect(() => {
-        if (editingCard) {
-            setEditForm({ name: editingCard.name });
+        try {
+            if (editingCard) {
+                setEditForm({ name: editingCard.name });
+            }
+        } catch (error) {
+            logger.error('Error updating edit form:', error);
+            showBoundary(error);
         }
-    }, [editingCard]);
+    }, [editingCard, showBoundary]);
 
     // Handle search input with debounce
     useEffect(() => {
-        const timer = setTimeout(() => {
-            if (localSearch !== searchQuery) {
-                dispatch(setSearchQuery(localSearch));
-            }
-        }, 500);
+        try {
+            const timer = setTimeout(() => {
+                if (localSearch !== searchQuery) {
+                    dispatch(setSearchQuery(localSearch));
+                }
+            }, 500);
 
-        return () => clearTimeout(timer);
+            return () => clearTimeout(timer);
+        } catch (error) {
+            logger.error('Error handling search debounce:', error);
+            // Don't throw here as this could cause infinite loops
+        }
     }, [localSearch, searchQuery, dispatch]);
 
     // Event handlers
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setLocalSearch(e.target.value);
+        try {
+            setLocalSearch(e.target.value);
+        } catch (error) {
+            logger.error('Error handling search change:', error);
+            toast.error('Failed to update search. Please try again.');
+        }
     };
 
     const handleEditCard = (card: Card) => {
-        dispatch(setEditingCard(card));
+        try {
+            dispatch(setEditingCard(card));
+        } catch (error) {
+            logger.error('Error setting editing card:', error);
+            toast.error('Failed to open card for editing. Please try again.');
+        }
     };
 
     const handleSaveCard = async () => {
-        if (!editingCard || !editForm.name.trim()) return;
-
         try {
+            if (!editingCard || !editForm.name.trim()) return;
+
             await dispatch(updateCard({
                 id: editingCard.id,
                 name: editForm.name.trim()
-            }));
+            })).unwrap();
             // Success handling is done in the reducer
-            toast.success('Card saved.');
+            toast.success('Card saved successfully.');
         } catch (error) {
             logger.error('Failed to update card:', error);
-            toast.error('Failed to update card.');
+            toast.error('Failed to update card. Please try again.');
         }
     };
 
     const handleDeleteCard = () => {
-        setIsDeleteModalOpen(true);
+        try {
+            setIsDeleteModalOpen(true);
+        } catch (error) {
+            logger.error('Error opening delete modal:', error);
+            showBoundary(error);
+        }
     };
 
     const handleDeleteConfirm = async (cardId: string, deleteTransactions: boolean) => {
         try {
-            await dispatch(deleteCard({ id: parseInt(cardId) }));
+            await dispatch(deleteCard({ id: parseInt(cardId) })).unwrap();
             setIsDeleteModalOpen(false);
             dispatch(closeEditForm());
+            toast.success('Card deleted successfully.');
         } catch (error) {
             logger.error('Failed to delete card:', error);
-            toast.error('Failed to delete card.');
+            toast.error('Failed to delete card. Please try again.');
         }
     };
 
     const handleDeleteCancel = () => {
-        setIsDeleteModalOpen(false);
+        try {
+            setIsDeleteModalOpen(false);
+        } catch (error) {
+            logger.error('Error closing delete modal:', error);
+            showBoundary(error);
+        }
     };
 
     const handleCancelEdit = () => {
-        dispatch(closeEditForm());
-        setEditForm({ name: '' });
+        try {
+            dispatch(closeEditForm());
+            setEditForm({ name: '' });
+        } catch (error) {
+            logger.error('Error cancelling edit:', error);
+            showBoundary(error);
+        }
     };
 
     // Convert Card to ModalCard format
@@ -145,177 +243,204 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
     const isUpdating = editingCard ? updating.includes(editingCard.id) : false;
     const isDeleting = editingCard ? deleting.includes(editingCard.id) : false;
 
-    return (
-        <>
-            <header className="main__header">
-                <div className="main__header-left">
-                    <CreditCard size={20} /> <h1>Cards</h1>
-                </div>
-                <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onNewCard}>
-                        <Plus size={16} />
-                        New Card
-                    </button>
-                </div>
-            </header>
+    try {
+        return (
+            <>
+                <header className="main__header">
+                    <div className="main__header-left">
+                        <CreditCard size={20} /> <h1>Cards</h1>
+                    </div>
+                    <div className="main__header-right">
+                        <button className="main__icon-button" onClick={onNewCard}>
+                            <Plus size={16} />
+                            New Card
+                        </button>
+                    </div>
+                </header>
 
-            <div className="main__content">
-                <div className="main__view">
-                    <div className="main__view-header">
-                        <div className="main__search-row">
-                            <span className="main__search-icon">
-                                <Search size={16} />
-                            </span>
-                            <input
-                                type="text"
-                                className="main__input"
-                                placeholder="Search cards..."
-                                value={localSearch}
-                                onChange={handleSearchChange}
-                                onFocus={e => e.target.select()}
-                            />
+                <div className="main__content">
+                    <div className="main__view">
+                        <div className="main__view-header">
+                            <div className="main__search-row">
+                                <span className="main__search-icon">
+                                    <Search size={16} />
+                                </span>
+                                <input
+                                    type="text"
+                                    className="main__input"
+                                    placeholder="Search cards..."
+                                    value={localSearch}
+                                    onChange={handleSearchChange}
+                                    onFocus={e => e.target.select()}
+                                />
+                            </div>
+                        </div>
+
+                        {loading && (
+                            <div className="main__loading">
+                                <Loader className="spinner" size={20} />
+                                Loading cards...
+                            </div>
+                        )}
+
+                        {error && (
+                            <div className="main__error">
+                                Error: {error}
+                                <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                            </div>
+                        )}
+
+                        <div className="cards-grid">
+                            {cards.map(card => (
+                                <div 
+                                    className={`card-item ${editingCard?.id === card.id ? 'card-item--selected' : ''}`} 
+                                    key={card.id}
+                                >
+                                    <div className="card-left">
+                                        {deleting.includes(card.id) && (
+                                            <div className="card-item__overlay">
+                                                <Loader className="spinner" size={20} />
+                                            </div>
+                                        )}
+                                        <CreditCard size={22} />
+                                        <div>
+                                            <div className="card-title">{card.name}</div>
+                                            <div className="card-sub">Created: {formatDisplayDate(card.create_date)}</div>
+                                        </div>
+                                    </div>
+                                    <div className="card-meta">
+                                        <div className="meta-block">
+                                            <div className="meta-label">Transactions</div>
+                                            <div className="meta-value">{card.transaction_count.toLocaleString()}</div>
+                                        </div>
+                                        <button 
+                                            className="row-actions" 
+                                            onClick={() => handleEditCard(card)}
+                                            disabled={deleting.includes(card.id)}
+                                        >
+                                            <MoreHorizontal size={16} />
+                                            Manage
+                                        </button>
+                                    </div>
+                                </div>
+                            ))}
+                            {!loading && cards.length === 0 && (
+                                <div className="card-item card-item--empty">
+                                    {searchQuery ? 'No cards found matching your search.' : 'No cards found.'}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {loading && (
-                        <div className="main__loading">
-                            <Loader className="spinner" size={20} />
-                            Loading cards...
-                        </div>
-                    )}
-
-                    {error && (
-                        <div className="main__error">
-                            Error: {error}
-                            <button onClick={() => dispatch(clearError())}>Dismiss</button>
-                        </div>
-                    )}
-
-                    <div className="cards-grid">
-                        {cards.map(card => (
-                            <div 
-                                className={`card-item ${editingCard?.id === card.id ? 'card-item--selected' : ''}`} 
-                                key={card.id}
-                            >
-                                <div className="card-left">
-                                    {deleting.includes(card.id) && (
-                                        <div className="card-item__overlay">
-                                            <Loader className="spinner" size={20} />
-                                        </div>
-                                    )}
-                                    <CreditCard size={22} />
-                                    <div>
-                                        <div className="card-title">{card.name}</div>
-                                        <div className="card-sub">Created: {formatDisplayDate(card.create_date)}</div>
-                                    </div>
+                    {showEditForm && editingCard && (
+                        <div className="detail">
+                            {isUpdating && (
+                                <div className="detail__overlay">
+                                    <Loader className="spinner" size={24} />
                                 </div>
-                                <div className="card-meta">
-                                    <div className="meta-block">
-                                        <div className="meta-label">Transactions</div>
-                                        <div className="meta-value">{card.transaction_count.toLocaleString()}</div>
-                                    </div>
+                            )}
+                            <div className="detail__header">
+                                <CreditCard size={28} />
+                                <div>
+                                    <div className="detail__name">Edit Card</div>
+                                    <div className="label">Update card details or delete</div>
+                                </div>
+                                <button className="detail__cancel" onClick={handleCancelEdit}>
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            <div className="form">
+                                <div>
+                                    <div className="label">Card Name</div>
+                                    <input 
+                                        className="control" 
+                                        value={editForm.name}
+                                        onChange={(e) => setEditForm({ name: e.target.value })}
+                                        onFocus={e => e.target.select()}
+                                        disabled={isUpdating || isDeleting}
+                                    />
+                                </div>
+                                <div>
+                                    <div className="label">Created On</div>
+                                    <input 
+                                        className="control" 
+                                        value={formatDisplayDate(editingCard.create_date)} 
+                                        readOnly 
+                                    />
+                                </div>
+                                <div>
+                                    <div className="label">Transactions</div>
+                                    <input 
+                                        className="control" 
+                                        value={editingCard.transaction_count.toLocaleString()} 
+                                        readOnly 
+                                    />
+                                </div>
+                                <div className="inline-actions">
                                     <button 
-                                        className="row-actions" 
-                                        onClick={() => handleEditCard(card)}
-                                        disabled={deleting.includes(card.id)}
+                                        className="main__button"
+                                        onClick={handleSaveCard}
+                                        disabled={isUpdating || isDeleting || !editForm.name.trim()}
                                     >
-                                        <MoreHorizontal size={16} />
-                                        Manage
+                                        {isUpdating ? (
+                                            <>
+                                                <Loader className="spinner" size={16} />
+                                                Saving...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Edit size={16} />
+                                                Save
+                                            </>
+                                        )}
+                                    </button>
+                                    <button 
+                                        className="main__icon-button" 
+                                        onClick={handleDeleteCard}
+                                        disabled={isUpdating || isDeleting}
+                                    >
+                                        <Trash size={16} />
+                                        Delete
                                     </button>
                                 </div>
                             </div>
-                        ))}
-                        {!loading && cards.length === 0 && (
-                            <div className="card-item card-item--empty">
-                                {searchQuery ? 'No cards found matching your search.' : 'No cards found.'}
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </div>
 
-                {showEditForm && editingCard && (
-                    <div className="detail">
-                        {isUpdating && (
-                            <div className="detail__overlay">
-                                <Loader className="spinner" size={24} />
-                            </div>
-                        )}
-                        <div className="detail__header">
-                            <CreditCard size={28} />
-                            <div>
-                                <div className="detail__name">Edit Card</div>
-                                <div className="label">Update card details or delete</div>
-                            </div>
-                            <button className="detail__cancel" onClick={handleCancelEdit}>
-                                <X size={16} />
-                            </button>
-                        </div>
-                        <div className="form">
-                            <div>
-                                <div className="label">Card Name</div>
-                                <input 
-                                    className="control" 
-                                    value={editForm.name}
-                                    onChange={(e) => setEditForm({ name: e.target.value })}
-                                    onFocus={e => e.target.select()}
-                                    disabled={isUpdating || isDeleting}
-                                />
-                            </div>
-                            <div>
-                                <div className="label">Created On</div>
-                                <input 
-                                    className="control" 
-                                    value={formatDisplayDate(editingCard.create_date)} 
-                                    readOnly 
-                                />
-                            </div>
-                            <div>
-                                <div className="label">Transactions</div>
-                                <input 
-                                    className="control" 
-                                    value={editingCard.transaction_count.toLocaleString()} 
-                                    readOnly 
-                                />
-                            </div>
-                            <div className="inline-actions">
-                                <button 
-                                    className="main__button"
-                                    onClick={handleSaveCard}
-                                    disabled={isUpdating || isDeleting || !editForm.name.trim()}
-                                >
-                                    {isUpdating ? (
-                                        <>
-                                            <Loader className="spinner" size={16} />
-                                            Saving...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Edit size={16} />
-                                            Save
-                                        </>
-                                    )}
-                                </button>
-                                <button 
-                                    className="main__icon-button" 
-                                    onClick={handleDeleteCard}
-                                    disabled={isUpdating || isDeleting}
-                                >
-                                    <Trash size={16} />
-                                    Delete
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+                <DeleteCardConfirmModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={handleDeleteCancel}
+                    onDelete={handleDeleteConfirm}
+                    card={getModalCard(editingCard)}
+                />
+            </>
+        );
+    } catch (error) {
+        logger.error('Error rendering card list:', error);
+        showBoundary(error);
+        return null;
+    }
+};
 
-            <DeleteCardConfirmModal
-                isOpen={isDeleteModalOpen}
-                onClose={handleDeleteCancel}
-                onDelete={handleDeleteConfirm}
-                card={getModalCard(editingCard)}
-            />
-        </>
+// Main wrapper component with ErrorBoundary
+const CardList: React.FC<CardListProps> = (props) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={(fallbackProps) => (
+                <CardListErrorFallback {...fallbackProps} onNewCard={props.onNewCard} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Card list error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <CardListContent {...props} />
+        </ErrorBoundary>
     );
 };
 

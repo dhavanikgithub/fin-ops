@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowDownCircle, X, Save, User, IndianRupee, StickyNote, ArrowLeft, CheckCircle2 } from 'lucide-react';
+import { ArrowDownCircle, X, Save, User, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, AlertTriangle } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
@@ -14,10 +15,80 @@ interface AddDepositScreenProps {
     onBackToTransactions: () => void;
 }
 
-const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToTransactions }) => {
+// Error Fallback Component for Add Deposit
+const AddDepositErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+    onCancel: () => void;
+}> = ({ error, resetErrorBoundary, onCancel }) => {
+    return (
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <AlertTriangle size={16} className="main__header-icon--error" />
+                    <h1>Add Deposit Error</h1>
+                </div>
+                <div className="main__header-right">
+                    <button className="main__icon-button" onClick={onCancel}>
+                        <X size={16} />
+                        Cancel
+                    </button>
+                </div>
+            </header>
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="ad__error-boundary">
+                        <div className="ad__error-boundary-content">
+                            <AlertTriangle size={48} className="ad__error-boundary-icon" />
+                            <h3 className="ad__error-boundary-title">Something went wrong</h3>
+                            <p className="ad__error-boundary-message">
+                                We encountered an unexpected error while preparing the deposit form. 
+                                Your data is safe, and you can try again.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="ad__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="ad__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="ad__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onCancel}
+                                >
+                                    Go Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToTransactions }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
     const { loading: transactionLoading, error: transactionError } = useAppSelector(state => state.transactions);
+
+    // Form validation errors (Expected Errors)
+    const [formErrors, setFormErrors] = useState<{
+        client?: string;
+        amount?: string;
+        general?: string;
+    }>({});
 
     const [formData, setFormData] = useState({
         client: '',
@@ -34,16 +105,23 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
     // Debounced client search
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-    const debouncedClientSearch = useCallback((searchTerm: string) => {
+    // Debounced client search with error handling
+    const debouncedClientSearch = useCallback(async (searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
         }
 
-        const timer = setTimeout(() => {
-            if (searchTerm.trim()) {
-                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
-            } else {
-                dispatch(clearClientAutocomplete());
+        const timer = setTimeout(async () => {
+            try {
+                if (searchTerm.trim()) {
+                    await dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+                } else {
+                    dispatch(clearClientAutocomplete());
+                }
+            } catch (error) {
+                // Handle expected API errors for client search
+                logger.error('Failed to search clients:', error);
+                toast.error('Failed to search clients. Please try again.');
             }
         }, 300);
 
@@ -76,17 +154,30 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
             ...prev,
             [field]: value
         }));
+        
+        // Clear field-specific errors when user starts typing
+        if (formErrors[field as keyof typeof formErrors]) {
+            setFormErrors(prev => ({ ...prev, [field]: undefined }));
+        }
     };
 
     const handleClientSelect = (client: { id: number; name: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            client: client.name,
-            clientId: client.id
-        }));
-        setClientSearch('');
-        setShowClientDropdown(false);
-        setHighlightedIndex(0);
+        try {
+            setFormData(prev => ({
+                ...prev,
+                client: client.name,
+                clientId: client.id
+            }));
+            setClientSearch('');
+            setShowClientDropdown(false);
+            setHighlightedIndex(0);
+            // Clear client error when valid client is selected
+            setFormErrors(prev => ({ ...prev, client: undefined }));
+        } catch (error) {
+            // Handle unexpected errors in client selection
+            logger.error('Error selecting client:', error);
+            showBoundary(error);
+        }
     };
 
     const handleClientRemove = () => {
@@ -131,21 +222,48 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
         }
     };
 
-    const handleSaveDeposit = async () => {
-        // Validate required fields
-        if (!formData.clientId) {
-            alert('Please select a client');
-            return;
-        }
-        
-        if (!formData.amount || parseFloat(formData.amount) <= 0) {
-            alert('Please enter a valid amount');
-            return;
+    // Form validation function (Expected Error Handling)
+    const validateForm = (): { isValid: boolean; errors: { [key: string]: string } } => {
+        const errors: { [key: string]: string } = {};
+
+        if (!formData.clientId || !formData.client) {
+            errors.client = 'Please select a client';
         }
 
+        if (!formData.amount) {
+            errors.amount = 'Please enter an amount';
+        } else {
+            const amount = parseFloat(formData.amount);
+            if (isNaN(amount) || amount <= 0) {
+                errors.amount = 'Please enter a valid amount greater than 0';
+            } else if (amount > 10000000) { // 10 million limit
+                errors.amount = 'Amount cannot exceed ₹10,000,000';
+            }
+        }
+
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        };
+    };
+
+    const handleSaveDeposit = async () => {
         try {
+            // Clear previous errors
+            setFormErrors({});
+
+            // Validate form (Expected Error Handling)
+            const validation = validateForm();
+            if (!validation.isValid) {
+                setFormErrors(validation.errors);
+                toast.error('Please fix the form errors and try again');
+                return;
+            }
+
+            logger.log('Creating deposit with data:', formData);
+
             const transactionData = {
-                client_id: formData.clientId,
+                client_id: formData.clientId!,
                 transaction_type: 0, // 0 for deposit
                 widthdraw_charges: 0, // No charges for deposits
                 transaction_amount: parseFloat(formData.amount),
@@ -156,16 +274,19 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
             
             if (createTransaction.fulfilled.match(result)) {
                 logger.log('Deposit created successfully:', result.payload);
-                toast.success('Deposit created.');
+                toast.success('Deposit created successfully');
                 // Navigate back to transactions list
                 onBackToTransactions();
-            } else {
-                logger.error('Failed to create deposit:', result.payload);
-                toast.error('Failed to create deposit.');
+            } else if (createTransaction.rejected.match(result)) {
+                // Handle expected API errors
+                const errorMessage = result.payload || 'Failed to create deposit';
+                setFormErrors({ general: errorMessage });
+                toast.error(errorMessage);
             }
         } catch (error) {
-            logger.error('Error creating deposit:', error);
-            toast.error('Failed to create deposit.');
+            // Handle unexpected errors
+            logger.error('Unexpected error creating deposit:', error);
+            showBoundary(error);
         }
     };
 
@@ -287,6 +408,9 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                                     )}
                                 </div>
                             </div>
+                            {formErrors.client && (
+                                <span className="ad__error">{formErrors.client}</span>
+                            )}
                             <span className="ad__hint">Choose an existing client.</span>
                         </div>
 
@@ -297,12 +421,15 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                             </label>
                             <input
                                 type="text"
-                                className="ad__input"
+                                className={`ad__input ${formErrors.amount ? 'ad__input--error' : ''}`}
                                 value={formData.amount}
                                 onChange={(e) => handleInputChange('amount', e.target.value)}
                                 onFocus={e => e.target.select()}
                                 placeholder="0.00"
                             />
+                            {formErrors.amount && (
+                                <span className="ad__error">{formErrors.amount}</span>
+                            )}
                             <span className="ad__hint">Amount received from client.</span>
                         </div>
 
@@ -322,6 +449,20 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                         </div>
                     </div>
 
+                    {/* General Error Display */}
+                    {formErrors.general && (
+                        <div className="ad__error-section">
+                            <span className="ad__error">{formErrors.general}</span>
+                            <button 
+                                type="button"
+                                className="ad__retry"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    )}
+
                     <div className="main__footer-actions">
                         <button className="main__icon-button" onClick={handleBackToTransactions}>
                             <ArrowLeft size={16} />
@@ -335,6 +476,29 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
                 </div>
             </div>
         </div>
+    );
+};
+
+// Main wrapper component with ErrorBoundary
+const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToTransactions }) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={(props) => (
+                <AddDepositErrorFallback {...props} onCancel={onCancel} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Add Deposit Error Boundary caught an error:', error, errorInfo);
+                toast.error('Add deposit form encountered an error');
+            }}
+            onReset={() => {
+                logger.log('Add Deposit Error Boundary reset');
+            }}
+        >
+            <AddDepositScreenContent 
+                onCancel={onCancel}
+                onBackToTransactions={onBackToTransactions}
+            />
+        </ErrorBoundary>
     );
 };
 

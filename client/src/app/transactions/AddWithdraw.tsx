@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ArrowUpCircle, X, Save, User, Building2, CreditCard, IndianRupee, Percent, StickyNote, ArrowLeft, CheckCircle2, Banknote } from 'lucide-react';
+import { ArrowUpCircle, X, Save, User, Building2, CreditCard, IndianRupee, Percent, StickyNote, ArrowLeft, CheckCircle2, Banknote, AlertTriangle } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchBankAutocomplete } from '../../store/actions/bankActions';
 import { clearBankAutocomplete } from '../../store/slices/bankAutocompleteSlice';
@@ -11,19 +12,90 @@ import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSl
 import { createTransaction } from '../../store/actions/transactionActions';
 import './AddWithdraw.scss';
 import logger from '@/utils/logger';
-import { toast } from 'react-hot-toast/headless';
+import toast from 'react-hot-toast';
 
 interface AddWithdrawScreenProps {
     onCancel: () => void;
     onBackToTransactions: () => void;
 }
 
-const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackToTransactions }) => {
+// Error Fallback Component for Add Withdraw
+const AddWithdrawErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+    onCancel: () => void;
+}> = ({ error, resetErrorBoundary, onCancel }) => {
+    return (
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <AlertTriangle size={16} className="main__header-icon--error" />
+                    <h1>Add Withdraw Error</h1>
+                </div>
+                <div className="main__header-right">
+                    <button className="main__icon-button" onClick={onCancel}>
+                        <X size={16} />
+                        Cancel
+                    </button>
+                </div>
+            </header>
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="aw__error-boundary">
+                        <div className="aw__error-boundary-content">
+                            <AlertTriangle size={48} className="aw__error-boundary-icon" />
+                            <h3 className="aw__error-boundary-title">Something went wrong</h3>
+                            <p className="aw__error-boundary-message">
+                                We encountered an unexpected error while preparing the withdraw form. 
+                                Your data is safe, and you can try again.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="aw__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="aw__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="aw__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onCancel}
+                                >
+                                    Go Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackToTransactions }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { items: bankAutocompleteItems, loading: bankLoading } = useAppSelector(state => state.bankAutocomplete);
     const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
     const { loading: transactionLoading, error: transactionError } = useAppSelector(state => state.transactions);
+
+    // Form validation errors (Expected Errors)
+    const [formErrors, setFormErrors] = useState<{
+        client?: string;
+        amount?: string;
+        charges?: string;
+        general?: string;
+    }>({});
 
     const [formData, setFormData] = useState({
         client: '',
@@ -53,51 +125,66 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
     const bankSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
     const cardSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Debounced client search
-    const debouncedClientSearch = useCallback((searchTerm: string) => {
+    // Debounced client search with error handling
+    const debouncedClientSearch = useCallback(async (searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
         }
 
-        const timer = setTimeout(() => {
-            if (searchTerm.trim()) {
-                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
-            } else {
-                dispatch(clearClientAutocomplete());
+        const timer = setTimeout(async () => {
+            try {
+                if (searchTerm.trim()) {
+                    await dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+                } else {
+                    dispatch(clearClientAutocomplete());
+                }
+            } catch (error) {
+                logger.error('Failed to search clients:', error);
+                toast.error('Failed to search clients. Please try again.');
             }
         }, 300);
 
         clientSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced bank search
-    const debouncedBankSearch = useCallback((searchTerm: string) => {
+    // Debounced bank search with error handling
+    const debouncedBankSearch = useCallback(async (searchTerm: string) => {
         if (bankSearchDebounceTimer.current) {
             clearTimeout(bankSearchDebounceTimer.current);
         }
 
-        const timer = setTimeout(() => {
-            if (searchTerm.trim()) {
-                dispatch(fetchBankAutocomplete({ search: searchTerm, limit: 5 }));
-            } else {
-                dispatch(clearBankAutocomplete());
+        const timer = setTimeout(async () => {
+            try {
+                if (searchTerm.trim()) {
+                    await dispatch(fetchBankAutocomplete({ search: searchTerm, limit: 5 }));
+                } else {
+                    dispatch(clearBankAutocomplete());
+                }
+            } catch (error) {
+                logger.error('Failed to search banks:', error);
+                toast.error('Failed to search banks. Please try again.');
             }
         }, 300);
 
         bankSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced card search
-    const debouncedCardSearch = useCallback((searchTerm: string) => {
+    // Debounced card search with error handling
+    const debouncedCardSearch = useCallback(async (searchTerm: string) => {
         if (cardSearchDebounceTimer.current) {
             clearTimeout(cardSearchDebounceTimer.current);
         }
 
-        const timer = setTimeout(() => {
-            if (searchTerm.trim()) {
-                dispatch(fetchCardAutocomplete({ search: searchTerm, limit: 5 }));
-            } else {
-                dispatch(clearCardAutocomplete());
+        const timer = setTimeout(async () => {
+            try {
+                if (searchTerm.trim()) {
+                    await dispatch(fetchCardAutocomplete({ search: searchTerm, limit: 5 }));
+                } else {
+                    dispatch(clearCardAutocomplete());
+                }
+            } catch (error) {
+                logger.error('Failed to search cards:', error);
+                toast.error('Failed to search cards. Please try again.');
             }
         }, 300);
 
@@ -156,17 +243,29 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
             ...prev,
             [field]: value
         }));
+        
+        // Clear field-specific errors when user starts typing
+        if (formErrors[field as keyof typeof formErrors]) {
+            setFormErrors(prev => ({ ...prev, [field]: undefined }));
+        }
     };
 
     const handleClientSelect = (client: { id: number; name: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            client: client.name,
-            clientId: client.id
-        }));
-        setClientSearch('');
-        setShowClientDropdown(false);
-        setClientHighlightedIndex(0);
+        try {
+            setFormData(prev => ({
+                ...prev,
+                client: client.name,
+                clientId: client.id
+            }));
+            setClientSearch('');
+            setShowClientDropdown(false);
+            setClientHighlightedIndex(0);
+            // Clear client error when valid client is selected
+            setFormErrors(prev => ({ ...prev, client: undefined }));
+        } catch (error) {
+            logger.error('Error selecting client:', error);
+            showBoundary(error);
+        }
     };
 
     const handleBankSelect = (bank: { id: number; name: string }) => {
@@ -318,24 +417,63 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
         }
     };
 
+    // Form validation function (Expected Error Handling)
+    const validateForm = (): { isValid: boolean; errors: { [key: string]: string } } => {
+        const errors: { [key: string]: string } = {};
+
+        // Client validation
+        if (!formData.clientId || !formData.client) {
+            errors.client = 'Please select a client';
+        }
+
+        // Amount validation
+        if (!formData.amount) {
+            errors.amount = 'Please enter an amount';
+        } else {
+            const amount = parseFloat(formData.amount);
+            if (isNaN(amount) || amount <= 0) {
+                errors.amount = 'Please enter a valid amount greater than 0';
+            } else if (amount > 10000000) { // 10 million limit
+                errors.amount = 'Amount cannot exceed ₹10,000,000';
+            }
+        }
+
+        // Charges validation
+        if (formData.chargesPct) {
+            const charges = parseFloat(formData.chargesPct);
+            if (isNaN(charges) || charges < 0) {
+                errors.charges = 'Charges must be a valid percentage (0 or greater)';
+            } else if (charges > 100) {
+                errors.charges = 'Charges cannot exceed 100%';
+            }
+        }
+
+        return {
+            isValid: Object.keys(errors).length === 0,
+            errors
+        };
+    };
+
     const handleSaveWithdraw = async () => {
-        // Validate required fields
-        if (!formData.clientId) {
-            alert('Please select a client');
-            return;
-        }
-        
-        if (!formData.amount || parseFloat(formData.amount) <= 0) {
-            alert('Please enter a valid amount');
-            return;
-        }
-
-        const chargesAmount = parseFloat(formData.chargesPct) || 0;
-        const transactionAmount = parseFloat(formData.amount);
-
         try {
+            // Clear previous errors
+            setFormErrors({});
+
+            // Validate form (Expected Error Handling)
+            const validation = validateForm();
+            if (!validation.isValid) {
+                setFormErrors(validation.errors);
+                toast.error('Please fix the form errors and try again');
+                return;
+            }
+
+            logger.log('Creating withdraw with data:', formData);
+
+            const chargesAmount = parseFloat(formData.chargesPct) || 0;
+            const transactionAmount = parseFloat(formData.amount);
+
             const transactionData = {
-                client_id: formData.clientId,
+                client_id: formData.clientId!,
                 transaction_type: 1, // 1 for withdraw
                 widthdraw_charges: chargesAmount,
                 transaction_amount: transactionAmount,
@@ -348,16 +486,18 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
             
             if (createTransaction.fulfilled.match(result)) {
                 logger.log('Withdraw created successfully:', result.payload);
-                toast.success('Withdraw created.');
-                // Navigate back to transactions list
+                toast.success('Withdraw created successfully');
                 onBackToTransactions();
-            } else {
-                logger.error('Failed to create withdraw:', result.payload);
-                toast.error('Failed to create withdraw.');
+            } else if (createTransaction.rejected.match(result)) {
+                // Handle expected API errors
+                const errorMessage = result.payload || 'Failed to create withdraw';
+                setFormErrors({ general: errorMessage });
+                toast.error(errorMessage);
             }
         } catch (error) {
-            logger.error('Error creating withdraw:', error);
-            toast.error('Failed to create withdraw.');
+            // Handle unexpected errors
+            logger.error('Unexpected error creating withdraw:', error);
+            showBoundary(error);
         }
     };
 
@@ -481,6 +621,9 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                     )}
                                 </div>
                             </div>
+                            {formErrors.client && (
+                                <span className="aw__error">{formErrors.client}</span>
+                            )}
                             <span className="aw__hint">Search existing clients to withdraw funds.</span>
                         </div>
 
@@ -648,12 +791,15 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                 </label>
                                 <input
                                     type="text"
-                                    className="aw__input"
+                                    className={`aw__input ${formErrors.amount ? 'aw__input--error' : ''}`}
                                     value={formData.amount}
                                     onChange={(e) => handleInputChange('amount', e.target.value)}
                                     onFocus={e => e.target.select()}
                                     placeholder="₹ 0.00"
                                 />
+                                {formErrors.amount && (
+                                    <span className="aw__error">{formErrors.amount}</span>
+                                )}
                                 <span className="aw__hint">Enter the amount to withdraw.</span>
                             </div>
 
@@ -664,12 +810,15 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                                 </label>
                                 <input
                                     type="text"
-                                    className="aw__input"
+                                    className={`aw__input ${formErrors.charges ? 'aw__input--error' : ''}`}
                                     value={formData.chargesPct}
                                     onChange={(e) => handleInputChange('chargesPct', e.target.value)}
                                     onFocus={e => e.target.select()}
                                     placeholder="0"
                                 />
+                                {formErrors.charges && (
+                                    <span className="aw__error">{formErrors.charges}</span>
+                                )}
                                 <span className="aw__hint">Enter fee percentage to apply.</span>
                             </div>
                         </div>
@@ -690,6 +839,20 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                         </div>
                     </div>
 
+                    {/* General Error Display */}
+                    {formErrors.general && (
+                        <div className="aw__error-section">
+                            <span className="aw__error">{formErrors.general}</span>
+                            <button 
+                                type="button"
+                                className="aw__retry"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
+                            >
+                                Try Again
+                            </button>
+                        </div>
+                    )}
+
                     <div className="main__footer-actions">
                         <button className="main__icon-button" onClick={handleBackToTransactions}>
                             <ArrowLeft size={16} />
@@ -704,6 +867,29 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
                 </div>
             </div>
         </div>
+    );
+};
+
+// Main wrapper component with ErrorBoundary
+const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackToTransactions }) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={(props) => (
+                <AddWithdrawErrorFallback {...props} onCancel={onCancel} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Add Withdraw Error Boundary caught an error:', error, errorInfo);
+                toast.error('Add withdraw form encountered an error');
+            }}
+            onReset={() => {
+                logger.log('Add Withdraw Error Boundary reset');
+            }}
+        >
+            <AddWithdrawScreenContent 
+                onCancel={onCancel}
+                onBackToTransactions={onBackToTransactions}
+            />
+        </ErrorBoundary>
     );
 };
 
