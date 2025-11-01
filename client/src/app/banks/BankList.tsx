@@ -19,6 +19,7 @@ import DeleteBankConfirmModal, { Bank as ModalBank } from './DeleteBankConfirmMo
 import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './BankList.scss';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface BankListProps {
     onNewBank: () => void;
@@ -94,9 +95,11 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
                 id: editingBank.id,
                 name: editForm.name.trim()
             }));
+            toast.success('Bank saved.');
             // Success handling is done in the reducer
         } catch (error) {
             logger.error('Failed to update bank:', error);
+            toast.error('Failed to update bank.');
         }
     };
 
@@ -111,6 +114,7 @@ const BankList: React.FC<BankListProps> = ({ onNewBank }) => {
             dispatch(closeEditForm());
         } catch (error) {
             logger.error('Failed to delete bank:', error);
+            toast.error('Failed to delete bank.');
         }
     };
 

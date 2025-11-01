@@ -4,6 +4,7 @@ import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw } from 'lucide-react
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
+import toast from 'react-hot-toast';
 
 interface SavedScenario {
     id: string;
@@ -37,6 +38,8 @@ const CalculatorScreen: React.FC = () => {
                 }
             } catch (error) {
                 logger.error('Failed to load saved scenarios:', error);
+                toast.error('Failed to load saved scenarios. Resetting to empty.');
+                setSavedScenarios([]);
             }
         };
 
@@ -77,6 +80,7 @@ const CalculatorScreen: React.FC = () => {
             logger.log('Scenario saved successfully:', newScenario);
         } catch (error) {
             logger.error('Failed to save scenario:', error);
+            toast.error('Failed to save scenario.');
         }
     };
 

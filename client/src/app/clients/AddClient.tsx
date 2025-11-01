@@ -6,6 +6,7 @@ import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions'
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createClient } from '../../store/actions/clientActions';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface AddClientScreenProps {
     onCancel: () => void;
@@ -74,6 +75,7 @@ const AddClientScreen: React.FC<AddClientScreenProps> = ({ onCancel, onBackToCli
             // Success handled in useEffect
         } catch (error) {
             logger.error('Failed to create client:', error);
+            toast.error('Failed to create client.');
             setCreationAttempted(false); // Reset on error
         }
     };

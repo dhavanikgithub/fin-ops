@@ -19,6 +19,7 @@ import DeleteCardConfirmModal, { Card as ModalCard } from './DeleteCardConfirmMo
 import { formatDateToMonthYear } from '../../utils/helperFunctions';
 import './CardList.scss';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface CardListProps {
     onNewCard: () => void;
@@ -91,8 +92,10 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
                 name: editForm.name.trim()
             }));
             // Success handling is done in the reducer
+            toast.success('Card saved.');
         } catch (error) {
             logger.error('Failed to update card:', error);
+            toast.error('Failed to update card.');
         }
     };
 
@@ -107,6 +110,7 @@ const CardList: React.FC<CardListProps> = ({ onNewCard }) => {
             dispatch(closeEditForm());
         } catch (error) {
             logger.error('Failed to delete card:', error);
+            toast.error('Failed to delete card.');
         }
     };
 

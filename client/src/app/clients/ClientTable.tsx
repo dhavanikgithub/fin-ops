@@ -6,6 +6,7 @@ import { formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } f
 import { Client } from '../../services/clientService';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreClients, sortClients } from '../../store/actions/clientActions';
+import { toast } from 'react-hot-toast/headless';
 
 interface ClientTableProps {
     search?: string;
@@ -54,6 +55,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ selectedClient, onClientSelec
                     delete updated[id];
                     return updated;
                 });
+                toast.success('Client saved');
             }, 1000);
         });
 
@@ -67,6 +69,7 @@ const ClientTable: React.FC<ClientTableProps> = ({ selectedClient, onClientSelec
                     delete updated[id];
                     return updated;
                 });
+                toast.success('Client deleted');
             }, 1000);
         });
 

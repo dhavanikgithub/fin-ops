@@ -229,6 +229,40 @@
         gap: 4px;
     }
 
+    &__error-section {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 12px;
+        padding: 12px;
+        background: var(--destructive-foreground);
+        border: 1px solid var(--destructive);
+        border-radius: var(--radius);
+    }
+
+    &__retry {
+        background: var(--destructive);
+        color: var(--destructive-foreground);
+        border: none;
+        padding: 8px 16px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        align-self: flex-start;
+
+        &:hover {
+            background: var(--destructive);
+            opacity: 0.9;
+        }
+
+        &:focus {
+            outline: 2px solid var(--ring);
+            outline-offset: 2px;
+        }
+    }
+
     &__footer {
         display: flex;
         align-items: center;

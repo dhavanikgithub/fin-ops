@@ -6,6 +6,7 @@ import { createCard } from '../../store/actions/cardActions';
 import { clearError } from '../../store/slices/cardSlice';
 import './AddCard.scss';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface AddCardScreenProps {
     onCancel: () => void;
@@ -64,6 +65,7 @@ const AddCardScreen: React.FC<AddCardScreenProps> = ({ onCancel, onBackToCards }
             // Success handling is done in the useEffect above
         } catch (error) {
             logger.error('Failed to create card:', error);
+            toast.error('Failed to create card.');
             setCreationAttempted(false);
         }
     };

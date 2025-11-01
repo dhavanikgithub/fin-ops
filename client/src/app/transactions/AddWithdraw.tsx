@@ -11,6 +11,7 @@ import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSl
 import { createTransaction } from '../../store/actions/transactionActions';
 import './AddWithdraw.scss';
 import logger from '@/utils/logger';
+import { toast } from 'react-hot-toast/headless';
 
 interface AddWithdrawScreenProps {
     onCancel: () => void;
@@ -347,15 +348,16 @@ const AddWithdrawScreen: React.FC<AddWithdrawScreenProps> = ({ onCancel, onBackT
             
             if (createTransaction.fulfilled.match(result)) {
                 logger.log('Withdraw created successfully:', result.payload);
+                toast.success('Withdraw created.');
                 // Navigate back to transactions list
                 onBackToTransactions();
             } else {
                 logger.error('Failed to create withdraw:', result.payload);
-                alert(`Failed to create withdraw: ${result.payload}`);
+                toast.error('Failed to create withdraw.');
             }
         } catch (error) {
             logger.error('Error creating withdraw:', error);
-            alert('An unexpected error occurred while creating the withdraw');
+            toast.error('Failed to create withdraw.');
         }
     };
 

@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Download, X, User } from 'lucide-react';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import './ExportTransaction.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
 import logger from '@/utils/logger';
@@ -9,6 +10,7 @@ import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { generateTransactionReport } from '../../store/actions/transactionActions';
 import transactionService from '../../services/transactionService';
+import toast from 'react-hot-toast';
 
 interface ExportModalProps {
     isOpen: boolean;
@@ -22,11 +24,66 @@ export interface ExportSettings {
     client: { label: string; value: number } | null;
 }
 
-const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
+// Error Fallback Component
+const ExportErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+    onClose: () => void;
+}> = ({ error, resetErrorBoundary, onClose }) => {
+    const handleRetry = () => {
+        resetErrorBoundary();
+    };
+
+    const handleClose = () => {
+        resetErrorBoundary();
+        onClose();
+    };
+
+    return (
+        <div className="export-modal-overlay" onClick={handleClose}>
+            <div className="export-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="export-modal__header">
+                    <h2 className="export-modal__title">
+                        <X size={18} />
+                        Export Error
+                    </h2>
+                    <button className="export-modal__close" onClick={handleClose}>
+                        <X size={16} />
+                    </button>
+                </div>
+                <div className="export-modal__body">
+                    <div className="export-modal__error-section">
+                        <span className="export-modal__error">
+                            Something went wrong while preparing the export. Please try again.
+                        </span>
+                        <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', marginTop: '8px' }}>
+                            {process.env.NODE_ENV === 'development' && error.message}
+                        </p>
+                        <button
+                            type="button"
+                            className="export-modal__retry"
+                            onClick={handleRetry}
+                        >
+                            Try Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
     const { reportLoading, reportError } = useAppSelector(state => state.transactions);
 
+    // Error states for expected errors
+    const [formErrors, setFormErrors] = useState<{
+        dateValidation?: string;
+        general?: string;
+    }>({});
 
     const initialSettings: ExportSettings = {
         startDate: '',
@@ -42,17 +99,25 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
     // Debounced timer for client search
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Memoized debounced client search
+    // Memoized debounced client search with error handling
     const debouncedClientSearch = useCallback((searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
         }
 
-        const timer = setTimeout(() => {
-            if (searchTerm.trim()) {
-                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
-            } else {
-                dispatch(clearClientAutocomplete());
+        const timer = setTimeout(async () => {
+            try {
+                if (searchTerm.trim()) {
+                    await dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+                } else {
+                    dispatch(clearClientAutocomplete());
+                }
+            } catch (error) {
+                // Handle unexpected errors in client search
+                logger.error('Unexpected error during client search:', error);
+                // Don't trigger error boundary for autocomplete failures
+                // Just show a toast and continue
+                toast.error('Failed to search clients. Please try again.');
             }
         }, 300);
 
@@ -197,17 +262,11 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
         );
     };
 
-    const handleSettingChange = (field: keyof ExportSettings, value: string) => {
-        setExportSettings(prev => ({
-            ...prev,
-            [field]: value
-        }));
-    };
-
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
         const dateString = date ? date.toISOString().split('T')[0] : '';
 
         // Clear any existing validation errors
+        setFormErrors(prev => ({ ...prev, dateValidation: undefined }));
         setDateValidationError('');
 
         setExportSettings(prev => {
@@ -216,21 +275,22 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
                 [field]: dateString
             };
 
-            // Validate dates after update
+            // Validate dates after update (Expected Error Handling)
             if (field === 'startDate' && prev.endDate && dateString) {
                 // If setting start date and end date exists, check if start date is after end date
                 if (new Date(dateString) > new Date(prev.endDate)) {
-                    logger.warn('Start date cannot be after end date. Clearing end date.');
-                    setDateValidationError('Start date cannot be after end date. End date has been cleared.');
-                    return prev;
+                    const errorMsg = 'Start date cannot be after end date. End date has been cleared.';
+                    logger.warn(errorMsg);
+                    setFormErrors(prev => ({ ...prev, dateValidation: errorMsg }));
+                    return prev; // Don't update if invalid
                 }
             } else if (field === 'endDate' && prev.startDate && dateString) {
                 // If setting end date and start date exists, check if end date is before start date
                 if (new Date(dateString) < new Date(prev.startDate)) {
-                    logger.warn('End date cannot be before start date. Please select a valid end date.');
-                    setDateValidationError('End date must be after start date. Please select a valid end date.');
-                    // Don't update the end date if it's invalid
-                    return prev;
+                    const errorMsg = 'End date must be after start date. Please select a valid end date.';
+                    logger.warn(errorMsg);
+                    setFormErrors(prev => ({ ...prev, dateValidation: errorMsg }));
+                    return prev; // Don't update if invalid
                 }
             }
 
@@ -239,26 +299,46 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
     };
 
 
-    const handleExport = async () => {
-        // Validate dates before export
+    const validateExportSettings = (): { isValid: boolean; errors: string[] } => {
+        const errors: string[] = [];
+
+        // Expected validation errors
+        if (!exportSettings.startDate) {
+            errors.push('Start date is required');
+        }
+
+        if (!exportSettings.endDate) {
+            errors.push('End date is required');
+        }
+
         if (exportSettings.startDate && exportSettings.endDate) {
             if (new Date(exportSettings.startDate) > new Date(exportSettings.endDate)) {
-                setDateValidationError('Cannot export: End date must be after start date.');
-                return;
+                errors.push('End date must be after start date');
             }
         }
 
-        if (!exportSettings.startDate || !exportSettings.endDate) {
-            setDateValidationError('Please select both start and end dates.');
-            return;
-        }
+        return {
+            isValid: errors.length === 0,
+            errors
+        };
+    };
 
-        // Clear any validation errors
-        setDateValidationError('');
-
+    const handleExport = async () => {
         try {
+            // Clear previous errors
+            setFormErrors({});
+
+            // Validate form (Expected Error Handling)
+            const validation = validateExportSettings();
+            if (!validation.isValid) {
+                setFormErrors({
+                    general: validation.errors.join('. ')
+                });
+                return;
+            }
+
             logger.log('Starting transaction report generation...', exportSettings);
-            
+
             // Convert settings to export request format
             const reportRequest = {
                 startDate: exportSettings.startDate,
@@ -267,35 +347,49 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
             };
 
             const result = await dispatch(generateTransactionReport(reportRequest));
-            
+
             if (generateTransactionReport.fulfilled.match(result)) {
                 logger.log('Report generated successfully:', result.payload);
-                
-                // Download the PDF
-                const pdfContent = result.payload.data.pdfContent;
-                const filename = `transaction-report-${exportSettings.startDate}-to-${exportSettings.endDate}.pdf`;
-                
-                transactionService.downloadPDF(pdfContent, filename);
-                
-                // Call the parent onExport callback for any additional handling
-                onExport(exportSettings);
-                onClose();
+
+                try {
+                    // Download the PDF (Potential unexpected error)
+                    const pdfContent = result.payload.data.pdfContent;
+                    const filename = `transaction-report-${exportSettings.startDate}-to-${exportSettings.endDate}.pdf`;
+
+                    transactionService.downloadPDF(pdfContent, filename);
+
+                    // Success feedback
+                    toast.success('Report generated and downloaded successfully');
+
+                    // Call the parent onExport callback for any additional handling
+                    onExport(exportSettings);
+                    onClose();
+                } catch (downloadError) {
+                    // Handle unexpected errors during download
+                    logger.error('Unexpected error during PDF download:', downloadError);
+                    showBoundary(downloadError);
+                }
             } else if (generateTransactionReport.rejected.match(result)) {
-                throw new Error(result.payload as string || 'Failed to generate report');
+                // Expected API errors (like "No transactions found")
+                const errorMessage = result.payload || 'Failed to generate report';
+                setFormErrors({ general: errorMessage });
             }
         } catch (error) {
-            logger.error('Export failed:', error);
-            setDateValidationError('Export failed. Please try again.');
+            // Catch any unexpected errors
+            logger.error('Unexpected error during export:', error);
+
+            // Use error boundary for unexpected errors
+            showBoundary(error);
         }
     };
 
     const handleCancel = () => {
-        onClose();
-        setExportSettings(initialSettings);
+        // Reset all error states when closing
+        setFormErrors({});
         setDateValidationError('');
+        setExportSettings(initialSettings);
+        onClose();
     };
-
-    if (!isOpen) return null;
 
     return (
         <div className="export-modal-overlay" onClick={handleCancel}>
@@ -310,85 +404,123 @@ const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, o
                     </button>
                 </div>
 
-                <div className="export-modal__body">
-                    <div className="export-modal__form">
-                        <div className="export-modal__field">
-                            <label className="export-modal__label">Date range</label>
-                            <div className="export-modal__date-row">
-                                <ReactDatePicker
-                                    value={exportSettings.startDate}
-                                    onChange={(date) => handleDateChange('startDate')(date as Date | null)}
-                                    placeholder="Start date"
-                                    className="export-modal__input"
-                                    maxDateToday={true}
-                                    options={{
-                                        mode: 'single',
-                                        format: 'd-m-Y',
-                                        showIcon: true,
-                                        iconPosition: 'right',
-                                        closeOnSelect: true,
-                                        allowInput: false,
-                                        blockFutureDates: true,
-                                        enableMonthDropdown: true,
-                                        enableYearDropdown: true,
-                                        iconClickOpens: true,
-                                        maxDate: new Date(),
-                                        onSelect: (date) => {
-                                            logger.log('Start date selected:', date);
-                                        }
-                                    }}
-                                />
-                                <ReactDatePicker
-                                    value={exportSettings.endDate}
-                                    onChange={(date) => handleDateChange('endDate')(date as Date | null)}
-                                    placeholder="End date"
-                                    className="export-modal__input"
-                                    maxDateToday={true}
-                                    options={{
-                                        mode: 'single',
-                                        format: 'd-m-Y',
-                                        showIcon: true,
-                                        iconPosition: 'right',
-                                        closeOnSelect: true,
-                                        allowInput: false,
-                                        blockFutureDates: true,
-                                        enableMonthDropdown: true,
-                                        enableYearDropdown: true,
-                                        iconClickOpens: true,
-                                        maxDate: new Date(),
-                                        onSelect: (date) => {
-                                            logger.log('End date selected:', date);
-                                        }
-                                    }}
-                                />
-                            </div>
-                            {(dateValidationError || reportError) && (
-                                <span className="export-modal__error">
-                                    {dateValidationError || reportError}
-                                </span>
-                            )}
+                {formErrors.general ? (
+                    <div className="export-modal__body">
+                        <div className="export-modal__error-section">
+                            <span className="export-modal__error">{formErrors.general}</span>
+                            <button
+                                type="button"
+                                className="export-modal__retry"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
+                            >
+                                Try Again
+                            </button>
                         </div>
-
-                        <div className="export-modal__field">
-                            <label className="export-modal__label">Client</label>
-                            {renderClientAutocomplete()}
-                        </div>
-
                     </div>
-                </div>
+                ) : (
+                    <>
+                        <div className="export-modal__body">
+                            <div className="export-modal__form">
+                                <div className="export-modal__field">
+                                    <label className="export-modal__label">Date range</label>
+                                    <div className="export-modal__date-row">
+                                        <ReactDatePicker
+                                            value={exportSettings.startDate}
+                                            onChange={(date) => handleDateChange('startDate')(date as Date | null)}
+                                            placeholder="Start date"
+                                            className="export-modal__input"
+                                            maxDateToday={true}
+                                            options={{
+                                                mode: 'single',
+                                                format: 'd-m-Y',
+                                                showIcon: true,
+                                                iconPosition: 'right',
+                                                closeOnSelect: true,
+                                                allowInput: false,
+                                                blockFutureDates: true,
+                                                enableMonthDropdown: true,
+                                                enableYearDropdown: true,
+                                                iconClickOpens: true,
+                                                maxDate: new Date(),
+                                                onSelect: (date) => {
+                                                    logger.log('Start date selected:', date);
+                                                }
+                                            }}
+                                        />
+                                        <ReactDatePicker
+                                            value={exportSettings.endDate}
+                                            onChange={(date) => handleDateChange('endDate')(date as Date | null)}
+                                            placeholder="End date"
+                                            className="export-modal__input"
+                                            maxDateToday={true}
+                                            options={{
+                                                mode: 'single',
+                                                format: 'd-m-Y',
+                                                showIcon: true,
+                                                iconPosition: 'right',
+                                                closeOnSelect: true,
+                                                allowInput: false,
+                                                blockFutureDates: true,
+                                                enableMonthDropdown: true,
+                                                enableYearDropdown: true,
+                                                iconClickOpens: true,
+                                                maxDate: new Date(),
+                                                onSelect: (date) => {
+                                                    logger.log('End date selected:', date);
+                                                }
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="export-modal__field">
+                                    <label className="export-modal__label">Client</label>
+                                    {renderClientAutocomplete()}
+                                </div>
 
-                <div className="export-modal__footer">
-                    <button 
-                        className="export-modal__export" 
-                        onClick={handleExport}
-                        disabled={reportLoading || !exportSettings.startDate || !exportSettings.endDate}
-                    >
-                        <Download size={16} />
-                        {reportLoading ? 'Generating Report...' : 'Export'}
-                    </button>
-                </div>
+                            </div>
+                        </div>
+                        <div className="export-modal__footer">
+                            <button
+                                className="export-modal__export"
+                                onClick={handleExport}
+                                disabled={reportLoading || !exportSettings.startDate || !exportSettings.endDate}
+                            >
+                                <Download size={16} />
+                                {reportLoading ? 'Generating Report...' : 'Export'}
+                            </button>
+                        </div>
+                    </>
+                )}
+
+
             </div>
         </div>
+    );
+};
+
+// Main wrapper component with ErrorBoundary
+const ExportTransactionModal: React.FC<ExportModalProps> = ({ isOpen, onClose, onExport }) => {
+    if (!isOpen) return null;
+
+    return (
+        <ErrorBoundary
+            FallbackComponent={(props) => (
+                <ExportErrorFallback {...props} onClose={onClose} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Export Modal Error Boundary caught an error:', error, errorInfo);
+                toast.error('Export functionality encountered an error');
+            }}
+            onReset={() => {
+                logger.log('Export Modal Error Boundary reset');
+            }}
+        >
+            <ExportTransactionModalContent
+                isOpen={isOpen}
+                onClose={onClose}
+                onExport={onExport}
+            />
+        </ErrorBoundary>
     );
 };
 

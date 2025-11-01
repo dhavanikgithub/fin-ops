@@ -237,7 +237,10 @@ export const generateTransactionReport = createAsyncThunk<
             return response;
         } catch (error: any) {
             return rejectWithValue(
-                error.response?.data?.message || error.message || 'Failed to generate transaction report'
+                error.response?.data?.error?.message || 
+                error.response?.data?.message || 
+                error.message || 
+                'Failed to generate transaction report'
             );
         }
     }

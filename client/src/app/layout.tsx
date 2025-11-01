@@ -3,6 +3,8 @@ import "../styles/globals.scss"
 import ReduxProvider from "../components/ReduxProvider";
 import { HealthCheckProvider } from "../context/HealthCheckContext";
 import GlobalHealthCheckModal from "../components/GlobalHealthCheckModal";
+import ToastWrapper from "@/components/ToastWrapper";
+import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
   title: "FinOps",
@@ -17,12 +19,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ReduxProvider>
-          <HealthCheckProvider>
-            {children}
-            <GlobalHealthCheckModal />
-          </HealthCheckProvider>
-        </ReduxProvider>
+        <ThemeProvider>
+          <ToastWrapper>
+            <ReduxProvider>
+              <HealthCheckProvider>
+                {children}
+                <GlobalHealthCheckModal />
+              </HealthCheckProvider>
+            </ReduxProvider>
+          </ToastWrapper>
+        </ThemeProvider>
       </body>
     </html>
   );

@@ -7,6 +7,7 @@ import { Transaction } from '../../services/transactionService';
 import './TransactionTable.scss';
 import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transactionUtils';
 import { formatAmountWithSymbol, formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
+import toast from 'react-hot-toast';
 
 interface TableProps {
     selectedTransaction?: Transaction | null;
@@ -71,6 +72,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                     delete newState[id];
                     return newState;
                 });
+                toast.success('Transaction saved');
             }, 1000);
         });
 
@@ -97,6 +99,7 @@ const Table: React.FC<TableProps> = ({ selectedTransaction, onTransactionSelect 
                         newSet.delete(id);
                         return newSet;
                     });
+                    toast.success('Transaction deleted');
                 }, 400); // Match CSS animation duration
             }, 1000); // Wait 1 second to show delete status
         });

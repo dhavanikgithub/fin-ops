@@ -30,6 +30,7 @@ import DeleteTransactionConfirmModal from './DeleteTransactionConfirmModal';
 import './TransactionList.scss';
 import useStateWithRef from '@/hooks/useStateWithRef';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface TransactionListProps {
     onDeposit: () => void;
@@ -267,6 +268,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             }
         } catch (error) {
             logger.error(`Failed to delete transaction ${transactionId}:`, error);
+            toast.error('Failed to delete transaction.');
         } finally {
         }
     };
@@ -283,6 +285,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
             logger.log('Transaction updated successfully');
         } catch (error) {
             logger.error('Failed to update transaction:', error);
+            toast.error('Failed to update transaction.');
         } finally {
         }
     };

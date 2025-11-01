@@ -7,6 +7,7 @@ import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSl
 import { createTransaction } from '../../store/actions/transactionActions';
 import './AddDeposit.scss';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface AddDepositScreenProps {
     onCancel: () => void;
@@ -155,15 +156,16 @@ const AddDepositScreen: React.FC<AddDepositScreenProps> = ({ onCancel, onBackToT
             
             if (createTransaction.fulfilled.match(result)) {
                 logger.log('Deposit created successfully:', result.payload);
+                toast.success('Deposit created.');
                 // Navigate back to transactions list
                 onBackToTransactions();
             } else {
                 logger.error('Failed to create deposit:', result.payload);
-                alert(`Failed to create deposit: ${result.payload}`);
+                toast.error('Failed to create deposit.');
             }
         } catch (error) {
             logger.error('Error creating deposit:', error);
-            alert('An unexpected error occurred while creating the deposit');
+            toast.error('Failed to create deposit.');
         }
     };
 

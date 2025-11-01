@@ -16,6 +16,7 @@ import logger from '@/utils/logger';
 import { formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
 import { Check } from 'lucide-react';
 import finkedaSettingsService, { FinkedaSettings, UpdateFinkedaSettingsRequest } from '@/services/finkedaSettingsService';
+import toast from 'react-hot-toast';
 const CARD_TYPES = {
     RUPAY: 'Rupay',
     MASTER: 'Master'
@@ -67,6 +68,7 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
                 setSavedScenarios(parsedData);
             } catch (error) {
                 logger.error('Error parsing saved scenarios:', error);
+                toast.error('Error loading saved scenarios. Resetting to empty.');
                 setSavedScenarios([]);
             }
         }
@@ -103,6 +105,7 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(scenarios));
         } catch (error) {
             logger.error('Error saving scenarios to localStorage:', error);
+            toast.error('Failed to save scenarios.');
         }
     };
 
@@ -238,6 +241,7 @@ const FinkedaScreen: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
             logger.log('Settings updated successfully:', updatedSettings);
         } catch (error) {
             logger.error('Failed to update settings:', error);
+            toast.error('Failed to update settings.');
         } finally {
             setIsUpdatingSettings(false);
         }

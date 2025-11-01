@@ -10,6 +10,7 @@ import { Client } from '../../services/clientService';
 import { formatDateToMonthYear, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import useStateWithRef from '@/hooks/useStateWithRef';
 import logger from '@/utils/logger';
+import toast from 'react-hot-toast';
 
 interface ClientListProps {
     onNewClient: () => void;
@@ -96,6 +97,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
             }
         } catch (error) {
             logger.error('Failed to delete client:', error);
+            toast.error('Failed to delete client.');
         }
     };
 
@@ -124,6 +126,7 @@ const ClientList: React.FC<ClientListProps> = ({ onNewClient }) => {
             })).unwrap();
         } catch (error) {
             logger.error('Failed to update client:', error);
+            toast.error('Failed to update client.');
         }
     };
 
