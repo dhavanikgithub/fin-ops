@@ -1,7 +1,7 @@
 import { Pool, PoolClient, QueryResult, QueryResultRow } from 'pg';
 import dotenv from 'dotenv';
-import { getCurrentEnvironment } from '../config/environment';
-import { logger } from './logger'
+import { getCurrentEnvironment } from '../config/environment.js';
+import { logger } from './logger.js'
 dotenv.config();
 
 // Determine schema based on environment

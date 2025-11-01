@@ -1,9 +1,9 @@
 import { QueryResult } from 'pg';
-import { query } from '../../utils/db';
-import { CARD_QUERIES } from '../queries/cardQueries';
-import { Card, CardInput, CardUpdateInput, GetCardsInput, PaginatedCardResponse, CardAutocompleteInput, CardAutocompleteResponse, CardAutocompleteItem } from '../types/card';
-import { DatabaseError, NotFoundError } from '../../common/errors/index';
-import { logger } from '../../utils/logger'
+import { query } from '../../utils/db.js';
+import { CARD_QUERIES } from '../queries/cardQueries.js';
+import { Card, CardInput, CardUpdateInput, GetCardsInput, PaginatedCardResponse, CardAutocompleteInput, CardAutocompleteResponse, CardAutocompleteItem } from '../types/card.js';
+import { DatabaseError, NotFoundError } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js'
 
 /**
  * Database service for card operations

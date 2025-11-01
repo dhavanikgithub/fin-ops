@@ -5,20 +5,20 @@ import morgan from 'morgan';
 import dotenv from 'dotenv';
 
 // Import version-wise routes
-import v1Routes from './v1/routes/index';
-import v2Routes from './v2/routes/index';
+import v1Routes from './v1/routes/index.js';
+import v2Routes from './v2/routes/index.js';
 
 // Import controllers for non-versioned routes
-import { getApiInfo } from './v1/controllers/healthController';
+import { getApiInfo } from './v1/controllers/healthController.js';
 
 // Import error handling
-import { errorHandler, notFoundHandler } from './common/errors/index';
+import { errorHandler, notFoundHandler } from './common/errors/index.js';
 
 // Import centralized version management
-import { getCurrentVersion, getCurrentAppInfo } from './config/index';
+import { getCurrentVersion, getCurrentAppInfo } from './config/index.js';
 
 // Import TypeScript logger
-import { logger, closeAllLoggers } from './utils/logger';
+import { logger, closeAllLoggers } from './utils/logger.js';
 
 dotenv.config();
 

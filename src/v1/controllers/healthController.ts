@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import PACKAGE_CONFIG from '../../config/packageInfo';
+import PACKAGE_CONFIG from '../../config/packageInfo.js';
 
 export const getHealth = (req: Request, res: Response): void => {
     res.status(200).json({

@@ -1,9 +1,9 @@
 import { QueryResult } from 'pg';
-import { query } from '../../utils/db';
-import { CLIENT_QUERIES } from '../queries/clientQueries';
-import { Client, ClientInput, ClientUpdateInput, GetClientsInput, PaginatedClientResponse, ClientAutocompleteInput, ClientAutocompleteResponse, ClientAutocompleteItem } from '../types/client';
-import { DatabaseError, NotFoundError } from '../../common/errors/index';
-import { logger } from '../../utils/logger'
+import { query } from '../../utils/db.js';
+import { CLIENT_QUERIES } from '../queries/clientQueries.js';
+import { Client, ClientInput, ClientUpdateInput, GetClientsInput, PaginatedClientResponse, ClientAutocompleteInput, ClientAutocompleteResponse, ClientAutocompleteItem } from '../types/client.js';
+import { DatabaseError, NotFoundError } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js'
 
 /**
  * Database service for client operations

@@ -1,9 +1,9 @@
 import { QueryResult } from 'pg';
-import { query } from '../../utils/db';
-import { BANK_QUERIES } from '../queries/bankQueries';
-import { Bank, BankInput, BankUpdateInput, GetBanksInput, PaginatedBankResponse, BankAutocompleteInput, BankAutocompleteResponse, BankAutocompleteItem } from '../types/bank';
-import { DatabaseError, NotFoundError } from '../../common/errors/index';
-import { logger } from '../../utils/logger'
+import { query } from '../../utils/db.js';
+import { BANK_QUERIES } from '../queries/bankQueries.js';
+import { Bank, BankInput, BankUpdateInput, GetBanksInput, PaginatedBankResponse, BankAutocompleteInput, BankAutocompleteResponse, BankAutocompleteItem } from '../types/bank.js';
+import { DatabaseError, NotFoundError } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js'
 /**
  * Database service for bank operations
  */

@@ -1,9 +1,9 @@
 import { QueryResult } from 'pg';
-import { query } from '../../utils/db';
-import { TRANSACTION_QUERIES } from '../queries/transactionQueries';
-import { Transaction, TransactionInput, TransactionUpdateInput, GetTransactionsInput, PaginatedTransactionResponse, TransactionFilters, TransactionRecord } from '../types/transaction';
-import { DatabaseError, NotFoundError } from '../../common/errors/index';
-import { logger } from '../../utils/logger'
+import { query } from '../../utils/db.js';
+import { TRANSACTION_QUERIES } from '../queries/transactionQueries.js';
+import { Transaction, TransactionInput, TransactionUpdateInput, GetTransactionsInput, PaginatedTransactionResponse, TransactionFilters, TransactionRecord } from '../types/transaction.js';
+import { DatabaseError, NotFoundError } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js'
 
 /**
  * Database service for transaction operations

@@ -1,9 +1,9 @@
 import { QueryResult } from 'pg';
-import { query } from '../../utils/db';
-import { FINKEDA_SETTINGS_QUERIES } from '../queries/finkedaSettingsQueries';
-import { FinkedaSettings, FinkedaSettingsInput, FinkedaSettingsHistory, FinkedaSettingsHistoryInput } from '../types/finkedaSettings';
-import { DatabaseError, NotFoundError } from '../../common/errors/index';
-import { logger } from '../../utils/logger';
+import { query } from '../../utils/db.js';
+import { FINKEDA_SETTINGS_QUERIES } from '../queries/finkedaSettingsQueries.js';
+import { FinkedaSettings, FinkedaSettingsInput, FinkedaSettingsHistory, FinkedaSettingsHistoryInput } from '../types/finkedaSettings.js';
+import { DatabaseError, NotFoundError } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Database service for finkeda settings operations

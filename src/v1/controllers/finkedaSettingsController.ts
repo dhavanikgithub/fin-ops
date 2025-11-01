@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { FinkedaSettingsService } from '../services/finkedaSettingsService';
-import { FinkedaSettingsInput } from '../types/finkedaSettings';
-import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, asyncHandler } from '../../common/errors/index';
+import { FinkedaSettingsService } from '../services/finkedaSettingsService.js';
+import { FinkedaSettingsInput } from '../types/finkedaSettings.js';
+import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat.js';
+import { ValidationError, asyncHandler } from '../../common/errors/index.js';
 
 /**
  * Controller for finkeda settings operations

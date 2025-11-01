@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { CardService } from '../services/cardService';
-import { CardInput, CardUpdateInput, DeleteCardInput, GetCardsInput } from '../types/card';
-import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, asyncHandler } from '../../common/errors/index';
+import { CardService } from '../services/cardService.js';
+import { CardInput, CardUpdateInput, DeleteCardInput, GetCardsInput } from '../types/card.js';
+import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat.js';
+import { ValidationError, asyncHandler } from '../../common/errors/index.js';
 
 /**
  * Controller for card operations

@@ -1,4 +1,4 @@
-import PACKAGE_CONFIG from './packageInfo';
+import PACKAGE_CONFIG from './packageInfo.js';
 
 /**
  * Version Management Utility

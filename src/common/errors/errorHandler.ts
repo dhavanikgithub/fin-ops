@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { CustomError } from './CustomError';
+import { CustomError } from './CustomError.js';
 import { isStaging } from "../../config/environment.js";
-import { logger } from '../../utils/logger'
+import { logger } from '../../utils/logger.js'
 // Error handler middleware
 export const errorHandler = (
     err: Error | CustomError,

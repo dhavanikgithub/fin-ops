@@ -1,8 +1,8 @@
 import { readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { getCurrentEnvironment } from './environment';
-import { getApiVersionsConfig } from './apiVersionScanner';
+import { getCurrentEnvironment } from './environment.js';
+import { getApiVersionsConfig } from './apiVersionScanner.js';
 
 // Get current directory for ES modules
 const __filename = fileURLToPath(import.meta.url);

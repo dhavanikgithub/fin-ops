@@ -1,10 +1,10 @@
 import express from 'express';
-import healthRoute from './healthRoute';
-import bankRoute from './bankRoute';
-import cardRoute from './cardRoute';
-import clientRoute from './clientRoute';
-import transactionRoute from './transactionRoute';
-import finkedaSettingsRoute from './finkedaSettingsRoute';
+import healthRoute from './healthRoute.js';
+import bankRoute from './bankRoute.js';
+import cardRoute from './cardRoute.js';
+import clientRoute from './clientRoute.js';
+import transactionRoute from './transactionRoute.js';
+import finkedaSettingsRoute from './finkedaSettingsRoute.js';
 
 const router = express.Router();
 

@@ -1,15 +1,15 @@
 import { Request, Response } from 'express';
-import { TransactionService } from '../services/transactionService';
-import { TransactionInput, TransactionUpdateInput, DeleteTransactionInput, GetTransactionsInput } from '../types/transaction';
+import { TransactionService } from '../services/transactionService.js';
+import { TransactionInput, TransactionUpdateInput, DeleteTransactionInput, GetTransactionsInput } from '../types/transaction.js';
 import { 
     ReportRequestBody, 
     TransactionRecord, 
     GroupedData, 
     ReportData,
     TransactionReportData 
-} from '../types/transaction';
-import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, PDFGenerationError, asyncHandler } from '../../common/errors/index';
+} from '../types/transaction.js';
+import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat.js';
+import { ValidationError, PDFGenerationError, asyncHandler } from '../../common/errors/index.js';
 import { 
     formatAmount, 
     formatDate, 
@@ -17,11 +17,11 @@ import {
     getTransactionTypeStr, 
     isTransactionTypeDeposit, 
     isTransactionTypeWidthdraw 
-} from '../../utils/helper';
-import TransactionReportPDF from '../pdf-template/transactionReportPDF';
+} from '../../utils/helper.js';
+import TransactionReportPDF from '../pdf-template/transactionReportPDF.js';
 import fs from 'fs';
 import path from 'path';
-import { logger } from '../../utils/logger';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Controller for transaction operations

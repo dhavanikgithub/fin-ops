@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { BankService } from '../services/bankService';
-import { BankInput, BankUpdateInput, DeleteBankInput, GetBanksInput } from '../types/bank';
-import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, asyncHandler } from '../../common/errors/index';
+import { BankService } from '../services/bankService.js';
+import { BankInput, BankUpdateInput, DeleteBankInput, GetBanksInput } from '../types/bank.js';
+import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat.js';
+import { ValidationError, asyncHandler } from '../../common/errors/index.js';
 
 /**
  * Controller for bank operations

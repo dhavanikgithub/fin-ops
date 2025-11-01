@@ -1,5 +1,5 @@
 {
-  "name": "new-ui-backend",
+  "name": "fin-ops-server",
   "version": "1.0.0",
   "type": "module",
   "main": "dist/server.js",
@@ -7,16 +7,13 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "nodemon",
-    "dev:watch": "nodemon",
     "clean": "rimraf dist",
-    "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:logger": "node --loader ts-node/esm src/test-logger.ts"
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "Dhavanik",
   "license": "ISC",
-  "description": "Backend API for Finance Inventory",
+  "description": "Backend API for FinOps application",
   "dependencies": {
     "@types/pdfkit": "^0.17.3",
     "@types/pg": "^8.15.5",

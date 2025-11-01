@@ -1,4 +1,4 @@
-import { CustomError } from './CustomError';
+import { CustomError } from './CustomError.js';
 
 // 400 - Bad Request
 export class BadRequestError extends CustomError {

@@ -1,5 +1,5 @@
 import express from 'express';
-import { FinkedaSettingsController } from '../controllers/finkedaSettingsController';
+import { FinkedaSettingsController } from '../controllers/finkedaSettingsController.js';
 
 const router = express.Router();
 

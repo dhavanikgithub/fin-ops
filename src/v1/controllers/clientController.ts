@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
-import { ClientService } from '../services/clientService';
-import { ClientInput, ClientUpdateInput, DeleteClientInput, GetClientsInput, isValidEmail, isValidContact } from '../types/client';
-import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat';
-import { ValidationError, asyncHandler } from '../../common/errors/index';
+import { ClientService } from '../services/clientService.js';
+import { ClientInput, ClientUpdateInput, DeleteClientInput, GetClientsInput, isValidEmail, isValidContact } from '../types/client.js';
+import { createSuccessResponse, RESPONSE_MESSAGES, SUCCESS_CODES } from '../../common/utils/responseFormat.js';
+import { ValidationError, asyncHandler } from '../../common/errors/index.js';
 
 /**
  * Controller for client operations

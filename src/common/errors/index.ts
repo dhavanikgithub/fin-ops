@@ -1,7 +1,7 @@
 // Export base error classes
-export * from './CustomError';
-export * from './HttpErrors';
-export * from './errorHandler';
+export * from './CustomError.js';
+export * from './HttpErrors.js';
+export * from './errorHandler.js';
 
 // Re-export commonly used errors for convenience
 export {
@@ -16,10 +16,10 @@ export {
     AuthenticationError,
     BusinessLogicError,
     PDFGenerationError
-} from './HttpErrors';
+} from './HttpErrors.js';
 
 export {
     errorHandler,
     notFoundHandler,
     asyncHandler
-} from './errorHandler';
+} from './errorHandler.js';
