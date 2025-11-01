@@ -1,0 +1,232 @@
+@use '../../styles/Main.scss';
+
+.ac__form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 4px;
+}
+
+.ac__field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    background: var(--secondary);
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    font-family: var(--font-family-body);
+}
+
+.ac__label {
+    font-size: 13px;
+    color: var(--secondary-foreground);
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.ac__input {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    font-family: var(--font-family-body);
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(11, 153, 255, 0.1);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+
+    &:disabled {
+        background: var(--muted);
+        color: var(--muted-foreground);
+        cursor: not-allowed;
+        opacity: 0.7;
+    }
+}
+
+.ac__textarea {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    font-family: var(--font-family-body);
+    min-height: 120px;
+    resize: vertical;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+    &:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(11, 153, 255, 0.1);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+}
+
+.ac__hint {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-family: var(--font-family-body);
+}
+
+// Side panel styles
+.ac__side {
+    width: 280px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    height: fit-content;
+}
+
+.ac__side-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--foreground);
+    font-family: var(--font-family-body);
+}
+
+.ac__summary {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.ac__kpi {
+    background: var(--card);
+    color: var(--card-foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 10px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ac__kpi-label {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-family: var(--font-family-body);
+}
+
+.ac__kpi-value {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--foreground);
+    font-family: var(--font-family-body);
+}
+
+.ac__note {
+    font-size: 12px;
+    color: var(--muted-foreground);
+    font-family: var(--font-family-body);
+    line-height: 1.4;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .main__content {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ac__side {
+        width: 100%;
+        order: -1;
+    }
+
+    .ac__summary {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .ac__kpi {
+        padding: 8px 10px;
+    }
+
+    .ac__form {
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .ac__field {
+        padding: 12px;
+        gap: 6px;
+    }
+}
+
+// Error and validation styles
+.ac__input--error {
+    border-color: var(--destructive);
+    
+    &:focus {
+        border-color: var(--destructive);
+        box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    }
+}
+
+.ac__error {
+    color: var(--destructive);
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.ac__error-message {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+// Disabled states
+.ac__input:disabled,
+.ac__textarea:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.main__button--disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+// Spinner styles
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

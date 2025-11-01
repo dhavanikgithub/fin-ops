@@ -1,0 +1,294 @@
+// Smooth transitions for theme switching
+* {
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+// CSS Custom Properties for theming
+:root {
+    // Light theme (default)
+    --background: #ffffff;
+    --foreground: #0f1724;
+    --border: #e6eefb;
+    --input: #f7fbff;
+    --primary: #0B99FF;
+    --primary-foreground: #ffffff;
+    --secondary: #E9F6FF;
+    --secondary-foreground: #0B99FF;
+    --muted: #F1F5F9;
+    --muted-foreground: #667085;
+    --success: #16A34A;
+    --success-foreground: #DCFCE7;
+    --accent: #0B99FF;
+    --accent-foreground: #ffffff;
+    --destructive: #DC2626;
+    --destructive-foreground: #FEE2E2;
+    --warning: #ff7308;
+    --warning-foreground: #ffffff;
+    --card: #fbfcfe;
+    --card-foreground: #0f1724;
+    --sidebar: #ffffff;
+    --sidebar-foreground: #475569;
+    --sidebar-primary: #eef6ff;
+    --sidebar-primary-foreground: #0B99FF;
+
+     /* Focus and Shadow Colors */
+    --box-shadow-table-wrap: #0000001a;
+
+    // Border radius
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 24px;
+
+    // Font family
+    --font-family-body: 'Inter', 'Inter Fallback', sans-serif;
+
+    // Brand gradient colors (light theme optimized)
+    --brand-gradient-1: #42F2FE;
+    --brand-gradient-2: #0B99FF;
+    --brand-gradient: linear-gradient(
+        135deg, 
+        var(--brand-gradient-1) 0%, 
+        var(--brand-gradient-2) 50%
+    );
+
+    /* ==================== DATE PICKER VARIABLES ==================== */
+    /* Primary Colors */
+    --dp-primary-color: var(--primary);
+    --dp-primary-hover: #0056b3;
+    --dp-primary-light: var(--secondary);
+    --dp-primary-foreground: var(--primary-foreground);
+
+    /* Background Colors */
+    --dp-bg-primary: var(--background);
+    --dp-bg-secondary: var(--muted);
+    --dp-bg-card: var(--card);
+    --dp-bg-hover: #e9ecef;
+    --dp-bg-dropdown-hover: #adb5bd;
+    --dp-bg-button-hover: var(--muted);
+    --dp-bg-time-input: var(--input);
+    --dp-bg-focus-year-dropdown: #007bff;
+
+    /* Text Colors */
+    --dp-text-primary: var(--foreground);
+    --dp-text-secondary: var(--muted-foreground);
+    --dp-text-muted: #999999;
+    --dp-text-light: #cccccc;
+    --dp-text-white: var(--primary-foreground);
+    --dp-text-weekday: var(--muted-foreground);
+    --dp-text-disabled-icon: #cccccc;
+
+    /* Border Colors */
+    --dp-border-color: var(--border);
+    --dp-border-light: var(--border);
+    --dp-border-focus: var(--primary);
+    --dp-calendar-border-top: var(--border);
+
+    /* Status Colors */
+    --dp-success-color: var(--success);
+    --dp-success-foreground: var(--success-foreground);
+    --dp-danger-color: var(--destructive);
+    --dp-danger-foreground: var(--destructive-foreground);
+    --dp-warning-color: var(--warning);
+    --dp-warning-foreground: var(--warning-foreground);
+
+    /* Footer Button Colors */
+    --dp-footer-button-border: var(--border);
+    --dp-footer-button-text: var(--muted-foreground);
+    --dp-footer-button-bg-hover: var(--muted);
+    --dp-footer-button-border-hover: #adb5bd;
+    --dp-footer-button-text-hover: var(--foreground);
+
+    /* Interactive States */
+    --dp-today-bg: var(--secondary);
+    --dp-selected-bg: var(--primary);
+    --dp-selected-hover: #0056b3;
+    --dp-range-bg: var(--secondary);
+    --dp-range-text: var(--secondary-foreground);
+
+    /* Disabled Day Variations */
+    --dp-disabled-weekend-bg: #fff3cd;
+    --dp-disabled-weekend-text: #856404;
+    --dp-disabled-past-bg: #f8d7da;
+    --dp-disabled-past-text: #721c24;
+    --dp-disabled-future-bg: #d1ecf1;
+    --dp-disabled-future-text: #0c5460;
+    --dp-disabled-custom-bg: #e2e3e5;
+    --dp-disabled-custom-text: #383d41;
+    --dp-disabled-strike-color: var(--destructive);
+
+    /* Form Elements */
+    --dp-dropdown-border: var(--border);
+    --dp-dropdown-border-hover: #718096;
+    --dp-dropdown-border-focus: var(--primary);
+    --dp-dropdown-focus-shadow: rgba(11, 153, 255, 0.25);
+
+    /* Buttons */
+    --dp-apply-btn-bg: var(--primary);
+    --dp-apply-btn-hover: #0056b3;
+    --dp-cancel-btn-bg: var(--muted-foreground);
+    --dp-cancel-btn-hover: #545b62;
+
+    /* Focus and Shadow Colors */
+    --dp-focus-outline-color: var(--primary);
+    --dp-box-shadow-color: rgba(0, 0, 0, 0.1);
+    --dp-box-shadow-md-color: rgba(0, 0, 0, 0.15);
+    --dp-box-shadow-focus-color: rgba(11, 153, 255, 0.25);
+    --dp-cancel-btn-shadow-color: rgba(108, 117, 125, 0.25);
+    --dp-fade-in-shadow-color: rgba(0, 0, 0, 0.1);
+
+    /* ==================== DATE PICKER LAYOUT & SIZING VARIABLES ==================== */
+
+    /* Spacing */
+    --dp-spacing-xs: 4px;
+    --dp-spacing-sm: 8px;
+    --dp-spacing-md: 12px;
+    --dp-spacing-lg: 16px;
+    --dp-spacing-xl: 20px;
+    --dp-spacing-xxl: 24px;
+
+    /* Font Sizes */
+    --dp-font-size-xs: 12px;
+    --dp-font-size-sm: 13px;
+    --dp-font-size-base: 14px;
+    --dp-font-size-lg: 16px;
+    --dp-font-size-xl: 18px;
+
+    /* Component Sizes */
+    --dp-day-size: 36px;
+    --dp-button-height: 32px;
+    --dp-input-height: 40px;
+    --dp-container-min-width: 280px;
+
+    /* Border Radius */
+    --dp-border-radius-sm: var(--radius-sm);
+    --dp-border-radius-md: var(--radius-md);
+    --dp-border-radius-lg: var(--radius-lg);
+    --dp-border-radius-round: 50%;
+
+    /* Shadows */
+    --dp-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --dp-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --dp-shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.15);
+    --dp-shadow-focus: 0 0 0 2px rgba(11, 153, 255, 0.25);
+    --dp-box-shadow-focus-year-dropdown: rgba(0, 123, 255, 0.25);
+
+    /* Transitions */
+    --dp-transition-fast: 0.15s ease;
+    --dp-transition-base: 0.2s ease;
+    --dp-transition-slow: 0.3s ease;
+
+    /* Z-Index */
+    --dp-z-index-dropdown: 1000;
+    --dp-z-index-popup: 9999;
+
+    /* Font Family */
+    --dp-font-family: var(--font-family-body);
+    /* ==================== END DATE PICKER VARIABLES ==================== */
+}
+
+// Dark theme
+[data-theme="dark"] {
+    --background: #0f1724;
+    --foreground: #ffffff;
+    --border: #273446;
+    --input: #1e293b;
+    --primary: #0B99FF;
+    --primary-foreground: #ffffff;
+    --secondary: #1e2a38;
+    --secondary-foreground: #60a5fa;
+    --muted: #1f2937;
+    --muted-foreground: #94a3b8;
+    --success: #46A758;
+    --success-foreground: #16301D;
+    --accent: #0B99FF;
+    --accent-foreground: #ffffff;
+    --destructive: #E5484D;
+    --destructive-foreground: #481A1D;
+    --warning: #f97316;
+    --warning-foreground: #ffe4b5;
+    --card: #1a2332;
+    --card-foreground: #ffffff;
+    --sidebar: #1e293b;
+    --sidebar-foreground: #cbd5e1;
+    --sidebar-primary: #334155;
+    --sidebar-primary-foreground: #38bdf8;
+
+     // Brand gradient colors (light theme optimized)
+    --brand-gradient-1: #42F2FE;
+    --brand-gradient-2: #0B99FF;
+    --brand-gradient: linear-gradient(
+        135deg, 
+        var(--brand-gradient-1) 0%, 
+        var(--brand-gradient-2) 50%
+    );
+    
+
+    /* ==================== DATE PICKER VARIABLES ==================== */
+    /* Background Colors */
+    --dp-bg-primary: var(--background);
+    --dp-bg-secondary: var(--muted);
+    --dp-bg-card: var(--card);
+    --dp-bg-hover: #4a5568;
+    --dp-bg-dropdown-hover: #718096;
+    --dp-bg-button-hover: var(--muted);
+    --dp-bg-time-input: var(--input);
+
+    /* Text Colors */
+    --dp-text-primary: var(--foreground);
+    --dp-text-secondary: var(--muted-foreground);
+    --dp-text-muted: #718096;
+    --dp-text-light: #cccccc;
+    --dp-text-weekday: var(--muted-foreground);
+    --dp-text-disabled-icon: #718096;
+
+    /* Border Colors */
+    --dp-border-color: var(--border);
+    --dp-border-light: var(--border);
+    --dp-border-focus: var(--primary);
+    --dp-calendar-border-top: var(--border);
+
+    /* Interactive States */
+    --dp-today-bg: #2b6cb0;
+    --dp-selected-bg: var(--primary);
+    --dp-selected-hover: #2c5282;
+    --dp-range-bg: var(--secondary);
+    --dp-range-text: var(--secondary-foreground);
+
+    /* Footer Button Colors */
+    --dp-footer-button-border: var(--border);
+    --dp-footer-button-text: var(--muted-foreground);
+    --dp-footer-button-bg-hover: var(--muted);
+    --dp-footer-button-border-hover: #718096;
+    --dp-footer-button-text-hover: var(--foreground);
+
+    /* Disabled Day Variations */
+    --dp-disabled-weekend-bg: #744210;
+    --dp-disabled-weekend-text: #fef3c7;
+    --dp-disabled-past-bg: #7f1d1d;
+    --dp-disabled-past-text: #fecaca;
+    --dp-disabled-future-bg: #164e63;
+    --dp-disabled-future-text: #a7f3d0;
+    --dp-disabled-custom-bg: #374151;
+    --dp-disabled-custom-text: #d1d5db;
+
+    /* Form Elements */
+    --dp-dropdown-border: var(--border);
+    --dp-dropdown-border-hover: #718096;
+    --dp-dropdown-border-focus: var(--primary);
+    --dp-dropdown-focus-shadow: rgba(11, 153, 255, 0.25);
+
+    /* Buttons */
+    --dp-apply-btn-bg: var(--primary);
+    --dp-apply-btn-hover: #2c5282;
+    --dp-cancel-btn-bg: #718096;
+    --dp-cancel-btn-hover: #4a5568;
+
+    /* Focus and Shadow Colors */
+    --dp-focus-outline-color: var(--primary);
+    --dp-box-shadow-color: rgba(0, 0, 0, 0.3);
+    --dp-box-shadow-md-color: rgba(0, 0, 0, 0.4);
+    --dp-box-shadow-focus-color: rgba(11, 153, 255, 0.25);
+    /* ==================== END DATE PICKER VARIABLES ==================== */
+}
+

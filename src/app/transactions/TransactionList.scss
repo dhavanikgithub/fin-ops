@@ -1,0 +1,408 @@
+/* Transaction List Styles */
+
+.main__subtitle {
+    font-size: 14px;
+    color: var(--muted-foreground);
+    font-weight: normal;
+}
+
+.main__search-row {
+    position: relative;
+    
+    .main__search-loading {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        font-size: 12px;
+        color: var(--muted-foreground);
+        pointer-events: none;
+    }
+}
+
+.main__input {
+    &:focus + .main__search-loading {
+        display: none;
+    }
+}
+
+.main__filter-badge {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 4px;
+    min-width: 16px;
+    text-align: center;
+    line-height: 1.2;
+}
+
+.main__icon-button--active {
+    background: var(--primary);
+    color: var(--primary-foreground);
+    
+    &:hover {
+        background: var(--primary);
+        opacity: 0.9;
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Loading states */
+.main__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: var(--muted-foreground);
+}
+
+.main__empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 40px;
+    text-align: center;
+    color: var(--muted-foreground);
+    
+    h3 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+    
+    p {
+        margin: 0;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+}
+
+/* Transaction detail panel styles */
+.detail__header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: start;
+    margin-bottom: 10px;
+}
+
+.detail__header-column {
+    &--icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    &--content {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0; /* Allow text to wrap/truncate */
+    }
+}
+
+.detail__header-row {
+    display: flex;
+    align-items: center;
+}
+
+.transaction__icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    
+    &--deposit {
+        background: var(--success-light, #dcfce7);
+        color: var(--success, #16a34a);
+    }
+    
+    &--withdraw {
+        background: var(--destructive-light, #fef2f2);
+        color: var(--destructive, #dc2626);
+    }
+}
+
+.transaction-edit {
+    &__title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--foreground);
+    }
+    
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+}
+
+// Form field styles (matching client list)
+.label {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.control {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--primary);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+
+    /* Hide number input spinners/increment-decrement buttons */
+    &[type="number"] {
+        appearance: textfield; /* Standard property */
+        -moz-appearance: textfield; /* Firefox */
+        
+        &::-webkit-outer-spin-button,
+        &::-webkit-inner-spin-button {
+            -webkit-appearance: none; /* Chrome, Safari, Edge */
+            margin: 0;
+        }
+    }
+}
+
+.label + .control {
+    margin-top: 4px;
+}
+
+.inline-actions {
+    display: inline-flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.main__secondary-button {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 10px 14px;
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-body);
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// Radio button group styling (matching TransactionFilterModal style)
+.filter-modal__pills {
+    display: flex;
+    gap: 12px;
+
+    .filter-modal__pill-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--foreground);
+        transition:
+            background 0.18s,
+            border-color 0.18s,
+            color 0.18s;
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        .filter-modal__custom-checkbox {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--muted-foreground);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--card);
+            transition: border-color 0.2s;
+            margin-right: 2px;
+
+            svg {
+                display: none;
+                width: 14px;
+                height: 14px;
+                color: var(--primary-foreground);
+                flex-shrink: 0;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+            }
+        }
+
+        input[type="radio"]:checked + .filter-modal__custom-checkbox {
+            border-color: var(--primary);
+            background: var(--primary);
+
+            svg {
+                display: block;
+            }
+        }
+
+        // Keep text color same in both states
+        span {
+            color: var(--foreground);
+        }
+
+        &:hover {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+    }
+}
+
+// Remove old radio button styling since we're now using the filter modal style
+.control-radio-group {
+    display: none; // Hide if any legacy usage exists
+}
+
+// Spinner styles for toast notifications
+.spinner-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Processing overlay styles for detail panel
+.detail__processing-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    backdrop-filter: blur(1px);
+    -webkit-backdrop-filter: blur(2px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    min-height: 100%;
+}
+
+.detail__processing-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 32px 24px;
+    max-width: 280px;
+    text-align: center;
+}
+
+.detail__processing-spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--muted);
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: detail-processing-spin 1s linear infinite;
+    margin-bottom: 4px;
+}
+
+.detail__processing-message {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--foreground);
+    text-align: center;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+}
+
+@keyframes detail-processing-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+// Ensure detail panel has relative positioning for overlay
+.detail {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+}
+
+// Better centering for smaller screens
+@media (max-width: 768px) {
+    .detail__processing-content {
+        padding: 24px 20px;
+        max-width: 240px;
+    }
+    
+    .detail__processing-spinner {
+        width: 36px;
+        height: 36px;
+        border-width: 3px;
+    }
+    
+    .detail__processing-message {
+        font-size: 14px;
+    }
+}

@@ -1,0 +1,359 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            /* Dark backdrop to simulate modal */
+            .app {
+                min-height: 644px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 24px;
+            }
+
+            .modal {
+                width: 680px;
+                background: var(--card);
+                color: var(--card-foreground);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .modal-header {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .modal-title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .modal-body {
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                background: var(--card);
+            }
+
+            .section {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                border-radius: var(--radius-md);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .section .row {
+                display: flex;
+                gap: 12px;
+                align-items: center;
+            }
+
+            .label {
+                width: 140px;
+                font-size: 14px;
+                color: var(--secondary-foreground);
+                font-weight: 500;
+            }
+
+            .input {
+                flex: 1;
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+
+            .chips {
+                display: flex;
+                gap: 8px;
+                flex-wrap: wrap;
+            }
+
+            .chip {
+                background: var(--card);
+                color: var(--card-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+                border: 1px solid var(--border);
+            }
+
+            .pills {
+                display: flex;
+                gap: 8px;
+            }
+
+            .pill {
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                border: 1px solid var(--border);
+                background: var(--card);
+                color: var(--card-foreground);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .pill[data-active="true"] {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                border-color: transparent;
+            }
+
+            .modal-footer {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 16px 20px;
+                border-top: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .footer-left {
+                color: var(--muted-foreground);
+                font-size: 13px;
+            }
+
+            .actions {
+                display: inline-flex;
+                gap: 8px;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .row-split {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            /* Deposit/Withdraw indicator legend */
+            .legend {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+                color: var(--muted-foreground);
+                font-size: 13px;
+            }
+
+            .legend .tag {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+            }
+
+            .legend .tag .iconify-icon[data-type="deposit"] {
+                color: var(--success-foreground);
+            }
+
+            .legend .tag .iconify-icon[data-type="withdraw"] {
+                color: var(--destructive-foreground);
+            }
+
+            /* Multi-select tokens within inputs */
+            .multi {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                flex: 1;
+            }
+
+            .multi .input {
+                min-height: 40px;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                flex-wrap: wrap;
+            }
+
+            .token {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+                background: var(--card);
+                color: var(--card-foreground);
+                border: 1px solid var(--border);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            .token .iconify-icon {
+                font-size: 6px;
+                color: var(--muted-foreground);
+            }
+
+            .placeholder {
+                color: var(--muted-foreground);
+            }
+
+            .group-label {
+                font-size: 12px;
+                color: var(--muted-foreground);
+                margin-bottom: 4px;
+                font-weight: 500;
+            }
+        </style>
+        <div class="app">
+            <div class="modal">
+                <div class="modal-header">
+                    <div class="modal-title">Filter Transactions</div>
+                    <div class="icon-button" data-media-type="banani-button">
+                        <i class="iconify-icon" data-lucide="x"></i> Close
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <div class="section">
+                        <!-- Search row removed per request -->
+                        <div class="row">
+                            <div class="label">Type</div>
+                            <div class="pills">
+                                <div class="token">
+                                    <i class="iconify-icon" data-lucide="arrow-down-left" data-type="deposit"></i> Deposit
+                                </div>
+                                <div class="token">
+                                    <i class="iconify-icon" data-lucide="arrow-up-right" data-type="withdraw"></i> Withdraw
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">Amount</div>
+                            <div class="row-split">
+                                <div class="input">Min amount</div>
+                                <div class="input">Max amount</div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="label">Date</div>
+                            <div class="row-split">
+                                <div class="input">Start date</div>
+                                <div class="input">End date</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <div class="row" style="align-items: flex-start;">
+                            <div class="label">Bank</div>
+                            <div class="multi">
+                                <div class="input">
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="banknote"></i> HDFC Bank
+                                    </div>
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="banknote"></i> Axis Bank
+                                    </div>
+                                    <div class="placeholder">Add banks...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="align-items: flex-start;">
+                            <div class="label">Card</div>
+                            <div class="multi">
+                                <div class="input">
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="credit-card"></i> VISA
+                                    </div>
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="credit-card"></i> Mastercard
+                                    </div>
+                                    <div class="placeholder">Add cards...</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row" style="align-items: flex-start;">
+                            <div class="label">Client</div>
+                            <div class="multi">
+                                <div class="input">
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="user"></i> Alice Cooper
+                                    </div>
+                                    <div class="token">
+                                        <i class="iconify-icon" data-lucide="user"></i> Rahul S.3
+                                    </div>
+                                    <div class="placeholder">Add clients...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                </div>
+
+                <div class="modal-footer">
+                    <div class="footer-left">Clear current filters</div>
+                    <div class="actions">
+                        <div class="icon-button" data-media-type="banani-button"><i
+                                class="iconify-icon" data-lucide="rotate-ccw"></i> Reset</div>
+                        <div class="button" data-media-type="banani-button"><i
+                                class="iconify-icon" data-lucide="filter"></i> Apply Filters</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

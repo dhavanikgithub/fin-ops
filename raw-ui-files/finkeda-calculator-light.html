@@ -1,0 +1,582 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .search-row {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-width: 220px;
+            }
+
+            .chips {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .chip {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 8px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 13px;
+                font-weight: 500;
+            }
+
+            actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .two-col {
+                display: grid;
+                grid-template-columns: 1.1fr 0.9fr;
+                gap: 16px;
+            }
+
+            .card {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .card .card-title {
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .form-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+
+            .label {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .field {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            .control {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+
+            .inline {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .helper {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+
+            .summary {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .summary-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                font-size: 14px;
+            }
+
+            .summary-row[data-accent="true"] {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                font-weight: 600;
+            }
+
+            .badge {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .legend {
+                display: inline-flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .legend .pill {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .divider {
+                height: 1px;
+                background: var(--border);
+            }
+
+            .table-wrap {
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                overflow: hidden;
+            }
+
+            .table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+
+            .table th,
+            .table td {
+                text-align: left;
+                padding: 12px;
+                border-bottom: 1px solid var(--border);
+                font-size: 14px;
+            }
+
+            .table th {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                font-weight: 600;
+            }
+
+            .row-actions {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 8px;
+                border-radius: var(--radius-xl);
+            }
+
+            .amount {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+            }
+
+            .amount .amt {
+                font-weight: 600;
+            }
+
+            .amount[data-type="deposit"] i {
+                color: var(--success-foreground);
+            }
+
+            .amount[data-type="withdraw"] i {
+                color: var(--destructive-foreground);
+            }
+
+            .method-bank {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .method-bank .pill {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .sep {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                color: var(--muted-foreground);
+            }
+
+            .time {
+                color: var(--muted-foreground);
+                font-size: 13px;
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="users"></i>
+                        Clients</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="landmark"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="calculator"></i> Charge Calculator</div>
+                    <div class="item" data-active="true" data-media-type="banani-button"><i
+                            data-lucide="percent"></i> Finkeda Calculator</div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Finkeda Calculator</div>
+                    <div class="right">
+                        <div class="icon-button" data-media-type="banani-button"><i
+                                data-lucide="refresh-ccw"></i> Reset</div>
+                        <div class="button" data-media-type="banani-button"><i
+                                data-lucide="save"></i> Save Quote</div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="title-row">
+                            <div class="title"><i data-lucide="percent"></i> Configure Calculation
+                            </div>
+                            <div class="legend">
+                                <div class="pill"><i data-lucide="arrow-down-circle"></i> Deposit
+                                </div>
+                                <div class="pill"><i data-lucide="arrow-up-circle"></i> Withdraw
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="two-col">
+                            <div class="card">
+                                <div class="card-title">Inputs</div>
+                                <div class="form-row">
+                                    <div class="field">
+                                        <div class="label">Client</div>
+                                        <div class="control">Select client</div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="label">Bank • Card</div>
+                                        <div class="control">Choose bank • card</div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="field">
+                                        <div class="label">Transaction Type</div>
+                                        <div class="inline">
+                                            <div class="control" style="flex:1;">Deposit</div>
+                                            <div class="control" style="flex:1;">Withdraw</div>
+                                        </div>
+                                        <div class="helper">Pick one to apply proper charges.</div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="label">Amount</div>
+                                        <div class="control">₹ Enter amount</div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="field">
+                                        <div class="label">Finkeda Fee (%)</div>
+                                        <div class="control">Enter %</div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="label">Fixed Charge</div>
+                                        <div class="control">₹ Fixed charge</div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="field">
+                                        <div class="label">Tax (%)</div>
+                                        <div class="control">Enter %</div>
+                                    </div>
+                                    <div class="field">
+                                        <div class="label">Discount/Promo</div>
+                                        <div class="control">₹ Optional</div>
+                                    </div>
+                                </div>
+                                <div class="inline" style="justify-content:flex-end; gap:8px;">
+                                    <div class="icon-button" data-media-type="banani-button"><i
+                                            data-lucide="sliders-horizontal"></i> Advanced</div>
+                                    <div class="button" data-media-type="banani-button"><i
+                                            data-lucide="calculator"></i> Calculate</div>
+                                </div>
+                            </div>
+
+                            <div class="card">
+                                <div class="card-title">Summary</div>
+                                <div class="summary">
+                                    <div class="summary-row"><span>Base Amount</span><span>₹ 0.00</span></div>
+                                    <div class="summary-row"><span>Finkeda Fee</span><span>₹ 0.00</span></div>
+                                    <div class="summary-row"><span>Fixed Charge</span><span>₹ 0.00</span></div>
+                                    <div class="summary-row"><span>Tax</span><span>₹ 0.00</span></div>
+                                    <div class="summary-row"><span>Discount</span><span>- ₹ 0.00</span></div>
+                                    <div class="divider"></div>
+                                    <div class="summary-row" data-accent="true"><span>Net Payable</span><span>₹
+                                            0.00</span></div>
+                                    <div class="summary-row"><span>Payout To Client</span><span>₹ 0.00</span></div>
+                                </div>
+                                <div class="inline" style="justify-content: space-between; margin-top: 8px;">
+                                    <div class="badge">Auto-updates on Calculate</div>
+                                    <div class="icon-button" data-media-type="banani-button"><i
+                                            data-lucide="file-text"></i> Export as PDF</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-title">Recent Calculations</div>
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Client</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Fee</th>
+                                            <th>Net</th>
+                                            <th>Date &amp; Time</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Akash Patel</td>
+                                            <td>
+                                                <div class="amount" data-type="deposit">
+                                                    <i data-lucide="arrow-down-circle"></i>
+                                                    <span class="amt">Deposit</span>
+                                                </div>
+                                            </td>
+                                            <td>₹ 24,500</td>
+                                            <td>₹ 735</td>
+                                            <td>₹ 23,765</td>
+                                            <td>Sep 02, 2025 <span class="time">• 02:20 PM</span></td>
+                                            <td>
+                                                <div class="row-actions" data-media-type="banani-button"><i
+                                                        data-lucide="eye"></i> View</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Jia Lee</td>
+                                            <td>
+                                                <div class="amount" data-type="withdraw">
+                                                    <i data-lucide="arrow-up-circle"></i>
+                                                    <span class="amt">Withdraw</span>
+                                                </div>
+                                            </td>
+                                            <td>₹ 8,999</td>
+                                            <td>₹ 270</td>
+                                            <td>₹ 8,729</td>
+                                            <td>Sep 02, 2025 <span class="time">• 09:50 AM</span></td>
+                                            <td>
+                                                <div class="row-actions" data-media-type="banani-button"><i
+                                                        data-lucide="eye"></i> View</div>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

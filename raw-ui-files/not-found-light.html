@@ -1,0 +1,272 @@
+<html>
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+
+</head>
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .center {
+                max-width: 560px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 16px;
+            }
+
+            .code {
+                font-size: 64px;
+                font-weight: 700;
+                letter-spacing: -1px;
+            }
+
+            .title {
+                font-size: 20px;
+                font-weight: 600;
+            }
+
+            .desc {
+                font-size: 14px;
+                color: var(--muted-foreground);
+            }
+
+            .actions {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                margin-top: 4px;
+            }
+
+            .quick-links {
+                margin-top: 12px;
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+
+            .link {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 12px;
+                border-radius: var(--radius-lg);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 8px;
+                font-size: 14px;
+                font-weight: 500;
+                cursor: default;
+            }
+
+            .hint {
+                margin-top: 8px;
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="users"></i>
+                        Clients</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="banknote"></i> Banks</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i
+                            data-lucide="calculator"></i> Charge Calculator</div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left">Page not found</div>
+                    <div class="right"></div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="center">
+                            <div class="code">404</div>
+                            <div class="title">We couldn't find that page</div>
+                            <div class="desc">The page you are looking for may have been moved or no longer exists.
+                                Choose a destination below to continue.</div>
+                            <div class="actions">
+                                <div class="button" data-media-type="banani-button"><i
+                                        data-lucide="home"></i> Go to Dashboard</div>
+                                <div class="icon-button" data-media-type="banani-button"><i
+                                        data-lucide="arrow-left"></i> Go Back</div>
+                            </div>
+                            <div class="quick-links">
+                                <div class="link" data-media-type="banani-button"><i
+                                        data-lucide="users"></i> Clients</div>
+                                <div class="link" data-media-type="banani-button"><i
+                                        data-lucide="banknote"></i> Banks</div>
+                                <div class="link" data-media-type="banani-button"><i
+                                        data-lucide="credit-card"></i> Cards</div>
+                                <div class="link" data-media-type="banani-button"><i
+                                        data-lucide="calculator"></i> Charge Calculator</div>
+                            </div>
+                            <div class="hint">Tip: Use the navigation to move to the next step in your flow.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

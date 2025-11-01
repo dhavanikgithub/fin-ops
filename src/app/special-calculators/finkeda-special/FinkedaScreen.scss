@@ -1,0 +1,352 @@
+@use '../../../styles/Main.scss';
+
+.finkeda-two-col {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.finkeda-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.finkeda-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.finkeda-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.finkeda-label {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.finkeda-control {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--primary);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+
+    &--button {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        border: 1px solid var(--border);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--primary);
+            color: var(--primary-foreground);
+        }
+
+        &--active {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+    }
+}
+
+.finkeda-inline {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .finkeda-control {
+        flex: 1;
+    }
+}
+
+.finkeda-helper {
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+.finkeda-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+
+    .pill {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 6px 10px;
+        border-radius: var(--radius-xl);
+        font-size: 12px;
+        font-weight: 500;
+    }
+}
+
+.finkeda-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    &__row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 10px 12px;
+        border-radius: var(--radius-lg);
+        font-size: 14px;
+
+        &--accent {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            font-weight: 600;
+        }
+    }
+}
+
+.finkeda-divider {
+    height: 1px;
+    background: var(--border);
+}
+
+.finkeda-summary-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 8px;
+}
+
+.finkeda-badge {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 6px 10px;
+    border-radius: var(--radius-xl);
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.finkeda-pills {
+    display: flex;
+    gap: 12px;
+
+    .finkeda-pill-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--foreground);
+        transition:
+            background 0.18s,
+            border-color 0.18s,
+            color 0.18s;
+
+        input[type="radio"] {
+            display: none;
+        }
+
+        .finkeda-custom-radio {
+            width: 18px;
+            height: 18px;
+            border: 1px solid var(--muted-foreground);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: var(--card);
+            transition: border-color 0.2s;
+            margin-right: 2px;
+
+            svg {
+                display: none;
+                width: 14px;
+                height: 14px;
+                color: var(--primary-foreground);
+            }
+        }
+
+        input[type="radio"]:checked + .finkeda-custom-radio {
+            border-color: var(--primary);
+            background: var(--primary);
+
+            svg {
+                display: block;
+            }
+        }
+
+        span {
+            color: var(--foreground);
+        }
+
+        &:hover {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+    }
+}
+
+.finkeda-legend {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+
+    &__pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        padding: 6px 10px;
+        border-radius: var(--radius-xl);
+        font-size: 12px;
+        font-weight: 500;
+    }
+}
+
+.finkeda-table-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.finkeda-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        text-align: left;
+        padding: 12px;
+        border-bottom: 1px solid var(--border);
+        font-size: 14px;
+    }
+
+    th {
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        font-weight: 600;
+    }
+}
+
+.finkeda-amount {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+
+    &--deposit {
+        color: var(--success);
+    }
+
+    &--withdraw {
+        color: var(--destructive);
+    }
+
+    &__text {
+        font-weight: 600;
+    }
+}
+
+.finkeda-time {
+    color: var(--muted-foreground);
+    font-size: 13px;
+}
+
+.finkeda-row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 6px 8px;
+    border-radius: var(--radius-xl);
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: var(--primary);
+        color: var(--primary-foreground);
+    }
+}
+
+/* Hide number input arrows for all browsers */
+input[type="number"].finkeda-control {
+    appearance: textfield;
+    -moz-appearance: textfield;
+}
+
+input[type="number"].finkeda-control::-webkit-outer-spin-button,
+input[type="number"].finkeda-control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+// Responsive design
+@media (max-width: 768px) {
+    .finkeda-two-col {
+        grid-template-columns: 1fr;
+    }
+
+    .finkeda-form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .finkeda-actions {
+        justify-content: stretch;
+
+        button {
+            flex: 1;
+        }
+    }
+
+    .finkeda-summary-actions {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .finkeda-table-wrap {
+        overflow-x: auto;
+    }
+}

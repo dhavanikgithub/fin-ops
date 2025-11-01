@@ -1,0 +1,319 @@
+@use '../../styles/Main.scss';
+
+
+.banks-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.bank-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--card);
+    transition: all 0.2s ease;
+
+    &--selected {
+        border-color: var(--primary);
+    }
+
+    &--empty {
+        justify-content: center;
+        color: var(--muted-foreground);
+        font-style: italic;
+        font-size: 15px;
+    }
+}
+
+.bank-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bank-title {
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.bank-sub {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.bank-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.meta-block {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.meta-label {
+    font-size: 12px;
+    color: var(--muted-foreground);
+}
+
+.meta-value {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.row-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 6px 8px;
+    border-radius: var(--radius-xl);
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        transform: translateY(-1px);
+    }
+
+    svg {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.detail {
+    width: 360px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    &__header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border-bottom: none;
+        padding: 0;
+        background: transparent;
+    }
+
+    &__name {
+        font-size: 16px;
+        font-weight: 600;
+    }
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.label {
+    font-size: 13px;
+    color: var(--muted-foreground);
+}
+
+.control {
+    background: var(--input);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 10px 12px;
+    font-size: 14px;
+    color: var(--foreground);
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    outline: none;
+    transition: border-color 0.2s ease;
+
+    &:focus {
+        border-color: var(--primary);
+    }
+
+    &::placeholder {
+        color: var(--muted-foreground);
+    }
+}
+
+// spacing between label and the input control
+.label + .control {
+    margin-top: 4px;
+}
+
+.inline-actions {
+    display: inline-flex;
+    gap: 8px;
+}
+
+.main__secondary-button {
+    background: var(--secondary);
+    color: var(--secondary-foreground);
+    padding: 10px 14px;
+    border: none;
+    border-radius: var(--radius-xl);
+    font-size: 14px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-family: var(--font-family-body);
+
+    &:hover {
+        opacity: 0.8;
+    }
+
+    &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+}
+
+// Responsive design
+@media (max-width: 1024px) {
+    .banks-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .main__content {
+        flex-direction: column;
+    }
+
+    .detail {
+        width: 100%;
+        order: -1;
+    }
+}
+
+@media (max-width: 768px) {
+    .bank-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .bank-meta {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .banks-grid {
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .detail {
+        padding: 12px;
+    }
+}
+
+// Loading states
+.bank-card {
+    position: relative;
+    
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1;
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+.detail {
+    position: relative;
+    
+    &__overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: var(--radius-lg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10;
+        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+}
+
+// Error and loading states
+.main__loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 32px;
+    color: var(--muted-foreground);
+    
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+.main__error {
+    background: var(--destructive);
+    color: var(--destructive-foreground);
+    padding: 12px 16px;
+    border-radius: var(--radius);
+    margin: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    
+    button {
+        background: transparent;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: var(--radius-sm);
+        
+        &:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+    }
+}
+
+// Spinner animation
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

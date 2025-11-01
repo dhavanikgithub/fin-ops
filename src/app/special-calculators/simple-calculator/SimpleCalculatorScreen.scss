@@ -1,0 +1,244 @@
+@use '../../../styles/Main.scss';
+
+.calculator-two-col {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+
+    .panel {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .inputs-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 24px;
+            margin-bottom: 12px;
+
+            .input-field {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+
+                .label {
+                    font-size: 13px;
+                    color: var(--muted-foreground);
+                }
+
+                .control {
+                    background: var(--input);
+                    border: 1px solid var(--border);
+                    border-radius: var(--radius-xl);
+                    padding: 10px 12px;
+                    font-size: 14px;
+                    color: var(--foreground);
+                    outline: none;
+                    transition: border-color 0.2s ease;
+
+                    &:focus {
+                        border-color: var(--primary);
+                    }
+
+                    &::placeholder {
+                        color: var(--muted-foreground);
+                    }
+                }
+            }
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+
+            .label {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .control {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+        }
+
+        .inline {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            .pill {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+            }
+        }
+
+        .summary {
+            background: var(--secondary);
+            color: var(--secondary-foreground);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .line {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+            }
+        }
+
+        .breakdown {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+
+            .line {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+            }
+
+            .note {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+        }
+
+        .total {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: var(--radius-lg);
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+
+            .badge {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-xl);
+                font-size: 12px;
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+        }
+    }
+}
+
+.panel {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .section-title {
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .calculator-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 12px;
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+
+            // Nested panel styles for saved scenarios
+            .line {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                font-size: 14px;
+            }
+
+            .inline {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+
+                .pill {
+                    background: var(--secondary);
+                    color: var(--secondary-foreground);
+                    padding: 6px 10px;
+                    border-radius: var(--radius-xl);
+                    font-size: 12px;
+                    font-weight: 500;
+                }
+            }
+        }
+    }
+
+}
+
+
+
+/* Hide number input arrows for all browsers */
+input[type="number"].control {
+    -moz-appearance: textfield;
+}
+
+input[type="number"].control::-webkit-outer-spin-button,
+input[type="number"].control::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+@media (max-width: 700px) {
+    .calculator-two-col {
+        grid-template-columns: 1fr;
+
+        .panel {
+            .inputs-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    }
+}

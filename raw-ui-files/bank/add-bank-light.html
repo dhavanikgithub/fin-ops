@@ -1,0 +1,319 @@
+<html>
+
+<head>
+    <link rel="preconnect" href="https://rsms.me/">
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+</head>
+
+<body>
+    <div class=""
+        style="--background: #ffffff; --foreground: #0f1724; --border: #e6eefb; --input: #f7fbff; --primary: #0B99FF; --primary-foreground: #ffffff; --secondary: #E9F6FF; --secondary-foreground: #0B99FF; --muted: #F1F5F9; --muted-foreground: #667085; --success: #00c417; --success-foreground: #ffffff; --accent: #0B99FF; --accent-foreground: #ffffff; --destructive: #ff3b30; --destructive-foreground: #ffffff; --warning: #ff7308; --warning-foreground: #ffffff; --card: #fbfcfe; --card-foreground: #0f1724; --sidebar: #ffffff; --sidebar-foreground: #475569; --sidebar-primary: #eef6ff; --sidebar-primary-foreground: #0B99FF; --radius-sm: 4px; --radius-md: 8px; --radius-lg: 12px; --radius-xl: 24px; --font-family-body: 'Inter', 'Inter Fallback'; font-family: var(--font-family-body);">
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            .app {
+                min-height: 644px;
+                background: var(--background);
+                color: var(--foreground);
+                display: flex;
+            }
+
+            .sidebar {
+                width: 260px;
+                background: var(--sidebar);
+                color: var(--sidebar-foreground);
+                padding: 24px 16px;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+                border-right: 1px solid var(--border);
+            }
+
+            .sidebar .logo {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .sidebar .logo .badge {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+                padding: 6px 10px;
+                border-radius: var(--radius-md);
+                font-size: 14px;
+                font-weight: 600;
+            }
+
+            .nav {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+            }
+
+            .nav .item {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                padding: 10px 12px;
+                border-radius: var(--radius-lg);
+                color: var(--sidebar-foreground);
+                cursor: default;
+            }
+
+            .nav .item[data-active="true"] {
+                background: var(--sidebar-primary);
+                color: var(--sidebar-primary-foreground);
+            }
+
+            .nav .item i {
+                font-size: 20px;
+                color: currentColor;
+            }
+
+            .main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .header {
+                height: 64px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 0 20px;
+                border-bottom: 1px solid var(--border);
+                background: var(--card);
+            }
+
+            .header .left {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                font-size: 16px;
+                font-weight: 600;
+            }
+
+            .header .right {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                padding: 10px 14px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .icon-button {
+                background: var(--secondary);
+                color: var(--secondary-foreground);
+                padding: 10px 12px;
+                border-radius: var(--radius-xl);
+                font-size: 14px;
+                font-weight: 500;
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                cursor: default;
+            }
+
+            .content {
+                padding: 20px;
+                display: flex;
+                gap: 16px;
+            }
+
+            .view {
+                flex: 1;
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .view .title-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .view .title {
+                font-size: 18px;
+                font-weight: 600;
+            }
+
+            .sub {
+                font-size: 14px;
+                color: var(--muted-foreground);
+            }
+
+            .form {
+                display: grid;
+                grid-template-columns: 1fr;
+                gap: 12px;
+                margin-top: 4px;
+            }
+
+            .field {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                background: var(--secondary);
+                padding: 12px;
+                border-radius: var(--radius-lg);
+            }
+
+            .label {
+                font-size: 13px;
+                color: var(--secondary-foreground);
+                font-weight: 500;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .input {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-xl);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+            }
+
+            .textarea {
+                background: var(--input);
+                border: 1px solid var(--border);
+                border-radius: var(--radius-lg);
+                padding: 10px 12px;
+                font-size: 14px;
+                color: var(--foreground);
+                min-height: 120px;
+            }
+
+            .hint {
+                font-size: 12px;
+                color: var(--muted-foreground);
+            }
+
+            .footer-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 8px;
+                margin-top: 8px;
+            }
+
+            /* Banks specific */
+            .helper {
+                font-size: 13px;
+                color: var(--muted-foreground);
+            }
+
+            .dual {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 12px;
+            }
+        </style>
+        <div class="app">
+            <div class="sidebar">
+                <div class="logo">
+                    <div class="badge">FinOps</div>
+                </div>
+                <div class="nav">
+                    <div class="item" data-media-type="banani-button"><i data-lucide="banknote"></i> Transactions</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="users"></i> Clients</div>
+                    <div class="item" data-active="true" data-media-type="banani-button"><i data-lucide="banknote"></i>
+                        Banks</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="credit-card"></i> Cards</div>
+                    <div class="item" data-media-type="banani-button"><i data-lucide="calculator"></i> Charge Calculator
+                    </div>
+                </div>
+            </div>
+
+            <div class="main">
+                <div class="header">
+                    <div class="left"><i data-lucide="building-2"></i> Add New Bank</div>
+                    <div class="right">
+                        <div class="icon-button" data-media-type="banani-button"><i data-lucide="arrow-left"></i> Back
+                            to Banks</div>
+                        <div class="button" data-media-type="banani-button"><i data-lucide="save"></i> Save Bank</div>
+                    </div>
+                </div>
+
+                <div class="content">
+                    <div class="view">
+                        <div class="title-row">
+                            <div class="title">Bank Details</div>
+                            <div class="helper">Keep it minimal: name and note only.</div>
+                        </div>
+
+                        <div class="form">
+                            <div class="field">
+                                <div class="label"><i data-lucide="building-2"></i> Bank Name</div>
+                                <div class="input">Enter bank name</div>
+                                <div class="hint">Example: HDFC Bank</div>
+                            </div>
+
+                            <div class="field">
+                                <div class="label"><i data-lucide="calendar"></i> Created On</div>
+                                <div class="input">Auto-set to today</div>
+                                <div class="hint">You can adjust later if needed.</div>
+                            </div>
+
+                            <div class="dual">
+                                <div class="field">
+                                    <div class="label"><i data-lucide="layout-dashboard"></i> Initial Transactions Count
+                                    </div>
+                                    <div class="input">0</div>
+                                    <div class="hint">Optional, can stay 0.</div>
+                                </div>
+                                <div class="field">
+                                    <div class="label"><i data-lucide="user"></i> Manager</div>
+                                    <div class="input">Assign manager (optional)</div>
+                                    <div class="hint">Select a responsible person.</div>
+                                </div>
+                            </div>
+
+                            <div class="field">
+                                <div class="label"><i data-lucide="sticky-note"></i> Notes</div>
+                                <div class="textarea">Any internal notes...</div>
+                            </div>
+                        </div>
+
+                        <div class="footer-actions">
+                            <div class="icon-button" data-media-type="banani-button"><i data-lucide="x"></i> Cancel
+                            </div>
+                            <div class="button" data-media-type="banani-button"><i data-lucide="check-circle-2"></i>
+                                Create Bank</div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>
