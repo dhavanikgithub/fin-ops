@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
     fetchTransactions,
@@ -37,7 +38,84 @@ interface TransactionListProps {
     onWithdraw: () => void;
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw }) => {
+// Error Fallback Component for Transaction List
+const TransactionListErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+    onDeposit: () => void;
+    onWithdraw: () => void;
+}> = ({ error, resetErrorBoundary, onDeposit, onWithdraw }) => {
+    return (
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <AlertTriangle size={16} />
+                    <h1>Error - Transactions</h1>
+                </div>
+                <div className="main__header-right">
+                    <button className="main__icon-button" onClick={onDeposit}>
+                        <ArrowDownLeft size={16} />
+                        Deposit
+                    </button>
+                    <button className="main__icon-button" onClick={onWithdraw}>
+                        <ArrowUpRight size={16} />
+                        Withdraw
+                    </button>
+                </div>
+            </header>
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="tl__error-boundary">
+                        <div className="tl__error-boundary-content">
+                            <AlertTriangle size={64} className="tl__error-boundary-icon" />
+                            <h2 className="tl__error-boundary-title">Something went wrong</h2>
+                            <p className="tl__error-boundary-message">
+                                We encountered an unexpected error while loading the transactions list. 
+                                Your transaction data is safe. You can try refreshing or add a new transaction.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="tl__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="tl__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && '\n\nStack trace:\n' + error.stack}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="tl__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onDeposit}
+                                >
+                                    <ArrowDownLeft size={16} />
+                                    Add Deposit
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw }) => {
+    
     const dispatch = useAppDispatch();
     const {
         transactions,
@@ -481,21 +559,22 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
         return isTransactionBeingProcessed(selectedTransaction.id, editingTransactionIds, deletingTransactionIds);
     };
 
-    return (
-        <>
-            <header className="main__header">
-                <div className="main__header-left">
-                    <h1>Transactions</h1>
-                </div>
-                <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleOpenExportModal}>
-                        <Download size={16} />
-                        Export
-                    </button>
-                    <button className="main__button" onClick={onDeposit}>
-                        <ArrowDownLeft size={16} />
-                        Deposit
-                    </button>
+    try {
+        return (
+            <>
+                <header className="main__header">
+                    <div className="main__header-left">
+                        <h1>Transactions</h1>
+                    </div>
+                    <div className="main__header-right">
+                        <button className="main__icon-button" onClick={handleOpenExportModal}>
+                            <Download size={16} />
+                            Export
+                        </button>
+                        <button className="main__button" onClick={onDeposit}>
+                            <ArrowDownLeft size={16} />
+                            Deposit
+                        </button>
                     <button className="main__button" onClick={onWithdraw}>
                         <ArrowUpRight size={16} />
                         Withdraw
@@ -910,8 +989,33 @@ const TransactionList: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw
                 onClose={handleDeleteCancel}
                 onDelete={handleDeleteConfirm}
                 transaction={getModalTransaction()}
-            />
-        </>
+                />
+            </>
+        );
+    } catch (error) {
+        logger.error('Error rendering transaction list:', error);
+        throw error;
+    }
+};
+
+// Main wrapper component with ErrorBoundary
+const TransactionList: React.FC<TransactionListProps> = (props) => {
+    return (
+        <ErrorBoundary
+            FallbackComponent={(fallbackProps) => (
+                <TransactionListErrorFallback {...fallbackProps} onDeposit={props.onDeposit} onWithdraw={props.onWithdraw} />
+            )}
+            onError={(error, errorInfo) => {
+                logger.error('Transaction list error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <TransactionListContent {...props} />
+        </ErrorBoundary>
     );
 };
 

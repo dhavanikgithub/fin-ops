@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
@@ -26,22 +26,18 @@ interface BankListProps {
     onNewBank: () => void;
 }
 
-interface BankListErrorFallbackProps {
+// Error Fallback Component for Bank List
+const BankListErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
     onNewBank: () => void;
-}
-
-const BankListErrorFallback: React.FC<BankListErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary, 
-    onNewBank 
-}) => {
+}> = ({ error, resetErrorBoundary, onNewBank }) => {
     return (
-        <div className="bank-list-error-boundary">
+        <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <Building2 size={20} /> <h1>Banks</h1>
+                    <AlertTriangle size={16} />
+                    <h1>Error - Banks</h1>
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={onNewBank}>
@@ -50,49 +46,60 @@ const BankListErrorFallback: React.FC<BankListErrorFallbackProps> = ({
                     </button>
                 </div>
             </header>
-            
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <Building2 size={48} />
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="bl__error-boundary">
+                        <div className="bl__error-boundary-content">
+                            <AlertTriangle size={64} className="bl__error-boundary-icon" />
+                            <h2 className="bl__error-boundary-title">Something went wrong</h2>
+                            <p className="bl__error-boundary-message">
+                                We encountered an unexpected error while loading the banks list. 
+                                Your bank data is safe. You can try refreshing or add a new bank.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="bl__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="bl__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && '\n\nStack trace:\n' + error.stack}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="bl__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onNewBank}
+                                >
+                                    <Plus size={16} />
+                                    Add New Bank
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="error-boundary__title">Bank List Error</h2>
-                <p className="error-boundary__message">
-                    We're experiencing an issue with the bank list. This might be a temporary problem.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button className="error-boundary__button error-boundary__button--secondary" onClick={onNewBank}>
-                        <Plus size={16} />
-                        Add New Bank
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
+    
     const dispatch = useAppDispatch();
-    const { showBoundary } = useErrorBoundary();
     const { 
         banks, 
         loading, 
@@ -123,9 +130,9 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             }));
         } catch (error) {
             logger.error('Error loading banks:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [dispatch, searchQuery, sortBy, sortOrder, showBoundary]);
+    }, [dispatch, searchQuery, sortBy, sortOrder]);
 
     // Update edit form when editing bank changes
     useEffect(() => {
@@ -135,9 +142,9 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             }
         } catch (error) {
             logger.error('Error updating edit form:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [editingBank, showBoundary]);
+    }, [editingBank]);
 
     // Handle search input with debounce
     useEffect(() => {
@@ -151,9 +158,9 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             return () => clearTimeout(timer);
         } catch (error) {
             logger.error('Error handling search debounce:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [localSearch, searchQuery, dispatch, showBoundary]);
+    }, [localSearch, searchQuery, dispatch]);
 
     // Event handlers
     const handleNewBank = () => {
@@ -163,7 +170,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error navigating to add bank:', error);
             toast.error('Failed to open add bank form');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -174,7 +181,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error updating search:', error);
             toast.error('Failed to update search');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -185,7 +192,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error setting editing bank:', error);
             toast.error('Failed to open bank for editing');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -211,7 +218,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Failed to update bank:', error);
             toast.error('Failed to update bank. Please try again.');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -222,7 +229,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error opening delete modal:', error);
             toast.error('Failed to open delete confirmation');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -237,7 +244,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Failed to delete bank:', error);
             toast.error('Failed to delete bank. Please try again.');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -247,7 +254,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             setIsDeleteModalOpen(false);
         } catch (error) {
             logger.error('Error cancelling delete:', error);
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -259,7 +266,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error cancelling edit:', error);
             toast.error('Failed to cancel edit');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -275,8 +282,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             };
         } catch (error) {
             logger.error('Error converting bank to modal format:', error);
-            showBoundary(error);
-            return null;
+            throw error;
         }
     };
 
@@ -473,8 +479,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         );
     } catch (error) {
         logger.error('Error rendering bank list:', error);
-        showBoundary(error);
-        return null;
+        throw error;
     }
 };
 

@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { AlertTriangle, RotateCcw, Home, ArrowUpDown } from 'lucide-react';
 import TransactionList from './TransactionList';
 import AddDepositScreen from './AddDeposit';
 import AddWithdrawScreen from './AddWithdraw';
@@ -44,6 +44,13 @@ const TransactionScreenErrorFallback: React.FC<{
                                 >
                                     <RotateCcw size={16} />
                                     Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/transactions'}
+                                >
+                                    <ArrowUpDown size={16} />
+                                    Reload Transactions
                                 </button>
                                 <button 
                                     className="main__icon-button"

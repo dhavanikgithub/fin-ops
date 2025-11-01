@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { CreditCard, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { AlertTriangle, RotateCcw, Home, CreditCard } from 'lucide-react';
 import CardList from './CardList';
 import AddCardScreen from './AddCard';
 import './CardsScreen.scss';
@@ -10,54 +10,64 @@ import toast from 'react-hot-toast';
 
 type ViewState = 'list' | 'add';
 
-interface CardsScreenErrorFallbackProps {
+// Error Fallback Component for Cards Screen
+const CardsScreenErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
-}
-
-const CardsScreenErrorFallback: React.FC<CardsScreenErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary 
-}) => {
+}> = ({ error, resetErrorBoundary }) => {
     return (
-        <div className="cards-screen-error-boundary">
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <CreditCard size={48} />
+        <div className="main">
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="cs__error-boundary">
+                        <div className="cs__error-boundary-content">
+                            <AlertTriangle size={64} className="cs__error-boundary-icon" />
+                            <h2 className="cs__error-boundary-title">Something went wrong</h2>
+                            <p className="cs__error-boundary-message">
+                                We encountered an unexpected error in the cards section. 
+                                Don't worry, your card data is safe. You can try again or go back to the main dashboard.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="cs__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="cs__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="cs__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/cards'}
+                                >
+                                    <CreditCard size={16} />
+                                    Reload Cards
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="error-boundary__title">Cards Module Error</h2>
-                <p className="error-boundary__message">
-                    We encountered an issue with the cards module. This might be a temporary problem.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const CardsScreenContent: React.FC = () => {
-    const { showBoundary } = useErrorBoundary();
     const [currentView, setCurrentView] = useState<ViewState>('list');
 
     const handleShowAddCard = () => {
@@ -66,8 +76,7 @@ const CardsScreenContent: React.FC = () => {
             logger.debug('Navigated to add card view');
         } catch (error) {
             logger.error('Error navigating to add card view:', error);
-            toast.error('Failed to open add card form');
-            showBoundary(error);
+            toast.error('Failed to open add card form. Please try again.');
         }
     };
 
@@ -77,8 +86,7 @@ const CardsScreenContent: React.FC = () => {
             logger.debug('Navigated back to cards list');
         } catch (error) {
             logger.error('Error navigating back to cards list:', error);
-            toast.error('Failed to return to cards list');
-            showBoundary(error);
+            toast.error('Failed to return to cards list. Please try again.');
         }
     };
 
@@ -88,36 +96,37 @@ const CardsScreenContent: React.FC = () => {
             logger.debug('Cancelled add card and returned to list');
         } catch (error) {
             logger.error('Error cancelling add card:', error);
-            toast.error('Failed to cancel add card');
-            showBoundary(error);
+            toast.error('Failed to cancel add card. Please try again.');
         }
     };
 
-    try {
-        return (
-            <div className="main">
-                {currentView === 'list' && (
-                    <CardList onNewCard={handleShowAddCard} />
-                )}
-                {currentView === 'add' && (
-                    <AddCardScreen 
-                        onCancel={handleCancelAddCard}
-                        onBackToCards={handleBackToCards}
-                    />
-                )}
-            </div>
-        );
-    } catch (error) {
-        logger.error('Error rendering cards screen:', error);
-        showBoundary(error);
-        return null;
-    }
+    const renderCurrentView = () => {
+        try {
+            return (
+                <div className="main">
+                    {currentView === 'list' && (
+                        <CardList onNewCard={handleShowAddCard} />
+                    )}
+                    {currentView === 'add' && (
+                        <AddCardScreen 
+                            onCancel={handleCancelAddCard}
+                            onBackToCards={handleBackToCards}
+                        />
+                    )}
+                </div>
+            );
+        } catch (error) {
+            logger.error('Error rendering cards view:', error);
+            throw error; // Let error boundary handle this
+        }
+    };
+
+    return renderCurrentView();
 };
 
-// Main wrapper component with ErrorBoundary
 const CardsScreen: React.FC = () => {
     return (
-        <ErrorBoundary
+        <ErrorBoundary 
             FallbackComponent={CardsScreenErrorFallback}
             onError={(error, errorInfo) => {
                 logger.error('Cards screen error boundary triggered:', {

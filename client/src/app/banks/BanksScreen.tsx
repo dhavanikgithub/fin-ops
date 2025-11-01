@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { Building2, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { AlertTriangle, RotateCcw, Home, Building2 } from 'lucide-react';
 import './BanksScreen.scss';
 import BankList from './BankList';
 import AddBankScreen from './AddBank';
@@ -10,54 +10,64 @@ import toast from 'react-hot-toast';
 
 type ViewState = 'list' | 'add-bank';
 
-interface BanksScreenErrorFallbackProps {
+// Error Fallback Component for Banks Screen
+const BanksScreenErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
-}
-
-const BanksScreenErrorFallback: React.FC<BanksScreenErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary 
-}) => {
+}> = ({ error, resetErrorBoundary }) => {
     return (
-        <div className="banks-screen-error-boundary">
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <Building2 size={48} />
+        <div className="main">
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="bs__error-boundary">
+                        <div className="bs__error-boundary-content">
+                            <AlertTriangle size={64} className="bs__error-boundary-icon" />
+                            <h2 className="bs__error-boundary-title">Something went wrong</h2>
+                            <p className="bs__error-boundary-message">
+                                We encountered an unexpected error in the banks section. 
+                                Don't worry, your bank data is safe. You can try again or go back to the main dashboard.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="bs__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="bs__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="bs__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/banks'}
+                                >
+                                    <Building2 size={16} />
+                                    Reload Banks
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="error-boundary__title">Banks Module Error</h2>
-                <p className="error-boundary__message">
-                    We encountered an issue with the banks module. This might be a temporary problem.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const BanksScreenContent: React.FC = () => {
-    const { showBoundary } = useErrorBoundary();
     const [currentView, setCurrentView] = useState<ViewState>('list');
 
     const handleShowAddBank = () => {
@@ -66,8 +76,7 @@ const BanksScreenContent: React.FC = () => {
             setCurrentView('add-bank');
         } catch (error) {
             logger.error('Error navigating to add bank view:', error);
-            toast.error('Failed to open add bank form');
-            showBoundary(error);
+            toast.error('Failed to open add bank form. Please try again.');
         }
     };
 
@@ -76,9 +85,8 @@ const BanksScreenContent: React.FC = () => {
             logger.log('Switching back to bank list view');
             setCurrentView('list');
         } catch (error) {
-            logger.error('Error navigating back to banks list:', error);
-            toast.error('Failed to return to banks list');
-            showBoundary(error);
+            logger.error('Error navigating back to bank list:', error);
+            toast.error('Failed to return to bank list. Please try again.');
         }
     };
 
@@ -101,25 +109,17 @@ const BanksScreenContent: React.FC = () => {
                     );
             }
         } catch (error) {
-            logger.error('Error rendering current view:', error);
-            showBoundary(error);
-            return null;
+            logger.error('Error rendering banks view:', error);
+            throw error; // Let error boundary handle this
         }
     };
 
-    try {
-        return renderCurrentView();
-    } catch (error) {
-        logger.error('Error rendering banks screen:', error);
-        showBoundary(error);
-        return null;
-    }
+    return renderCurrentView();
 };
 
-// Main wrapper component with ErrorBoundary
 const BanksScreen: React.FC = () => {
     return (
-        <ErrorBoundary
+        <ErrorBoundary 
             FallbackComponent={BanksScreenErrorFallback}
             onError={(error, errorInfo) => {
                 logger.error('Banks screen error boundary triggered:', {

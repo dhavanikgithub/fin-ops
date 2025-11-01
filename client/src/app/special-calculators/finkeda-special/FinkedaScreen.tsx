@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import {
     RefreshCcw,
     Save,
@@ -11,7 +11,8 @@ import {
     Eye,
     EyeOff,
     AlertTriangle,
-    Home
+    Home,
+    Calculator
 } from 'lucide-react';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
@@ -45,60 +46,64 @@ interface FinkedaScreenProps {
     initialSettings: FinkedaSettings | null;
 }
 
-interface FinkedaScreenErrorFallbackProps {
+// Error Fallback Component for Finkeda Screen
+const FinkedaScreenErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
-}
-
-const FinkedaScreenErrorFallback: React.FC<FinkedaScreenErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary 
-}) => {
+}> = ({ error, resetErrorBoundary }) => {
     return (
-        <div className="finkeda-screen-error-boundary">
-            <header className="main__header">
-                <div className="main__header-left">
-                    <Finkeda size={20} /> <h1>Finkeda Calculator</h1>
+        <div className="main">
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="fs__error-boundary">
+                        <div className="fs__error-boundary-content">
+                            <AlertTriangle size={64} className="fs__error-boundary-icon" />
+                            <h2 className="fs__error-boundary-title">Something went wrong</h2>
+                            <p className="fs__error-boundary-message">
+                                We encountered an unexpected error in the Finkeda calculator. 
+                                Don't worry, your saved scenarios are safe. You can try again or go back to the main dashboard.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="fs__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="fs__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="fs__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/special-calculators/finkeda-special'}
+                                >
+                                    <Calculator size={16} />
+                                    Reload Calculator
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </header>
-            
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <Finkeda size={48} />
-                </div>
-                <h2 className="error-boundary__title">Finkeda Calculator Error</h2>
-                <p className="error-boundary__message">
-                    We encountered an issue with the Finkeda calculator. Your saved scenarios are safe.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
-    const { showBoundary } = useErrorBoundary();
     const [amount, setAmount] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
@@ -133,9 +138,9 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             }
         } catch (error) {
             logger.error('Error accessing localStorage:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [showBoundary]);
+    }, []);
 
     // Update local state when initialSettings changes
     React.useEffect(() => {
@@ -148,9 +153,9 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             }
         } catch (error) {
             logger.error('Error updating settings from initial settings:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [initialSettings, showBoundary]);
+    }, [initialSettings]);
 
 
 
@@ -176,7 +181,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error saving scenarios to localStorage:', error);
             toast.error('Failed to save scenarios.');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -192,8 +197,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             );
         } catch (error) {
             logger.error('Error checking for duplicate scenario:', error);
-            showBoundary(error);
-            return false;
+            throw error;
         }
     };
 
@@ -242,7 +246,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error saving scenario:', error);
             toast.error('Failed to save scenario');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -266,7 +270,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error applying scenario:', error);
             toast.error('Failed to apply scenario');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -286,7 +290,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error during calculation:', error);
             toast.error('Error during calculation');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -306,7 +310,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error during recalculation:', error);
             toast.error('Error during recalculation');
-            showBoundary(error);
         }
     };
 
@@ -321,7 +324,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error resetting form:', error);
             toast.error('Error resetting form');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -332,7 +335,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error changing card type:', error);
             toast.error('Error changing card type');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -344,7 +347,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error toggling settings:', error);
             toast.error('Error toggling settings');
-            showBoundary(error);
         }
     };
 
@@ -370,7 +372,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Failed to update settings:', error);
             toast.error('Failed to update settings. Please try again.');
-            showBoundary(error);
         } finally {
             setIsUpdatingSettings(false);
         }
@@ -616,15 +617,13 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         );
     } catch (error) {
         logger.error('Error rendering Finkeda screen:', error);
-        showBoundary(error);
         return null;
     }
 };
 
-// Main wrapper component with ErrorBoundary
 const FinkedaScreen: React.FC<FinkedaScreenProps> = (props) => {
     return (
-        <ErrorBoundary
+        <ErrorBoundary 
             FallbackComponent={FinkedaScreenErrorFallback}
             onError={(error, errorInfo) => {
                 logger.error('Finkeda screen error boundary triggered:', {

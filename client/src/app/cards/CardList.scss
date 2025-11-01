@@ -282,111 +282,132 @@
     }
 }
 
-// Error Boundary Styles
-.card-list-error-boundary {
-    .error-boundary__content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 400px;
-        padding: 40px 20px;
+// Error Boundary Styles for Card List
+.cl__error-boundary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 2rem;
+
+    &-content {
         text-align: center;
-        background: var(--bg-secondary);
-        border-radius: 8px;
-        margin: 20px;
-    }
-
-    .error-boundary__icon {
-        color: var(--text-muted);
-        margin-bottom: 20px;
-        opacity: 0.6;
-    }
-
-    .error-boundary__title {
-        font-size: 24px;
-        font-weight: 600;
-        color: var(--text-primary);
-        margin: 0 0 12px 0;
-    }
-
-    .error-boundary__message {
-        font-size: 16px;
-        color: var(--text-secondary);
-        margin: 0 0 30px 0;
         max-width: 500px;
+        padding: 2rem;
+        background: var(--card);
+        color: var(--card-foreground);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &-icon {
+        color: var(--destructive);
+        margin-bottom: 1rem;
+    }
+
+    &-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--foreground);
+        margin-bottom: 1rem;
+    }
+
+    &-message {
+        color: var(--muted-foreground);
+        margin-bottom: 1.5rem;
         line-height: 1.5;
     }
 
-    .error-boundary__actions {
-        display: flex;
-        gap: 12px;
-        flex-wrap: wrap;
-        justify-content: center;
-    }
-
-    .error-boundary__button {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 20px;
-        border: none;
-        border-radius: 6px;
-        background: var(--accent-primary);
-        color: white;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-
-        &:hover {
-            background: var(--accent-primary-hover);
-            transform: translateY(-1px);
-        }
-
-        &--secondary {
-            background: var(--bg-tertiary);
-            color: var(--text-primary);
-            border: 1px solid var(--border-color);
-
-            &:hover {
-                background: var(--bg-hover);
-                border-color: var(--border-hover);
-            }
-        }
-    }
-
-    .error-boundary__details {
-        margin-top: 30px;
+    &-details {
         text-align: left;
-        max-width: 600px;
-        width: 100%;
-
+        margin-bottom: 1.5rem;
+        
         summary {
             cursor: pointer;
+            color: var(--muted-foreground);
             font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            user-select: none;
-
+            margin-bottom: 0.5rem;
+            
             &:hover {
-                color: var(--text-primary);
+                color: var(--foreground);
             }
         }
     }
 
-    .error-boundary__error-text {
-        background: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
+    &-stack {
+        background: var(--muted);
+        border: 1px solid var(--border);
         border-radius: 4px;
-        padding: 15px;
-        font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-        font-size: 12px;
-        color: var(--text-secondary);
+        padding: 1rem;
+        font-size: 0.875rem;
+        color: var(--muted-foreground);
         overflow-x: auto;
         white-space: pre-wrap;
-        line-height: 1.4;
+        word-break: break-word;
         max-height: 200px;
         overflow-y: auto;
+        font-family: 'Courier New', monospace;
+    }
+
+    &-actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+        
+        button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            
+            &.main__button {
+                background: var(--primary);
+                color: var(--primary-foreground);
+                
+                &:hover {
+                    background: var(--primary);
+                    opacity: 0.9;
+                    transform: translateY(-1px);
+                }
+            }
+            
+            &.main__icon-button {
+                background: transparent;
+                color: var(--muted-foreground);
+                border: 1px solid var(--border);
+                
+                &:hover {
+                    background: var(--muted);
+                    color: var(--foreground);
+                    border-color: var(--primary);
+                }
+            }
+        }
+    }
+}
+
+// Responsive design for error boundary
+@media (max-width: 768px) {
+    .cl__error-boundary {
+        padding: 1rem;
+        
+        &-content {
+            padding: 1.5rem;
+        }
+        
+        &-actions {
+            flex-direction: column;
+            
+            button {
+                width: 100%;
+            }
+        }
     }
 }

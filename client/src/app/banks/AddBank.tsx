@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createBank } from '../../store/actions/bankActions';
@@ -19,76 +19,81 @@ export interface BankFormData {
     notes: string;
 }
 
-interface AddBankErrorFallbackProps {
+// Error Fallback Component for Add Bank Screen
+const AddBankErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
     onCancel: () => void;
     onBackToBanks: () => void;
-}
-
-const AddBankErrorFallback: React.FC<AddBankErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary, 
-    onCancel, 
-    onBackToBanks 
-}) => {
+}> = ({ error, resetErrorBoundary, onCancel, onBackToBanks }) => {
     return (
-        <div className="add-bank-error-boundary">
+        <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <Building2 size={16} />
-                    <h1>Add New Bank</h1>
+                    <AlertTriangle size={16} />
+                    <h1>Error - Add Bank</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onBackToBanks}>
-                        <ArrowLeft size={16} />
-                        Back to Banks
+                    <button className="main__icon-button" onClick={onCancel}>
+                        <X size={16} />
+                        Cancel
                     </button>
                 </div>
             </header>
-            
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <Building2 size={48} />
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="ab__error-boundary">
+                        <div className="ab__error-boundary-content">
+                            <AlertTriangle size={64} className="ab__error-boundary-icon" />
+                            <h2 className="ab__error-boundary-title">Something went wrong</h2>
+                            <p className="ab__error-boundary-message">
+                                We encountered an unexpected error while setting up the bank creation form. 
+                                Don't worry, no data has been lost. You can try again or go back to the banks list.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="ab__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="ab__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && '\n\nStack trace:\n' + error.stack}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="ab__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onBackToBanks}
+                                >
+                                    <ArrowLeft size={16} />
+                                    Back to Banks
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="error-boundary__title">Add Bank Form Error</h2>
-                <p className="error-boundary__message">
-                    We encountered an issue with the add bank form. Your data is safe and you can try again.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button className="error-boundary__button error-boundary__button--secondary" onClick={onBackToBanks}>
-                        <ArrowLeft size={16} />
-                        Back to Banks
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }) => {
+    throw new Error('Test error boundary');
     const dispatch = useAppDispatch();
-    const { showBoundary } = useErrorBoundary();
     const { creating, error } = useAppSelector(state => state.banks);
     
     const [formData, setFormData] = useState<BankFormData>({
@@ -106,9 +111,9 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             }
         } catch (err) {
             logger.error('Error clearing bank error state:', err);
-            showBoundary(err);
+            throw err;
         }
-    }, [dispatch, error, showBoundary]);
+    }, [dispatch, error]);
 
     // Handle successful creation
     useEffect(() => {
@@ -121,9 +126,9 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             }
         } catch (err) {
             logger.error('Error handling successful bank creation:', err);
-            showBoundary(err);
+            throw err;
         }
-    }, [creating, error, creationAttempted, onBackToBanks, showBoundary]);
+    }, [creating, error, creationAttempted, onBackToBanks]);
 
     const handleInputChange = (field: keyof BankFormData, value: string) => {
         try {
@@ -135,7 +140,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
         } catch (err) {
             logger.error('Error updating form data:', err);
             toast.error('Failed to update form field');
-            showBoundary(err);
+            throw err;
         }
     };
 
@@ -157,7 +162,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             logger.error('Failed to create bank:', error);
             toast.error('Failed to create bank. Please try again.');
             setCreationAttempted(false);
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -171,7 +176,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             onCancel();
         } catch (err) {
             logger.error('Error cancelling add bank form:', err);
-            showBoundary(err);
+            throw err;
         }
     };
 
@@ -185,7 +190,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             onBackToBanks();
         } catch (err) {
             logger.error('Error navigating back to banks:', err);
-            showBoundary(err);
+            throw err;
         }
     };
 
@@ -318,8 +323,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
         );
     } catch (error) {
         logger.error('Error rendering add bank form:', error);
-        showBoundary(error);
-        return null;
+        throw error;
     }
 };
 

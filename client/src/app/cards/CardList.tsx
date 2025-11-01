@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary } from 'react-error-boundary';
 import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
@@ -22,22 +22,18 @@ import './CardList.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
 
-interface CardListErrorFallbackProps {
+// Error Fallback Component for Card List
+const CardListErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
     onNewCard: () => void;
-}
-
-const CardListErrorFallback: React.FC<CardListErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary, 
-    onNewCard 
-}) => {
+}> = ({ error, resetErrorBoundary, onNewCard }) => {
     return (
-        <div className="card-list-error-boundary">
+        <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <CreditCard size={20} /> <h1>Cards</h1>
+                    <AlertTriangle size={16} />
+                    <h1>Error - Cards</h1>
                 </div>
                 <div className="main__header-right">
                     <button className="main__icon-button" onClick={onNewCard}>
@@ -46,32 +42,52 @@ const CardListErrorFallback: React.FC<CardListErrorFallbackProps> = ({
                     </button>
                 </div>
             </header>
-            
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <CreditCard size={48} />
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="cl__error-boundary">
+                        <div className="cl__error-boundary-content">
+                            <AlertTriangle size={64} className="cl__error-boundary-icon" />
+                            <h2 className="cl__error-boundary-title">Something went wrong</h2>
+                            <p className="cl__error-boundary-message">
+                                We encountered an unexpected error while loading the cards list. 
+                                Your card data is safe. You can try refreshing or add a new card.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="cl__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="cl__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && '\n\nStack trace:\n' + error.stack}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="cl__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={onNewCard}
+                                >
+                                    <Plus size={16} />
+                                    Add New Card
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <h2 className="error-boundary__title">Card List Error</h2>
-                <p className="error-boundary__message">
-                    We're experiencing an issue with the card list. This might be a temporary problem.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        Try Again
-                    </button>
-                    <button className="error-boundary__button error-boundary__button--secondary" onClick={onNewCard}>
-                        Add New Card
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
@@ -82,8 +98,8 @@ interface CardListProps {
 }
 
 const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
+    
     const dispatch = useAppDispatch();
-    const { showBoundary } = useErrorBoundary();
     const { 
         cards, 
         loading, 
@@ -114,9 +130,9 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             }));
         } catch (error) {
             logger.error('Error fetching cards:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [dispatch, searchQuery, sortBy, sortOrder, showBoundary]);
+    }, [dispatch, searchQuery, sortBy, sortOrder]);
 
     // Update edit form when editing card changes
     useEffect(() => {
@@ -126,9 +142,9 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             }
         } catch (error) {
             logger.error('Error updating edit form:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [editingCard, showBoundary]);
+    }, [editingCard]);
 
     // Handle search input with debounce
     useEffect(() => {
@@ -186,7 +202,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setIsDeleteModalOpen(true);
         } catch (error) {
             logger.error('Error opening delete modal:', error);
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -207,7 +223,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setIsDeleteModalOpen(false);
         } catch (error) {
             logger.error('Error closing delete modal:', error);
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -217,7 +233,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setEditForm({ name: '' });
         } catch (error) {
             logger.error('Error cancelling edit:', error);
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -418,8 +434,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
         );
     } catch (error) {
         logger.error('Error rendering card list:', error);
-        showBoundary(error);
-        return null;
+        throw error;
     }
 };
 

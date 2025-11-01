@@ -1,7 +1,7 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home } from 'lucide-react';
+import { ErrorBoundary } from 'react-error-boundary';
+import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
@@ -20,60 +20,64 @@ interface SavedScenario {
 const STORAGE_KEY = 'calculator_scenarios';
 const GST = 18;
 
-interface SimpleCalculatorErrorFallbackProps {
+// Error Fallback Component for Simple Calculator Screen
+const SimpleCalculatorErrorFallback: React.FC<{
     error: Error;
     resetErrorBoundary: () => void;
-}
-
-const SimpleCalculatorErrorFallback: React.FC<SimpleCalculatorErrorFallbackProps> = ({ 
-    error, 
-    resetErrorBoundary 
-}) => {
+}> = ({ error, resetErrorBoundary }) => {
     return (
-        <div className="simple-calculator-error-boundary">
-            <header className="main__header">
-                <div className="main__header-left">
-                    <Percent size={20} /> <h1>Simple Calculator</h1>
+        <div className="main">
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="sc__error-boundary">
+                        <div className="sc__error-boundary-content">
+                            <AlertTriangle size={64} className="sc__error-boundary-icon" />
+                            <h2 className="sc__error-boundary-title">Something went wrong</h2>
+                            <p className="sc__error-boundary-message">
+                                We encountered an unexpected error in the simple calculator. 
+                                Don't worry, your saved scenarios are safe. You can try again or go back to the main dashboard.
+                            </p>
+                            {process.env.NODE_ENV === 'development' && (
+                                <details className="sc__error-boundary-details">
+                                    <summary>Technical Details (Development)</summary>
+                                    <pre className="sc__error-boundary-stack">
+                                        {error.message}
+                                        {error.stack && `\n${error.stack}`}
+                                    </pre>
+                                </details>
+                            )}
+                            <div className="sc__error-boundary-actions">
+                                <button 
+                                    className="main__button"
+                                    onClick={resetErrorBoundary}
+                                >
+                                    <RotateCcw size={16} />
+                                    Try Again
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/special-calculators/simple-calculator'}
+                                >
+                                    <Calculator size={16} />
+                                    Reload Calculator
+                                </button>
+                                <button 
+                                    className="main__icon-button"
+                                    onClick={() => window.location.href = '/'}
+                                >
+                                    <Home size={16} />
+                                    Go to Dashboard
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            </header>
-            
-            <div className="error-boundary__content">
-                <div className="error-boundary__icon">
-                    <Percent size={48} />
-                </div>
-                <h2 className="error-boundary__title">Simple Calculator Error</h2>
-                <p className="error-boundary__message">
-                    We encountered an issue with the simple calculator. Your saved scenarios are safe.
-                </p>
-                <div className="error-boundary__actions">
-                    <button className="error-boundary__button" onClick={resetErrorBoundary}>
-                        <RotateCcw size={16} />
-                        Try Again
-                    </button>
-                    <button 
-                        className="error-boundary__button error-boundary__button--secondary"
-                        onClick={() => window.location.href = '/'}
-                    >
-                        <Home size={16} />
-                        Go to Dashboard
-                    </button>
-                </div>
-                {process.env.NODE_ENV === 'development' && (
-                    <details className="error-boundary__details">
-                        <summary>Technical Details (Development)</summary>
-                        <pre className="error-boundary__error-text">
-                            {error.message}
-                            {error.stack && '\n\nStack trace:\n' + error.stack}
-                        </pre>
-                    </details>
-                )}
             </div>
         </div>
     );
 };
 
 const CalculatorScreenContent: React.FC = () => {
-    const { showBoundary } = useErrorBoundary();
     const [amount, setAmount] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
@@ -101,9 +105,9 @@ const CalculatorScreenContent: React.FC = () => {
             loadSavedScenarios();
         } catch (error) {
             logger.error('Error during component initialization:', error);
-            showBoundary(error);
+            throw error;
         }
-    }, [showBoundary]);
+    }, []);
 
     // Save current scenario to localStorage
     const handleSaveScenario = () => {
@@ -142,7 +146,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to save scenario:', error);
             toast.error('Failed to save scenario. Please try again.');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -159,7 +163,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to apply scenario:', error);
             toast.error('Failed to apply scenario');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -176,7 +180,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to reset calculator:', error);
             toast.error('Failed to reset calculator');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -190,7 +194,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to recalculate:', error);
             toast.error('Failed to recalculate');
-            showBoundary(error);
+            throw error;
         }
     };
 
@@ -376,7 +380,6 @@ const CalculatorScreenContent: React.FC = () => {
         );
     } catch (error) {
         logger.error('Error rendering simple calculator:', error);
-        showBoundary(error);
         return null;
     }
 };
