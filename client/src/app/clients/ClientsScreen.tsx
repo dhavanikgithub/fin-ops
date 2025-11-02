@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, Users } from 'lucide-react';
 import './ClientsScreen.scss';
 import ClientList from './ClientList';
@@ -69,6 +69,7 @@ const ClientsScreenErrorFallback: React.FC<{
 
 const ClientsScreenContent: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>('list');
+    const { showBoundary } = useErrorBoundary();
 
     const handleShowAddClient = () => {
         try {
@@ -110,7 +111,7 @@ const ClientsScreenContent: React.FC = () => {
             }
         } catch (error) {
             logger.error('Error rendering clients view:', error);
-            throw error; // Let error boundary handle this
+            showBoundary(error);
         }
     };
 

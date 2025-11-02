@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
@@ -98,7 +98,7 @@ const BankListErrorFallback: React.FC<{
 };
 
 const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
-    
+    const { showBoundary } = useErrorBoundary();
     const dispatch = useAppDispatch();
     const { 
         banks, 
@@ -130,7 +130,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             }));
         } catch (error) {
             logger.error('Error loading banks:', error);
-            throw error;
+            showBoundary(error);
         }
     }, [dispatch, searchQuery, sortBy, sortOrder]);
 
@@ -142,7 +142,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             }
         } catch (error) {
             logger.error('Error updating edit form:', error);
-            throw error;
+            showBoundary(error);
         }
     }, [editingBank]);
 
@@ -170,7 +170,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error navigating to add bank:', error);
             toast.error('Failed to open add bank form');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -181,7 +181,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error updating search:', error);
             toast.error('Failed to update search');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -192,7 +192,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error setting editing bank:', error);
             toast.error('Failed to open bank for editing');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -218,7 +218,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Failed to update bank:', error);
             toast.error('Failed to update bank. Please try again.');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -229,7 +229,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error opening delete modal:', error);
             toast.error('Failed to open delete confirmation');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -244,7 +244,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Failed to delete bank:', error);
             toast.error('Failed to delete bank. Please try again.');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -254,7 +254,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             setIsDeleteModalOpen(false);
         } catch (error) {
             logger.error('Error cancelling delete:', error);
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -266,7 +266,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         } catch (error) {
             logger.error('Error cancelling edit:', error);
             toast.error('Failed to cancel edit');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -282,7 +282,8 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
             };
         } catch (error) {
             logger.error('Error converting bank to modal format:', error);
-            throw error;
+            showBoundary(error);
+            return null;
         }
     };
 
@@ -479,7 +480,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
         );
     } catch (error) {
         logger.error('Error rendering bank list:', error);
-        throw error;
+        showBoundary(error);
     }
 };
 

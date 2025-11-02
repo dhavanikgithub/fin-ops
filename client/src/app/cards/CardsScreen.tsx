@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, CreditCard } from 'lucide-react';
 import CardList from './CardList';
 import AddCardScreen from './AddCard';
@@ -69,6 +69,7 @@ const CardsScreenErrorFallback: React.FC<{
 
 const CardsScreenContent: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>('list');
+    const { showBoundary } = useErrorBoundary();
 
     const handleShowAddCard = () => {
         try {
@@ -117,7 +118,7 @@ const CardsScreenContent: React.FC = () => {
             );
         } catch (error) {
             logger.error('Error rendering cards view:', error);
-            throw error; // Let error boundary handle this
+            showBoundary(error);
         }
     };
 

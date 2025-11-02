@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, Building2 } from 'lucide-react';
 import './BanksScreen.scss';
 import BankList from './BankList';
@@ -68,6 +68,7 @@ const BanksScreenErrorFallback: React.FC<{
 };
 
 const BanksScreenContent: React.FC = () => {
+    const { showBoundary } = useErrorBoundary();
     const [currentView, setCurrentView] = useState<ViewState>('list');
 
     const handleShowAddBank = () => {
@@ -77,6 +78,7 @@ const BanksScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Error navigating to add bank view:', error);
             toast.error('Failed to open add bank form. Please try again.');
+            showBoundary(error);
         }
     };
 
@@ -87,6 +89,7 @@ const BanksScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Error navigating back to bank list:', error);
             toast.error('Failed to return to bank list. Please try again.');
+            showBoundary(error);
         }
     };
 
@@ -110,7 +113,7 @@ const BanksScreenContent: React.FC = () => {
             }
         } catch (error) {
             logger.error('Error rendering banks view:', error);
-            throw error; // Let error boundary handle this
+            showBoundary(error);
         }
     };
 

@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createBank } from '../../store/actions/bankActions';
@@ -92,6 +92,7 @@ const AddBankErrorFallback: React.FC<{
 };
 
 const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks }) => {
+    const { showBoundary } = useErrorBoundary();
     const dispatch = useAppDispatch();
     const { creating, error } = useAppSelector(state => state.banks);
     
@@ -110,7 +111,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             }
         } catch (err) {
             logger.error('Error clearing bank error state:', err);
-            throw err;
+            showBoundary(err);
         }
     }, [dispatch, error]);
 
@@ -119,13 +120,13 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
         try {
             if (creationAttempted && !creating && !error) {
                 // Success! Navigate back to banks
-                toast.success('Bank created successfully!');
+                toast.success('Bank created');
                 logger.info('Bank created successfully, navigating back to banks');
                 onBackToBanks();
             }
         } catch (err) {
             logger.error('Error handling successful bank creation:', err);
-            throw err;
+            showBoundary(err);
         }
     }, [creating, error, creationAttempted, onBackToBanks]);
 
@@ -139,7 +140,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
         } catch (err) {
             logger.error('Error updating form data:', err);
             toast.error('Failed to update form field');
-            throw err;
+            showBoundary(err);
         }
     };
 
@@ -161,7 +162,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             logger.error('Failed to create bank:', error);
             toast.error('Failed to create bank. Please try again.');
             setCreationAttempted(false);
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -175,7 +176,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             onCancel();
         } catch (err) {
             logger.error('Error cancelling add bank form:', err);
-            throw err;
+            showBoundary(err);
         }
     };
 
@@ -189,7 +190,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
             onBackToBanks();
         } catch (err) {
             logger.error('Error navigating back to banks:', err);
-            throw err;
+            showBoundary(err);
         }
     };
 
@@ -322,7 +323,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
         );
     } catch (error) {
         logger.error('Error rendering add bank form:', error);
-        throw error;
+        showBoundary(error);
     }
 };
 

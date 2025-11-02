@@ -89,7 +89,6 @@ const ClientListErrorFallback: React.FC<{
 };
 
 const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
-    
     const dispatch = useAppDispatch();
     const { showBoundary } = useErrorBoundary();
     const {

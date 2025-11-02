@@ -1,6 +1,6 @@
 'use client';
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, ArrowUpDown } from 'lucide-react';
 import TransactionList from './TransactionList';
 import AddDepositScreen from './AddDeposit';
@@ -70,6 +70,7 @@ const TransactionScreenErrorFallback: React.FC<{
 
 const TransactionScreenContent: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>('list');
+    const { showBoundary } = useErrorBoundary();
 
     const handleShowDeposit = () => {
         try {
@@ -129,7 +130,8 @@ const TransactionScreenContent: React.FC = () => {
             }
         } catch (error) {
             logger.error('Error rendering transaction view:', error);
-            throw error; // Let error boundary handle this
+            showBoundary(error);
+            return null;
         }
     };
 

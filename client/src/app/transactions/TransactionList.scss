@@ -109,7 +109,72 @@
     }
 }
 
-// Responsive design for error boundary
+// Search Error Styles
+.tl__search-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--muted);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    color: var(--muted-foreground);
+
+    &-message {
+        flex: 1;
+        font-size: 0.875rem;
+        font-weight: 500;
+    }
+
+    &-retry {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--muted-foreground);
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--background);
+            color: var(--foreground);
+            border-color: var(--primary);
+        }
+    }
+
+    &-details {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        cursor: help;
+        color: var(--destructive);
+        font-size: 0.875rem;
+    }
+}
+
+// Responsive design for search error
+@media (max-width: 768px) {
+    .tl__search-error {
+        padding: 0.625rem 0.875rem;
+        
+        &-message {
+            font-size: 0.8125rem;
+        }
+        
+        &-retry,
+        &-details {
+            width: 20px;
+            height: 20px;
+        }
+    }
+}
 @media (max-width: 768px) {
     .tl__error-boundary {
         padding: 1rem;

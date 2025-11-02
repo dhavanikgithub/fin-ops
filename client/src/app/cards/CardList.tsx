@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
@@ -98,7 +98,7 @@ interface CardListProps {
 }
 
 const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
-    
+    const { showBoundary } = useErrorBoundary();
     const dispatch = useAppDispatch();
     const { 
         cards, 
@@ -130,7 +130,6 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             }));
         } catch (error) {
             logger.error('Error fetching cards:', error);
-            throw error;
         }
     }, [dispatch, searchQuery, sortBy, sortOrder]);
 
@@ -142,7 +141,6 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             }
         } catch (error) {
             logger.error('Error updating edit form:', error);
-            throw error;
         }
     }, [editingCard]);
 
@@ -168,7 +166,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setLocalSearch(e.target.value);
         } catch (error) {
             logger.error('Error handling search change:', error);
-            toast.error('Failed to update search. Please try again.');
+            toast.error('Failed to update search.');
         }
     };
 
@@ -177,7 +175,8 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             dispatch(setEditingCard(card));
         } catch (error) {
             logger.error('Error setting editing card:', error);
-            toast.error('Failed to open card for editing. Please try again.');
+            toast.error('Failed to open card for editing.');
+            showBoundary(error);
         }
     };
 
@@ -193,7 +192,8 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             toast.success('Card saved successfully.');
         } catch (error) {
             logger.error('Failed to update card:', error);
-            toast.error('Failed to update card. Please try again.');
+            toast.error('Failed to update card.');
+            showBoundary(error);
         }
     };
 
@@ -202,7 +202,8 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setIsDeleteModalOpen(true);
         } catch (error) {
             logger.error('Error opening delete modal:', error);
-            throw error;
+            toast.error('Failed to open delete confirmation.');
+            showBoundary(error);
         }
     };
 
@@ -214,7 +215,8 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             toast.success('Card deleted successfully.');
         } catch (error) {
             logger.error('Failed to delete card:', error);
-            toast.error('Failed to delete card. Please try again.');
+            toast.error('Failed to delete card.');
+            showBoundary(error);
         }
     };
 
@@ -223,17 +225,17 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
             setIsDeleteModalOpen(false);
         } catch (error) {
             logger.error('Error closing delete modal:', error);
-            throw error;
+            showBoundary(error);
         }
     };
 
     const handleCancelEdit = () => {
         try {
             dispatch(closeEditForm());
-            setEditForm({ name: '' });
+            setEditForm({ name: '' });``
         } catch (error) {
             logger.error('Error cancelling edit:', error);
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -434,7 +436,7 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
         );
     } catch (error) {
         logger.error('Error rendering card list:', error);
-        throw error;
+        showBoundary(error);
     }
 };
 

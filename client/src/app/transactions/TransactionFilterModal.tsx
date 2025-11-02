@@ -66,8 +66,90 @@ const FilterModalErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () 
     );
 };
 
+// Error Fallback for Bank Tokens
+const BankTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="filter-modal__multi">
+            <div className="filter-modal__input filter-modal__input--multi filter-modal__input--error">
+                <div className="filter-modal__token filter-modal__token--error">
+                    <Banknote size={14} />
+                    <span>Bank search unavailable</span>
+                    <button
+                        type="button"
+                        className="filter-modal__token-retry"
+                        onClick={resetErrorBoundary}
+                        title="Retry bank search"
+                    >
+                        <RotateCcw size={12} />
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <div className="filter-modal__error-hint" title={`Bank Error: ${error.message}`}>
+                        ⚠️
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Error Fallback for Card Tokens
+const CardTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="filter-modal__multi">
+            <div className="filter-modal__input filter-modal__input--multi filter-modal__input--error">
+                <div className="filter-modal__token filter-modal__token--error">
+                    <CreditCard size={14} />
+                    <span>Card search unavailable</span>
+                    <button
+                        type="button"
+                        className="filter-modal__token-retry"
+                        onClick={resetErrorBoundary}
+                        title="Retry card search"
+                    >
+                        <RotateCcw size={12} />
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <div className="filter-modal__error-hint" title={`Card Error: ${error.message}`}>
+                        ⚠️
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+// Error Fallback for Client Tokens
+const ClientTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () => void }> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="filter-modal__multi">
+            <div className="filter-modal__input filter-modal__input--multi filter-modal__input--error">
+                <div className="filter-modal__token filter-modal__token--error">
+                    <User size={14} />
+                    <span>Client search unavailable</span>
+                    <button
+                        type="button"
+                        className="filter-modal__token-retry"
+                        onClick={resetErrorBoundary}
+                        title="Retry client search"
+                    >
+                        <RotateCcw size={12} />
+                    </button>
+                </div>
+                {process.env.NODE_ENV === 'development' && (
+                    <div className="filter-modal__error-hint" title={`Client Error: ${error.message}`}>
+                        ⚠️
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onClose, onApplyFilters }) => {
     const dispatch = useAppDispatch();
+    const { showBoundary } = useErrorBoundary();
     const { items: bankAutocompleteItems, loading: bankLoading } = useAppSelector(state => state.bankAutocomplete);
     const { items: cardAutocompleteItems, loading: cardLoading } = useAppSelector(state => state.cardAutocomplete);
     const { items: clientAutocompleteItems, loading: clientLoading } = useAppSelector(state => state.clientAutocomplete);
@@ -78,7 +160,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
     const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
     const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
     const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
-    
+
     // Initialize filters as a ref to avoid re-renders on modal open
     const initialFilters: FilterValues = {
         types: [],
@@ -90,7 +172,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         cards: [],
         clients: [],
     };
-    
+
     const [filters, setFilters] = useState<FilterValues>(initialFilters);
 
     // Debounced timers as refs to persist across renders
@@ -102,7 +184,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         if (bankSearchDebounceTimer.current) {
             clearTimeout(bankSearchDebounceTimer.current);
         }
-        
+
         const timer = setTimeout(() => {
             if (searchTerm.trim()) {
                 dispatch(fetchBankAutocomplete({ search: searchTerm, limit: 5 }));
@@ -110,7 +192,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
                 dispatch(clearBankAutocomplete());
             }
         }, 300);
-        
+
         bankSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
@@ -119,7 +201,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         if (cardSearchDebounceTimer.current) {
             clearTimeout(cardSearchDebounceTimer.current);
         }
-        
+
         const timer = setTimeout(() => {
             if (searchTerm.trim()) {
                 dispatch(fetchCardAutocomplete({ search: searchTerm, limit: 5 }));
@@ -127,7 +209,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
                 dispatch(clearCardAutocomplete());
             }
         }, 300);
-        
+
         cardSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
@@ -136,7 +218,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
         }
-        
+
         const timer = setTimeout(() => {
             if (searchTerm.trim()) {
                 dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
@@ -144,7 +226,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
                 dispatch(clearClientAutocomplete());
             }
         }, 300);
-        
+
         clientSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
@@ -159,7 +241,7 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
             setCardHighlightedIndex(0);
             setClientHighlightedIndex(0);
         }
-        
+
         return () => {
             if (bankSearchDebounceTimer.current) {
                 clearTimeout(bankSearchDebounceTimer.current);
@@ -274,13 +356,13 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setBankHighlightedIndex(prev => 
+                setBankHighlightedIndex(prev =>
                     prev < availableBanks.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setBankHighlightedIndex(prev => 
+                setBankHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : availableBanks.length - 1
                 );
                 break;
@@ -313,13 +395,13 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setCardHighlightedIndex(prev => 
+                setCardHighlightedIndex(prev =>
                     prev < availableCards.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setCardHighlightedIndex(prev => 
+                setCardHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : availableCards.length - 1
                 );
                 break;
@@ -352,13 +434,13 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setClientHighlightedIndex(prev => 
+                setClientHighlightedIndex(prev =>
                     prev < availableClients.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setClientHighlightedIndex(prev => 
+                setClientHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : availableClients.length - 1
                 );
                 break;
@@ -382,373 +464,450 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
         }
     };
 
-    
-    const renderBankTokens = () => {
+
+    // Bank Tokens Component
+    const BankTokensContent: React.FC = () => {
         // Filter out banks that are already selected
         const selectedBankIds = filters.banks.map(bank => bank.value);
         const availableBanks = bankAutocompleteItems.filter(
             bank => !selectedBankIds.includes(bank.id)
         );
-        
-        return (
-            <div className="filter-modal__multi">
-                <div className="filter-modal__input filter-modal__input--multi">
-                    {filters.banks.map((item) => (
-                        <div key={item.value} className="filter-modal__token">
-                            <Banknote size={14} />
-                            <span>{item.label}</span>
-                            <button
-                                type="button"
-                                className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('banks', item)}
-                            >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    ))}
-                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            className="filter-modal__token-input"
-                            placeholder="Search bank..."
-                            value={bankSearch}
-                            onChange={e => setBankSearch(e.target.value)}
-                            onKeyDown={handleBankKeyDown}
-                            autoComplete="off"
-                        />
-                        {bankSearch && (
-                            <div className="filter-modal__dropdown">
-                                {bankLoading ? (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                        Loading banks...
-                                    </div>
-                                ) : availableBanks.length > 0 ? (
-                                    availableBanks.map((bank, index) => (
-                                        <div
-                                            key={bank.id}
-                                            className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                            onClick={() => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    banks: [...prev.banks, { label: bank.name, value: bank.id }]
-                                                }));
-                                                setBankSearch('');
-                                                setBankHighlightedIndex(0);
-                                                dispatch(clearBankAutocomplete());
-                                            }}
-                                            onMouseEnter={() => setBankHighlightedIndex(index)}
-                                        >
-                                            {bank.name}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                        No banks found
-                                    </div>
-                                )}
+
+        try {
+            return (
+                <div className="filter-modal__multi">
+                    <div className="filter-modal__input filter-modal__input--multi">
+                        {filters.banks.map((item) => (
+                            <div key={item.value} className="filter-modal__token">
+                                <Banknote size={14} />
+                                <span>{item.label}</span>
+                                <button
+                                    type="button"
+                                    className="filter-modal__token-remove"
+                                    onClick={() => handleRemoveToken('banks', item)}
+                                >
+                                    <X size={12} />
+                                </button>
                             </div>
-                        )}
+                        ))}
+                        <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                            <input
+                                type="text"
+                                className="filter-modal__token-input"
+                                placeholder="Search bank..."
+                                value={bankSearch}
+                                onChange={e => setBankSearch(e.target.value)}
+                                onKeyDown={handleBankKeyDown}
+                                autoComplete="off"
+                            />
+                            {bankSearch && (
+                                <div className="filter-modal__dropdown">
+                                    {bankLoading ? (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                            Loading banks...
+                                        </div>
+                                    ) : availableBanks.length > 0 ? (
+                                        availableBanks.map((bank, index) => (
+                                            <div
+                                                key={bank.id}
+                                                className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                onClick={() => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        banks: [...prev.banks, { label: bank.name, value: bank.id }]
+                                                    }));
+                                                    setBankSearch('');
+                                                    setBankHighlightedIndex(0);
+                                                    dispatch(clearBankAutocomplete());
+                                                }}
+                                                onMouseEnter={() => setBankHighlightedIndex(index)}
+                                            >
+                                                {bank.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                            No banks found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        } catch (error) {
+            logger.error("Error occurred while rendering bank tokens:", error);
+            throw error;
+        }
     };
 
-    const renderCardTokens = () => {
+    // Card Tokens Component
+    const CardTokensContent: React.FC = () => {
         // Filter out cards that are already selected
         const selectedCardIds = filters.cards.map(card => card.value);
         const availableCards = cardAutocompleteItems.filter(
             card => !selectedCardIds.includes(card.id)
         );
-        
-        return (
-            <div className="filter-modal__multi">
-                <div className="filter-modal__input filter-modal__input--multi">
-                    {filters.cards.map((item) => (
-                        <div key={item.value} className="filter-modal__token">
-                            <CreditCard size={14} />
-                            <span>{item.label}</span>
-                            <button
-                                type="button"
-                                className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('cards', item)}
-                            >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    ))}
-                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            className="filter-modal__token-input"
-                            placeholder="Search card..."
-                            value={cardSearch}
-                            onChange={e => setCardSearch(e.target.value)}
-                            onKeyDown={handleCardKeyDown}
-                            autoComplete="off"
-                        />
-                        {cardSearch && (
-                            <div className="filter-modal__dropdown">
-                                {cardLoading ? (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                        Loading cards...
-                                    </div>
-                                ) : availableCards.length > 0 ? (
-                                    availableCards.map((card, index) => (
-                                        <div
-                                            key={card.id}
-                                            className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                            onClick={() => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    cards: [...prev.cards, { label: card.name, value: card.id }]
-                                                }));
-                                                setCardSearch('');
-                                                setCardHighlightedIndex(0);
-                                                dispatch(clearCardAutocomplete());
-                                            }}
-                                            onMouseEnter={() => setCardHighlightedIndex(index)}
-                                        >
-                                            {card.name}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                        No cards found
-                                    </div>
-                                )}
+
+        try {
+            return (
+                <div className="filter-modal__multi">
+                    <div className="filter-modal__input filter-modal__input--multi">
+                        {filters.cards.map((item) => (
+                            <div key={item.value} className="filter-modal__token">
+                                <CreditCard size={14} />
+                                <span>{item.label}</span>
+                                <button
+                                    type="button"
+                                    className="filter-modal__token-remove"
+                                    onClick={() => handleRemoveToken('cards', item)}
+                                >
+                                    <X size={12} />
+                                </button>
                             </div>
-                        )}
+                        ))}
+                        <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                            <input
+                                type="text"
+                                className="filter-modal__token-input"
+                                placeholder="Search card..."
+                                value={cardSearch}
+                                onChange={e => setCardSearch(e.target.value)}
+                                onKeyDown={handleCardKeyDown}
+                                autoComplete="off"
+                            />
+                            {cardSearch && (
+                                <div className="filter-modal__dropdown">
+                                    {cardLoading ? (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                            Loading cards...
+                                        </div>
+                                    ) : availableCards.length > 0 ? (
+                                        availableCards.map((card, index) => (
+                                            <div
+                                                key={card.id}
+                                                className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                onClick={() => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        cards: [...prev.cards, { label: card.name, value: card.id }]
+                                                    }));
+                                                    setCardSearch('');
+                                                    setCardHighlightedIndex(0);
+                                                    dispatch(clearCardAutocomplete());
+                                                }}
+                                                onMouseEnter={() => setCardHighlightedIndex(index)}
+                                            >
+                                                {card.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                            No cards found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
-        );
+            );
+        } catch (error) {
+            logger.error("Error occurred while rendering card tokens:", error);
+            throw error;
+        }
     };
 
-    const renderClientTokens = () => {
+    // Client Tokens Component
+    const ClientTokensContent: React.FC = () => {
         // Filter out clients that are already selected
         const selectedClientIds = filters.clients.map(client => client.value);
         const availableClients = clientAutocompleteItems.filter(
             client => !selectedClientIds.includes(client.id)
         );
-        
-        return (
-            <div className="filter-modal__multi">
-                <div className="filter-modal__input filter-modal__input--multi">
-                    {filters.clients.map((item) => (
-                        <div key={item.value} className="filter-modal__token">
-                            <User size={14} />
-                            <span>{item.label}</span>
-                            <button
-                                type="button"
-                                className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('clients', item)}
-                            >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    ))}
-                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            className="filter-modal__token-input"
-                            placeholder="Search client..."
-                            value={clientSearch}
-                            onChange={e => setClientSearch(e.target.value)}
-                            onKeyDown={handleClientKeyDown}
-                            autoComplete="off"
-                        />
-                        {clientSearch && (
-                            <div className="filter-modal__dropdown">
-                                {clientLoading ? (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                        Loading clients...
-                                    </div>
-                                ) : availableClients.length > 0 ? (
-                                    availableClients.map((client, index) => (
-                                        <div
-                                            key={client.id}
-                                            className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                            onClick={() => {
-                                                setFilters(prev => ({
-                                                    ...prev,
-                                                    clients: [...prev.clients, { label: client.name, value: client.id }]
-                                                }));
-                                                setClientSearch('');
-                                                setClientHighlightedIndex(0);
-                                                dispatch(clearClientAutocomplete());
-                                            }}
-                                            onMouseEnter={() => setClientHighlightedIndex(index)}
-                                        >
-                                            {client.name}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                        No clients found
-                                    </div>
-                                )}
+
+        try {
+            return (
+                <div className="filter-modal__multi">
+                    <div className="filter-modal__input filter-modal__input--multi">
+                        {filters.clients.map((item) => (
+                            <div key={item.value} className="filter-modal__token">
+                                <User size={14} />
+                                <span>{item.label}</span>
+                                <button
+                                    type="button"
+                                    className="filter-modal__token-remove"
+                                    onClick={() => handleRemoveToken('clients', item)}
+                                >
+                                    <X size={12} />
+                                </button>
                             </div>
-                        )}
+                        ))}
+                        <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                            <input
+                                type="text"
+                                className="filter-modal__token-input"
+                                placeholder="Search client..."
+                                value={clientSearch}
+                                onChange={e => setClientSearch(e.target.value)}
+                                onKeyDown={handleClientKeyDown}
+                                autoComplete="off"
+                            />
+                            {clientSearch && (
+                                <div className="filter-modal__dropdown">
+                                    {clientLoading ? (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                            Loading clients...
+                                        </div>
+                                    ) : availableClients.length > 0 ? (
+                                        availableClients.map((client, index) => (
+                                            <div
+                                                key={client.id}
+                                                className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                onClick={() => {
+                                                    setFilters(prev => ({
+                                                        ...prev,
+                                                        clients: [...prev.clients, { label: client.name, value: client.id }]
+                                                    }));
+                                                    setClientSearch('');
+                                                    setClientHighlightedIndex(0);
+                                                    dispatch(clearClientAutocomplete());
+                                                }}
+                                                onMouseEnter={() => setClientHighlightedIndex(index)}
+                                            >
+                                                {client.name}
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                            No clients found
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
-            </div>
+            );
+        } catch (error) {
+            logger.error("Error occurred while rendering client tokens:", error);
+            throw error;
+        }
+    };
+
+    const renderBankTokens = () => {
+        return (
+            <ErrorBoundary
+                FallbackComponent={BankTokensErrorFallback}
+                onError={(error, errorInfo) => {
+                    logger.error('Bank tokens error boundary triggered:', {
+                        error: error.message,
+                        stack: error.stack,
+                        errorInfo,
+                        timestamp: new Date().toISOString()
+                    });
+                }}
+            >
+                <BankTokensContent />
+            </ErrorBoundary>
+        );
+    };
+
+    const renderCardTokens = () => {
+        return (
+            <ErrorBoundary
+                FallbackComponent={CardTokensErrorFallback}
+                onError={(error, errorInfo) => {
+                    logger.error('Card tokens error boundary triggered:', {
+                        error: error.message,
+                        stack: error.stack,
+                        errorInfo,
+                        timestamp: new Date().toISOString()
+                    });
+                }}
+            >
+                <CardTokensContent />
+            </ErrorBoundary>
+        );
+    };
+
+    const renderClientTokens = () => {
+        return (
+            <ErrorBoundary
+                FallbackComponent={ClientTokensErrorFallback}
+                onError={(error, errorInfo) => {
+                    logger.error('Client tokens error boundary triggered:', {
+                        error: error.message,
+                        stack: error.stack,
+                        errorInfo,
+                        timestamp: new Date().toISOString()
+                    });
+                }}
+            >
+                <ClientTokensContent />
+            </ErrorBoundary>
         );
     };
 
     if (!isOpen) return null;
-
-    return (
-        <div className="filter-modal-overlay" onClick={onClose}>
-            <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="filter-modal__header">
-                    <h2 className="filter-modal__title">Filter Transactions</h2>
-                    <button className="filter-modal__close" onClick={onClose}>
-                        <X size={16} />
-                        Close
-                    </button>
-                </div>
-
-                <div className="filter-modal__body">
-                    <div className="filter-modal__section">
-
-                        <div className="filter-modal__row">
-                            <label className="filter-modal__label">Type</label>
-                            <div className="filter-modal__pills">
-                                <label className="filter-modal__pill-checkbox">
+    try{
+        return (
+            <div className="filter-modal-overlay" onClick={onClose}>
+                <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="filter-modal__header">
+                        <h2 className="filter-modal__title">Filter Transactions</h2>
+                        <button className="filter-modal__close" onClick={onClose}>
+                            <X size={16} />
+                            Close
+                        </button>
+                    </div>
+    
+                    <div className="filter-modal__body">
+                        <div className="filter-modal__section">
+    
+                            <div className="filter-modal__row">
+                                <label className="filter-modal__label">Type</label>
+                                <div className="filter-modal__pills">
+                                    <label className="filter-modal__pill-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
+                                            onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
+                                        />
+                                        <span className="filter-modal__custom-checkbox">
+                                            {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT]) && <Check size={14} />}
+                                        </span>
+                                        <span>Deposit</span>
+                                    </label>
+                                    <label className="filter-modal__pill-checkbox">
+                                        <input
+                                            type="checkbox"
+                                            checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
+                                            onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
+                                        />
+                                        <span className="filter-modal__custom-checkbox">
+                                            {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW]) && <Check size={14} />}
+                                        </span>
+                                        <span>Withdraw</span>
+                                    </label>
+                                </div>
+                            </div>
+    
+                            <div className="filter-modal__row">
+                                <label className="filter-modal__label">Amount</label>
+                                <div className="filter-modal__row-split">
                                     <input
-                                        type="checkbox"
-                                        checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
-                                        onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT])}
+                                        type="number"
+                                        className="filter-modal__input"
+                                        placeholder="Min amount"
+                                        value={filters.minAmount}
+                                        onChange={(e) => handleInputChange('minAmount', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                     />
-                                    <span className="filter-modal__custom-checkbox">
-                                        {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.DEPOSIT]) && <Check size={14} />}
-                                    </span>
-                                    <span>Deposit</span>
-                                </label>
-                                <label className="filter-modal__pill-checkbox">
                                     <input
-                                        type="checkbox"
-                                        checked={filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
-                                        onChange={() => handleTypeToggle(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW])}
+                                        type="number"
+                                        className="filter-modal__input"
+                                        placeholder="Max amount"
+                                        value={filters.maxAmount}
+                                        onChange={(e) => handleInputChange('maxAmount', e.target.value)}
+                                        onFocus={e => e.target.select()}
                                     />
-                                    <span className="filter-modal__custom-checkbox">
-                                        {filters.types.includes(TRANSACTION_TYPE_LABELS[TRANSACTION_TYPES.WITHDRAW]) && <Check size={14} />}
-                                    </span>
-                                    <span>Withdraw</span>
-                                </label>
+                                </div>
+                            </div>
+    
+                            <div className="filter-modal__row">
+                                <label className="filter-modal__label">Date</label>
+                                <div className="filter-modal__row-split">
+                                    <ReactDatePicker
+                                        value={filters.startDate}
+                                        onChange={(date) => handleDateChange('startDate')(date as Date | null)}
+                                        placeholder="Start date"
+                                        className="filter-modal__input"
+                                        maxDateToday={true}
+                                        options={{
+                                            mode: 'single',
+                                            format: 'd-m-Y',
+                                            showIcon: true,
+                                            iconPosition: 'right',
+                                            closeOnSelect: true,
+                                            allowInput: false,
+                                            blockFutureDates: true,
+                                            enableMonthDropdown: true,
+                                            enableYearDropdown: true,
+                                            iconClickOpens: true,
+                                            onSelect: (date) => {
+                                                logger.log('Start date selected:', date);
+                                            }
+                                        }}
+                                    />
+                                    <ReactDatePicker
+                                        value={filters.endDate}
+                                        onChange={(date) => handleDateChange('endDate')(date as Date | null)}
+                                        placeholder="End date"
+                                        className="filter-modal__input"
+                                        maxDateToday={true}
+                                        options={{
+                                            mode: 'single',
+                                            format: 'd-m-Y',
+                                            showIcon: true,
+                                            iconPosition: 'right',
+                                            closeOnSelect: true,
+                                            allowInput: false,
+                                            blockFutureDates: true,
+                                            enableMonthDropdown: true,
+                                            enableYearDropdown: true,
+                                            iconClickOpens: true,
+                                            onSelect: (date) => {
+                                                logger.log('End date selected:', date);
+                                            }
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
-
-                        <div className="filter-modal__row">
-                            <label className="filter-modal__label">Amount</label>
-                            <div className="filter-modal__row-split">
-                                <input
-                                    type="number"
-                                    className="filter-modal__input"
-                                    placeholder="Min amount"
-                                    value={filters.minAmount}
-                                    onChange={(e) => handleInputChange('minAmount', e.target.value)}
-                                    onFocus={e => e.target.select()}
-                                />
-                                <input
-                                    type="number"
-                                    className="filter-modal__input"
-                                    placeholder="Max amount"
-                                    value={filters.maxAmount}
-                                    onChange={(e) => handleInputChange('maxAmount', e.target.value)}
-                                    onFocus={e => e.target.select()}
-                                />
+    
+                        <div className="filter-modal__section">
+                            <div className="filter-modal__row filter-modal__row--align-start">
+                                <label className="filter-modal__label">Bank</label>
+                                {renderBankTokens()}
                             </div>
-                        </div>
-
-                        <div className="filter-modal__row">
-                            <label className="filter-modal__label">Date</label>
-                            <div className="filter-modal__row-split">
-                                <ReactDatePicker
-                                    value={filters.startDate}
-                                    onChange={(date) => handleDateChange('startDate')(date as Date | null)}
-                                    placeholder="Start date"
-                                    className="filter-modal__input"
-                                    maxDateToday={true}
-                                    options={{
-                                        mode: 'single',
-                                        format: 'd-m-Y',
-                                        showIcon: true,
-                                        iconPosition: 'right',
-                                        closeOnSelect: true,
-                                        allowInput: false,
-                                        blockFutureDates: true,
-                                        enableMonthDropdown: true,
-                                        enableYearDropdown: true,
-                                        iconClickOpens: true,
-                                        onSelect: (date) => {
-                                            logger.log('Start date selected:', date);
-                                        }
-                                    }}
-                                />
-                                <ReactDatePicker
-                                    value={filters.endDate}
-                                    onChange={(date) => handleDateChange('endDate')(date as Date | null)}
-                                    placeholder="End date"
-                                    className="filter-modal__input"
-                                    maxDateToday={true}
-                                    options={{
-                                        mode: 'single',
-                                        format: 'd-m-Y',
-                                        showIcon: true,
-                                        iconPosition: 'right',
-                                        closeOnSelect: true,
-                                        allowInput: false,
-                                        blockFutureDates: true,
-                                        enableMonthDropdown: true,
-                                        enableYearDropdown: true,
-                                        iconClickOpens: true,
-                                        onSelect: (date) => {
-                                            logger.log('End date selected:', date);
-                                        }
-                                    }}
-                                />
+    
+                            <div className="filter-modal__row filter-modal__row--align-start">
+                                <label className="filter-modal__label">Card</label>
+                                {renderCardTokens()}
+                            </div>
+    
+                            <div className="filter-modal__row filter-modal__row--align-start">
+                                <label className="filter-modal__label">Client</label>
+                                {renderClientTokens()}
                             </div>
                         </div>
                     </div>
-
-                    <div className="filter-modal__section">
-                        <div className="filter-modal__row filter-modal__row--align-start">
-                            <label className="filter-modal__label">Bank</label>
-                            {renderBankTokens()}
-                        </div>
-
-                        <div className="filter-modal__row filter-modal__row--align-start">
-                            <label className="filter-modal__label">Card</label>
-                            {renderCardTokens()}
-                        </div>
-
-                        <div className="filter-modal__row filter-modal__row--align-start">
-                            <label className="filter-modal__label">Client</label>
-                            {renderClientTokens()}
-                        </div>
-                    </div>
-                </div>
-
-                <div className="filter-modal__footer">
-                    <button className="filter-modal__clear" onClick={handleReset}>
-                        Clear current filters
-                    </button>
-                    <div className="filter-modal__actions">
-                        <button className="filter-modal__reset" onClick={handleReset}>
-                            <RotateCcw size={16} />
-                            Reset
+    
+                    <div className="filter-modal__footer">
+                        <button className="filter-modal__clear" onClick={handleReset}>
+                            Clear current filters
                         </button>
-                        <button className="filter-modal__apply" onClick={handleApply}>
-                            <Filter size={16} />
-                            Apply Filters
-                        </button>
+                        <div className="filter-modal__actions">
+                            <button className="filter-modal__reset" onClick={handleReset}>
+                                <RotateCcw size={16} />
+                                Reset
+                            </button>
+                            <button className="filter-modal__apply" onClick={handleApply}>
+                                <Filter size={16} />
+                                Apply Filters
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
+    catch(err){
+        logger.error("Error occurred while rendering filter modal content:", err);
+        showBoundary(err);
+    }
 };
 
 // Main wrapper component with ErrorBoundary

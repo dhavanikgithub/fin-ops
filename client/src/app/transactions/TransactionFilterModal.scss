@@ -535,3 +535,55 @@ input[type="number"].filter-modal__input::-webkit-inner-spin-button {
         }
     }
 }
+
+// Error State Styles for Token Components
+.filter-modal__input {
+    &--error {
+        border-color: var(--destructive);
+        background: var(--destructive-light, #fef2f2);
+    }
+}
+
+.filter-modal__token {
+    &--error {
+        background: var(--destructive-light, #fef2f2);
+        border-color: var(--destructive);
+        color: var(--destructive);
+
+        span {
+            color: var(--destructive);
+            font-weight: 500;
+        }
+    }
+
+    &-retry {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 16px;
+        height: 16px;
+        background: transparent;
+        border: 1px solid var(--destructive);
+        border-radius: 4px;
+        cursor: pointer;
+        color: var(--destructive);
+        transition: all 0.2s ease;
+        padding: 0;
+
+        &:hover {
+            background: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+    }
+}
+
+.filter-modal__error-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    cursor: help;
+    color: var(--destructive);
+    font-size: 0.875rem;
+}

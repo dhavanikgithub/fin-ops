@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import {
     RefreshCcw,
     Save,
@@ -104,6 +104,7 @@ const FinkedaScreenErrorFallback: React.FC<{
 };
 
 const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings }) => {
+    const { showBoundary } = useErrorBoundary();
     const [amount, setAmount] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
@@ -138,7 +139,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             }
         } catch (error) {
             logger.error('Error accessing localStorage:', error);
-            throw error;
+            showBoundary(error);
         }
     }, []);
 
@@ -153,7 +154,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             }
         } catch (error) {
             logger.error('Error updating settings from initial settings:', error);
-            throw error;
+            showBoundary(error);
         }
     }, [initialSettings]);
 
@@ -181,7 +182,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error saving scenarios to localStorage:', error);
             toast.error('Failed to save scenarios.');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -197,7 +198,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
             );
         } catch (error) {
             logger.error('Error checking for duplicate scenario:', error);
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -246,7 +247,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error saving scenario:', error);
             toast.error('Failed to save scenario');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -270,27 +271,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error applying scenario:', error);
             toast.error('Failed to apply scenario');
-            throw error;
-        }
-    };
-
-
-    const handleCalculate = () => {
-        try {
-            // This would trigger any additional calculations or validations
-            logger.log('Calculating Finkeda charges...', {
-                amount,
-                selectedCardType,
-                ourRatePercentage,
-                bankRatePercentage,
-                platformRatePercentage,
-                profit,
-                payable
-            });
-        } catch (error) {
-            logger.error('Error during calculation:', error);
-            toast.error('Error during calculation');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -310,6 +291,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error during recalculation:', error);
             toast.error('Error during recalculation');
+            showBoundary(error);
         }
     };
 
@@ -324,7 +306,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error resetting form:', error);
             toast.error('Error resetting form');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -335,7 +317,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         } catch (error) {
             logger.error('Error changing card type:', error);
             toast.error('Error changing card type');
-            throw error;
         }
     };
 
@@ -617,6 +598,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
         );
     } catch (error) {
         logger.error('Error rendering Finkeda screen:', error);
+        showBoundary(error);
         return null;
     }
 };

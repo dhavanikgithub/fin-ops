@@ -1,6 +1,6 @@
 'use client'
 import React, { useState } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
@@ -78,6 +78,7 @@ const SimpleCalculatorErrorFallback: React.FC<{
 };
 
 const CalculatorScreenContent: React.FC = () => {
+    const { showBoundary } = useErrorBoundary();
     const [amount, setAmount] = useState(0);
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
@@ -105,7 +106,7 @@ const CalculatorScreenContent: React.FC = () => {
             loadSavedScenarios();
         } catch (error) {
             logger.error('Error during component initialization:', error);
-            throw error;
+            showBoundary(error);
         }
     }, []);
 
@@ -146,7 +147,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to save scenario:', error);
             toast.error('Failed to save scenario. Please try again.');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -163,7 +164,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to apply scenario:', error);
             toast.error('Failed to apply scenario');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -180,7 +181,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to reset calculator:', error);
             toast.error('Failed to reset calculator');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -194,7 +195,7 @@ const CalculatorScreenContent: React.FC = () => {
         } catch (error) {
             logger.error('Failed to recalculate:', error);
             toast.error('Failed to recalculate');
-            throw error;
+            showBoundary(error);
         }
     };
 
@@ -380,6 +381,7 @@ const CalculatorScreenContent: React.FC = () => {
         );
     } catch (error) {
         logger.error('Error rendering simple calculator:', error);
+        showBoundary(error);
         return null;
     }
 };

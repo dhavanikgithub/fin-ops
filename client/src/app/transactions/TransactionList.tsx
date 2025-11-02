@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ErrorBoundary } from 'react-error-boundary';
+import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User, AlertTriangle, RotateCcw, Home } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
@@ -38,6 +38,71 @@ interface TransactionListProps {
     onWithdraw: () => void;
 }
 
+// Error Fallback Component for Search Bar
+const SearchBarErrorFallback: React.FC<{
+    error: Error;
+    resetErrorBoundary: () => void;
+}> = ({ error, resetErrorBoundary }) => {
+    return (
+        <div className="main__search-row">
+            <div className="tl__search-error">
+                <span className="tl__search-error-message">Search unavailable</span>
+                <button
+                    className="tl__search-error-retry"
+                    onClick={resetErrorBoundary}
+                    title="Retry search"
+                >
+                    <RotateCcw size={14} />
+                </button>
+            </div>
+            {process.env.NODE_ENV === 'development' && (
+                <div className="tl__search-error-details" title={`Error: ${error.message}`}>
+                    ⚠️
+                </div>
+            )}
+        </div>
+    );
+};
+
+// Search Bar Component
+const SearchBar: React.FC<{
+    localSearchQuery: string;
+    loading: boolean;
+    onSearchChange: (value: string) => void;
+}> = ({ localSearchQuery, loading, onSearchChange }) => {
+    const { showBoundary } = useErrorBoundary();
+    try {
+        return (
+            <div className="main__search-row">
+                <span className="main__search-icon">
+                    <Search size={16} />
+                </span>
+                <input
+                    type="text"
+                    className="main__input"
+                    placeholder="Search transactions..."
+                    value={localSearchQuery}
+                    onChange={(e) => {
+                        try{
+                            onSearchChange(e.target.value);
+                        }
+                        catch (error) {
+                            logger.error("Error occurred while searching:", error);
+                            showBoundary(error);
+                        }
+                    }}
+                />
+                {loading && localSearchQuery && (
+                    <div className="main__search-loading">Searching...</div>
+                )}
+            </div>
+        );
+    } catch (error) {
+        logger.error('Error in search bar component:', error);
+        showBoundary(error);
+    }
+};
+
 // Error Fallback Component for Transaction List
 const TransactionListErrorFallback: React.FC<{
     error: Error;
@@ -71,7 +136,7 @@ const TransactionListErrorFallback: React.FC<{
                             <AlertTriangle size={64} className="tl__error-boundary-icon" />
                             <h2 className="tl__error-boundary-title">Something went wrong</h2>
                             <p className="tl__error-boundary-message">
-                                We encountered an unexpected error while loading the transactions list. 
+                                We encountered an unexpected error while loading the transactions list.
                                 Your transaction data is safe. You can try refreshing or add a new transaction.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
@@ -84,21 +149,21 @@ const TransactionListErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="tl__error-boundary-actions">
-                                <button 
+                                <button
                                     className="main__button"
                                     onClick={resetErrorBoundary}
                                 >
                                     <RotateCcw size={16} />
                                     Try Again
                                 </button>
-                                <button 
+                                <button
                                     className="main__icon-button"
                                     onClick={onDeposit}
                                 >
                                     <ArrowDownLeft size={16} />
                                     Add Deposit
                                 </button>
-                                <button 
+                                <button
                                     className="main__icon-button"
                                     onClick={() => window.location.href = '/'}
                                 >
@@ -115,7 +180,7 @@ const TransactionListErrorFallback: React.FC<{
 };
 
 const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onWithdraw }) => {
-    
+    const { showBoundary } = useErrorBoundary();
     const dispatch = useAppDispatch();
     const {
         transactions,
@@ -167,24 +232,30 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
 
     // Handle search with debouncing
     const handleSearchChange = useCallback((value: string) => {
-        setLocalSearchQuery(value);
+        try {
+            setLocalSearchQuery(value);
 
-        // Clear existing timeout
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
-        }
-
-        // Set new timeout for debounced search
-        const timeout = setTimeout(() => {
-            dispatch(setSearchQuery(value));
-            if (value.trim()) {
-                dispatch(searchTransactions(value.trim()));
-            } else {
-                dispatch(fetchTransactions());
+            // Clear existing timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
             }
-        }, 500); // 500ms debounce
 
-        setSearchTimeout(timeout);
+            // Set new timeout for debounced search
+            const timeout = setTimeout(() => {
+                dispatch(setSearchQuery(value));
+                if (value.trim()) {
+                    dispatch(searchTransactions(value.trim()));
+                } else {
+                    dispatch(fetchTransactions());
+                }
+            }, 500); // 500ms debounce
+
+            setSearchTimeout(timeout);
+        }
+        catch (error) {
+            logger.error("Error occurred while searching:", error);
+            throw error;
+        }
     }, [dispatch, searchTimeout]);
 
     // Cleanup timeout on unmount
@@ -419,13 +490,13 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setBankHighlightedIndex(prev => 
+                setBankHighlightedIndex(prev =>
                     prev < bankAutocompleteItems.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setBankHighlightedIndex(prev => 
+                setBankHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : bankAutocompleteItems.length - 1
                 );
                 break;
@@ -450,13 +521,13 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setCardHighlightedIndex(prev => 
+                setCardHighlightedIndex(prev =>
                     prev < cardAutocompleteItems.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setCardHighlightedIndex(prev => 
+                setCardHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : cardAutocompleteItems.length - 1
                 );
                 break;
@@ -481,13 +552,13 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
         switch (e.key) {
             case 'ArrowDown':
                 e.preventDefault();
-                setClientHighlightedIndex(prev => 
+                setClientHighlightedIndex(prev =>
                     prev < clientAutocompleteItems.length - 1 ? prev + 1 : 0
                 );
                 break;
             case 'ArrowUp':
                 e.preventDefault();
-                setClientHighlightedIndex(prev => 
+                setClientHighlightedIndex(prev =>
                     prev > 0 ? prev - 1 : clientAutocompleteItems.length - 1
                 );
                 break;
@@ -547,7 +618,7 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
         editingTransactionIds: number[],
         deletingTransactionIds: number[]
     ): boolean => {
-        return isTransactionBeingSaved(transactionId,editingTransactionIds) || isTransactionBeingDeleted(transactionId,deletingTransactionIds);
+        return isTransactionBeingSaved(transactionId, editingTransactionIds) || isTransactionBeingDeleted(transactionId, deletingTransactionIds);
     };
 
     const isSelectedTransactionBeingProcessed = (
@@ -575,426 +646,429 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                             <ArrowDownLeft size={16} />
                             Deposit
                         </button>
-                    <button className="main__button" onClick={onWithdraw}>
-                        <ArrowUpRight size={16} />
-                        Withdraw
-                    </button>
-                </div>
-            </header>
+                        <button className="main__button" onClick={onWithdraw}>
+                            <ArrowUpRight size={16} />
+                            Withdraw
+                        </button>
+                    </div>
+                </header>
 
-            <div className="main__content">
+                <div className="main__content">
 
-                <div className="main__view">
-                    <div className="main__view-header">
-                        <div className="main__search-row">
-                            <span className="main__search-icon">
-                                <Search size={16} />
-                            </span>
-                            <input
-                                type="text"
-                                className="main__input"
-                                placeholder="Search transactions..."
-                                value={localSearchQuery}
-                                onChange={(e) => handleSearchChange(e.target.value)}
-                            />
-                            {loading && localSearchQuery && (
-                                <div className="main__search-loading">Searching...</div>
-                            )}
-                        </div>
-                        <div className="main__actions">
-                            <button
-                                className={`main__icon-button ${filterCount > 0 ? 'main__icon-button--active' : ''}`}
-                                onClick={handleOpenFilterModal}
+                    <div className="main__view">
+                        <div className="main__view-header">
+                            <ErrorBoundary
+                                FallbackComponent={SearchBarErrorFallback}
+                                onError={(error, errorInfo) => {
+                                    logger.error('Search bar error boundary triggered:', {
+                                        error: error.message,
+                                        stack: error.stack,
+                                        errorInfo,
+                                        timestamp: new Date().toISOString()
+                                    });
+                                    toast.error('Search temporarily unavailable. Transaction list still works.');
+                                }}
                             >
-                                <SlidersHorizontal size={16} />
-                                Filters
-                                {filterCount > 0 && (
-                                    <span className="main__filter-badge">{filterCount}</span>
-                                )}
-                            </button>
+                                <SearchBar
+                                    localSearchQuery={localSearchQuery}
+                                    loading={loading}
+                                    onSearchChange={handleSearchChange}
+                                />
+                            </ErrorBoundary>
+                            <div className="main__actions">
+                                <button
+                                    className={`main__icon-button ${filterCount > 0 ? 'main__icon-button--active' : ''}`}
+                                    onClick={handleOpenFilterModal}
+                                >
+                                    <SlidersHorizontal size={16} />
+                                    Filters
+                                    {filterCount > 0 && (
+                                        <span className="main__filter-badge">{filterCount}</span>
+                                    )}
+                                </button>
+                            </div>
                         </div>
+
+                        <Table
+                            selectedTransaction={selectedTransaction}
+                            onTransactionSelect={handleTransactionSelect}
+                        />
+                        {pagination && (
+                            <span className="main__subtitle">
+                                Showing {transactions.length} of {pagination.total_count} transactions
+                            </span>
+                        )}
                     </div>
 
-                    <Table
-                        selectedTransaction={selectedTransaction}
-                        onTransactionSelect={handleTransactionSelect}
-                    />
-                    {pagination && (
-                        <span className="main__subtitle">
-                            Showing {transactions.length} of {pagination.total_count} transactions
-                        </span>
+                    {selectedTransaction && (
+                        <div className="detail">
+                            {/* Processing Overlay */}
+                            {isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds) && (
+                                <div className="detail__processing-overlay">
+                                    <div className="detail__processing-content">
+                                        <div className="detail__processing-spinner"></div>
+                                        <div className="detail__processing-message">
+                                            {isTransactionBeingSaved(selectedTransaction.id, editingTransactionIds) && 'Saving Transaction...'}
+                                            {isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) && 'Deleting Transaction...'}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="detail__header">
+                                <div className="detail__header-column detail__header-column--icon">
+                                    <div
+                                        className={`transaction__icon transaction__icon--${getTransactionTypeLabel(selectedTransaction.transaction_type)}`}
+                                    >
+                                        {isDeposit(selectedTransaction.transaction_type) ? (
+                                            <ArrowDownLeft size={20} />
+                                        ) : (
+                                            <ArrowUpRight size={20} />
+                                        )}
+                                    </div>
+                                </div>
+                                <div className="detail__header-column detail__header-column--content">
+                                    <div className="detail__header-row">
+                                        <div className="detail__name">{selectedTransaction.client_name}</div>
+                                    </div>
+                                    <div className="detail__header-row">
+                                        <div className="detail__sub">
+                                            ₹{selectedTransaction.transaction_amount.toLocaleString()}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="detail__divider" />
+                            <div className="transaction-edit">
+                                <div className="transaction-edit__title">Edit Transaction</div>
+                                <div className="transaction-edit__form">
+                                    <div>
+                                        <div className="label">Transaction Type</div>
+                                        <div className="filter-modal__pills">
+                                            <label className="filter-modal__pill-checkbox">
+                                                <input
+                                                    type="radio"
+                                                    name="transaction_type"
+                                                    value={0}
+                                                    checked={isDeposit(selectedTransaction.transaction_type)}
+                                                    onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
+                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                />
+                                                <span className="filter-modal__custom-checkbox">
+                                                    {isDeposit(selectedTransaction.transaction_type) && <Check size={14} />}
+                                                </span>
+                                                <span>Deposit</span>
+                                            </label>
+                                            <label className="filter-modal__pill-checkbox">
+                                                <input
+                                                    type="radio"
+                                                    name="transaction_type"
+                                                    value={1}
+                                                    checked={isWithdraw(selectedTransaction.transaction_type)}
+                                                    onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
+                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                />
+                                                <span className="filter-modal__custom-checkbox">
+                                                    {isWithdraw(selectedTransaction.transaction_type) && <Check size={14} />}
+                                                </span>
+                                                <span>Withdraw</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div className="label">Amount</div>
+                                        <input
+                                            className="control"
+                                            type="number"
+                                            value={selectedTransaction.transaction_amount}
+                                            onChange={(e) => handleTransactionFieldChange('transaction_amount', parseFloat(e.target.value))}
+                                            disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                        />
+                                    </div>
+                                    <div>
+                                        <div className="label">Client Name</div>
+                                        <div className="filter-modal__multi">
+                                            <div className="filter-modal__input filter-modal__input--multi">
+                                                {selectedTransaction.client_name && !showClientDropdown && (
+                                                    <div className="filter-modal__token">
+                                                        <User size={14} />
+                                                        <span>{selectedTransaction.client_name}</span>
+                                                        <button
+                                                            type="button"
+                                                            className="filter-modal__token-remove"
+                                                            onClick={() => {
+                                                                handleTransactionFieldChange('client_name', '');
+                                                                setShowClientDropdown(true);
+                                                                setClientSearch('');
+                                                            }}
+                                                            disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                        >
+                                                            <X size={12} />
+                                                        </button>
+                                                    </div>
+                                                )}
+                                                {(!selectedTransaction.client_name || showClientDropdown) && (
+                                                    <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                                                        <input
+                                                            type="text"
+                                                            className="filter-modal__token-input"
+                                                            placeholder="Search client..."
+                                                            value={showClientDropdown ? clientSearch : selectedTransaction.client_name}
+                                                            onChange={e => {
+                                                                if (showClientDropdown) {
+                                                                    setClientSearch(e.target.value);
+                                                                } else {
+                                                                    handleTransactionFieldChange('client_name', e.target.value);
+                                                                }
+                                                            }}
+                                                            onFocus={() => {
+                                                                setShowClientDropdown(true);
+                                                                setClientSearch(selectedTransaction.client_name || '');
+                                                            }}
+                                                            onBlur={() => setTimeout(() => {
+                                                                setShowClientDropdown(false);
+                                                                setClientSearch('');
+                                                                setClientHighlightedIndex(0);
+                                                            }, 200)}
+                                                            onKeyDown={handleClientKeyDown}
+                                                            autoComplete="off"
+                                                            disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                        />
+                                                        {showClientDropdown && clientSearch && (
+                                                            <div className="filter-modal__dropdown">
+                                                                {clientLoading ? (
+                                                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                                                        Loading...
+                                                                    </div>
+                                                                ) : clientAutocompleteItems.length > 0 ? (
+                                                                    clientAutocompleteItems.map((client, index) => (
+                                                                        <div
+                                                                            key={client.id}
+                                                                            className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                                            onClick={() => handleClientSelect(client)}
+                                                                            onMouseEnter={() => setClientHighlightedIndex(index)}
+                                                                        >
+                                                                            {client.name}
+                                                                        </div>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                                                        No clients found
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {isWithdraw(selectedTransaction.transaction_type) && (
+                                        <>
+                                            <div>
+                                                <div className="label">Bank Name</div>
+                                                <div className="filter-modal__multi">
+                                                    <div className="filter-modal__input filter-modal__input--multi">
+                                                        {selectedTransaction.bank_name && (
+                                                            <div className="filter-modal__token">
+                                                                <Banknote size={14} />
+                                                                <span>{selectedTransaction.bank_name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className="filter-modal__token-remove"
+                                                                    onClick={() => handleTransactionFieldChange('bank_name', '')}
+                                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                                >
+                                                                    <X size={12} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {!selectedTransaction.bank_name && (
+                                                            <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                                                                <input
+                                                                    type="text"
+                                                                    className="filter-modal__token-input"
+                                                                    placeholder="Search bank..."
+                                                                    value={bankSearch}
+                                                                    onChange={e => setBankSearch(e.target.value)}
+                                                                    onFocus={() => setShowBankDropdown(true)}
+                                                                    onBlur={() => setTimeout(() => {
+                                                                        setShowBankDropdown(false);
+                                                                        setBankHighlightedIndex(0);
+                                                                    }, 200)}
+                                                                    onKeyDown={handleBankKeyDown}
+                                                                    autoComplete="off"
+                                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                                />
+                                                                {showBankDropdown && bankSearch && (
+                                                                    <div className="filter-modal__dropdown">
+                                                                        {bankLoading ? (
+                                                                            <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                                                                Loading...
+                                                                            </div>
+                                                                        ) : bankAutocompleteItems.length > 0 ? (
+                                                                            bankAutocompleteItems.map((bank, index) => (
+                                                                                <div
+                                                                                    key={bank.id}
+                                                                                    className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                                                    onClick={() => handleBankSelect(bank)}
+                                                                                    onMouseEnter={() => setBankHighlightedIndex(index)}
+                                                                                >
+                                                                                    {bank.name}
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                                                                No banks found
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="label">Card Name</div>
+                                                <div className="filter-modal__multi">
+                                                    <div className="filter-modal__input filter-modal__input--multi">
+                                                        {selectedTransaction.card_name && (
+                                                            <div className="filter-modal__token">
+                                                                <CreditCard size={14} />
+                                                                <span>{selectedTransaction.card_name}</span>
+                                                                <button
+                                                                    type="button"
+                                                                    className="filter-modal__token-remove"
+                                                                    onClick={() => handleTransactionFieldChange('card_name', '')}
+                                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                                >
+                                                                    <X size={12} />
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                        {!selectedTransaction.card_name && (
+                                                            <div className="filter-modal__add-token" style={{ position: 'relative' }}>
+                                                                <input
+                                                                    type="text"
+                                                                    className="filter-modal__token-input"
+                                                                    placeholder="Search card..."
+                                                                    value={cardSearch}
+                                                                    onChange={e => setCardSearch(e.target.value)}
+                                                                    onFocus={() => setShowCardDropdown(true)}
+                                                                    onBlur={() => setTimeout(() => {
+                                                                        setShowCardDropdown(false);
+                                                                        setCardHighlightedIndex(0);
+                                                                    }, 200)}
+                                                                    onKeyDown={handleCardKeyDown}
+                                                                    autoComplete="off"
+                                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                                />
+                                                                {showCardDropdown && cardSearch && (
+                                                                    <div className="filter-modal__dropdown">
+                                                                        {cardLoading ? (
+                                                                            <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
+                                                                                Loading...
+                                                                            </div>
+                                                                        ) : cardAutocompleteItems.length > 0 ? (
+                                                                            cardAutocompleteItems.map((card, index) => (
+                                                                                <div
+                                                                                    key={card.id}
+                                                                                    className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
+                                                                                    onClick={() => handleCardSelect(card)}
+                                                                                    onMouseEnter={() => setCardHighlightedIndex(index)}
+                                                                                >
+                                                                                    {card.name}
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
+                                                                                No cards found
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <div className="label">Withdraw Charges</div>
+                                                <input
+                                                    className="control"
+                                                    type="number"
+                                                    value={selectedTransaction.widthdraw_charges}
+                                                    onChange={(e) => handleTransactionFieldChange('widthdraw_charges', parseFloat(e.target.value))}
+                                                    disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                                />
+                                            </div>
+                                        </>
+                                    )}
+                                    <div>
+                                        <div className="label">Remarks</div>
+                                        <textarea
+                                            className="control"
+                                            rows={4}
+                                            value={selectedTransaction.remark}
+                                            onChange={(e) => handleTransactionFieldChange('remark', e.target.value)}
+                                            disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                        />
+                                    </div>
+                                    <div className="inline-actions">
+                                        <button
+                                            className="main__button"
+                                            onClick={() => handleSaveTransaction(selectedTransaction)}
+                                            disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                        >
+                                            <Edit size={16} />
+                                            {selectedTransaction && isTransactionBeingSaved(selectedTransaction.id, editingTransactionIds) ? 'Saving...' : 'Save'}
+                                        </button>
+                                        <button
+                                            className="main__icon-button"
+                                            onClick={handleDeleteTransaction}
+                                            disabled={!selectedTransaction || isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                        >
+                                            <Trash size={16} />
+                                            {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                        <button
+                                            className="main__secondary-button"
+                                            onClick={handleDeselectTransaction}
+                                        >
+                                            <X size={16} />
+                                            Close
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     )}
                 </div>
 
-                {selectedTransaction && (
-                    <div className="detail">
-                        {/* Processing Overlay */}
-                        {isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds) && (
-                            <div className="detail__processing-overlay">
-                                <div className="detail__processing-content">
-                                    <div className="detail__processing-spinner"></div>
-                                    <div className="detail__processing-message">
-                                        {isTransactionBeingSaved(selectedTransaction.id, editingTransactionIds) && 'Saving Transaction...'}
-                                        {isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) && 'Deleting Transaction...'}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                <TransactionFilterModal
+                    isOpen={isFilterModalOpen}
+                    onClose={handleCloseFilterModal}
+                    onApplyFilters={handleApplyFilters}
+                />
 
-                        <div className="detail__header">
-                            <div className="detail__header-column detail__header-column--icon">
-                                <div
-                                    className={`transaction__icon transaction__icon--${getTransactionTypeLabel(selectedTransaction.transaction_type)}`}
-                                >
-                                    {isDeposit(selectedTransaction.transaction_type) ? (
-                                        <ArrowDownLeft size={20} />
-                                    ) : (
-                                        <ArrowUpRight size={20} />
-                                    )}
-                                </div>
-                            </div>
-                            <div className="detail__header-column detail__header-column--content">
-                                <div className="detail__header-row">
-                                    <div className="detail__name">{selectedTransaction.client_name}</div>
-                                </div>
-                                <div className="detail__header-row">
-                                    <div className="detail__sub">
-                                        ₹{selectedTransaction.transaction_amount.toLocaleString()}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="detail__divider" />
-                        <div className="transaction-edit">
-                            <div className="transaction-edit__title">Edit Transaction</div>
-                            <div className="transaction-edit__form">
-                                <div>
-                                    <div className="label">Transaction Type</div>
-                                    <div className="filter-modal__pills">
-                                        <label className="filter-modal__pill-checkbox">
-                                            <input
-                                                type="radio"
-                                                name="transaction_type"
-                                                value={0}
-                                                checked={isDeposit(selectedTransaction.transaction_type)}
-                                                onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
-                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                            />
-                                            <span className="filter-modal__custom-checkbox">
-                                                {isDeposit(selectedTransaction.transaction_type) && <Check size={14} />}
-                                            </span>
-                                            <span>Deposit</span>
-                                        </label>
-                                        <label className="filter-modal__pill-checkbox">
-                                            <input
-                                                type="radio"
-                                                name="transaction_type"
-                                                value={1}
-                                                checked={isWithdraw(selectedTransaction.transaction_type)}
-                                                onChange={(e) => handleTransactionFieldChange('transaction_type', parseInt(e.target.value))}
-                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                            />
-                                            <span className="filter-modal__custom-checkbox">
-                                                {isWithdraw(selectedTransaction.transaction_type) && <Check size={14} />}
-                                            </span>
-                                            <span>Withdraw</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="label">Amount</div>
-                                    <input
-                                        className="control"
-                                        type="number"
-                                        value={selectedTransaction.transaction_amount}
-                                        onChange={(e) => handleTransactionFieldChange('transaction_amount', parseFloat(e.target.value))}
-                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                    />
-                                </div>
-                                <div>
-                                    <div className="label">Client Name</div>
-                                    <div className="filter-modal__multi">
-                                        <div className="filter-modal__input filter-modal__input--multi">
-                                            {selectedTransaction.client_name && !showClientDropdown && (
-                                                <div className="filter-modal__token">
-                                                    <User size={14} />
-                                                    <span>{selectedTransaction.client_name}</span>
-                                                    <button
-                                                        type="button"
-                                                        className="filter-modal__token-remove"
-                                                        onClick={() => {
-                                                            handleTransactionFieldChange('client_name', '');
-                                                            setShowClientDropdown(true);
-                                                            setClientSearch('');
-                                                        }}
-                                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                    >
-                                                        <X size={12} />
-                                                    </button>
-                                                </div>
-                                            )}
-                                            {(!selectedTransaction.client_name || showClientDropdown) && (
-                                                <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                                                    <input
-                                                        type="text"
-                                                        className="filter-modal__token-input"
-                                                        placeholder="Search client..."
-                                                        value={showClientDropdown ? clientSearch : selectedTransaction.client_name}
-                                                        onChange={e => {
-                                                            if (showClientDropdown) {
-                                                                setClientSearch(e.target.value);
-                                                            } else {
-                                                                handleTransactionFieldChange('client_name', e.target.value);
-                                                            }
-                                                        }}
-                                                        onFocus={() => {
-                                                            setShowClientDropdown(true);
-                                                            setClientSearch(selectedTransaction.client_name || '');
-                                                        }}
-                                                        onBlur={() => setTimeout(() => {
-                                                            setShowClientDropdown(false);
-                                                            setClientSearch('');
-                                                            setClientHighlightedIndex(0);
-                                                        }, 200)}
-                                                        onKeyDown={handleClientKeyDown}
-                                                        autoComplete="off"
-                                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                    />
-                                                    {showClientDropdown && clientSearch && (
-                                                        <div className="filter-modal__dropdown">
-                                                            {clientLoading ? (
-                                                                <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                                                    Loading...
-                                                                </div>
-                                                            ) : clientAutocompleteItems.length > 0 ? (
-                                                                clientAutocompleteItems.map((client, index) => (
-                                                                    <div
-                                                                        key={client.id}
-                                                                        className={`filter-modal__dropdown-item ${index === clientHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                                                        onClick={() => handleClientSelect(client)}
-                                                                        onMouseEnter={() => setClientHighlightedIndex(index)}
-                                                                    >
-                                                                        {client.name}
-                                                                    </div>
-                                                                ))
-                                                            ) : (
-                                                                <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                                                    No clients found
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                </div>
-                                {isWithdraw(selectedTransaction.transaction_type) && (
-                                    <>
-                                        <div>
-                                            <div className="label">Bank Name</div>
-                                            <div className="filter-modal__multi">
-                                                <div className="filter-modal__input filter-modal__input--multi">
-                                                    {selectedTransaction.bank_name && (
-                                                        <div className="filter-modal__token">
-                                                            <Banknote size={14} />
-                                                            <span>{selectedTransaction.bank_name}</span>
-                                                            <button
-                                                                type="button"
-                                                                className="filter-modal__token-remove"
-                                                                onClick={() => handleTransactionFieldChange('bank_name', '')}
-                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                            >
-                                                                <X size={12} />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                    {!selectedTransaction.bank_name && (
-                                                        <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                                                            <input
-                                                                type="text"
-                                                                className="filter-modal__token-input"
-                                                                placeholder="Search bank..."
-                                                                value={bankSearch}
-                                                                onChange={e => setBankSearch(e.target.value)}
-                                                                onFocus={() => setShowBankDropdown(true)}
-                                                                onBlur={() => setTimeout(() => {
-                                                                    setShowBankDropdown(false);
-                                                                    setBankHighlightedIndex(0);
-                                                                }, 200)}
-                                                                onKeyDown={handleBankKeyDown}
-                                                                autoComplete="off"
-                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                            />
-                                                            {showBankDropdown && bankSearch && (
-                                                                <div className="filter-modal__dropdown">
-                                                                    {bankLoading ? (
-                                                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                                                            Loading...
-                                                                        </div>
-                                                                    ) : bankAutocompleteItems.length > 0 ? (
-                                                                        bankAutocompleteItems.map((bank, index) => (
-                                                                            <div
-                                                                                key={bank.id}
-                                                                                className={`filter-modal__dropdown-item ${index === bankHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                                                                onClick={() => handleBankSelect(bank)}
-                                                                                onMouseEnter={() => setBankHighlightedIndex(index)}
-                                                                            >
-                                                                                {bank.name}
-                                                                            </div>
-                                                                        ))
-                                                                    ) : (
-                                                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                                                            No banks found
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="label">Card Name</div>
-                                            <div className="filter-modal__multi">
-                                                <div className="filter-modal__input filter-modal__input--multi">
-                                                    {selectedTransaction.card_name && (
-                                                        <div className="filter-modal__token">
-                                                            <CreditCard size={14} />
-                                                            <span>{selectedTransaction.card_name}</span>
-                                                            <button
-                                                                type="button"
-                                                                className="filter-modal__token-remove"
-                                                                onClick={() => handleTransactionFieldChange('card_name', '')}
-                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                            >
-                                                                <X size={12} />
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                    {!selectedTransaction.card_name && (
-                                                        <div className="filter-modal__add-token" style={{ position: 'relative' }}>
-                                                            <input
-                                                                type="text"
-                                                                className="filter-modal__token-input"
-                                                                placeholder="Search card..."
-                                                                value={cardSearch}
-                                                                onChange={e => setCardSearch(e.target.value)}
-                                                                onFocus={() => setShowCardDropdown(true)}
-                                                                onBlur={() => setTimeout(() => {
-                                                                    setShowCardDropdown(false);
-                                                                    setCardHighlightedIndex(0);
-                                                                }, 200)}
-                                                                onKeyDown={handleCardKeyDown}
-                                                                autoComplete="off"
-                                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                                            />
-                                                            {showCardDropdown && cardSearch && (
-                                                                <div className="filter-modal__dropdown">
-                                                                    {cardLoading ? (
-                                                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--loading">
-                                                                            Loading...
-                                                                        </div>
-                                                                    ) : cardAutocompleteItems.length > 0 ? (
-                                                                        cardAutocompleteItems.map((card, index) => (
-                                                                            <div
-                                                                                key={card.id}
-                                                                                className={`filter-modal__dropdown-item ${index === cardHighlightedIndex ? 'filter-modal__dropdown-item--highlighted' : ''}`}
-                                                                                onClick={() => handleCardSelect(card)}
-                                                                                onMouseEnter={() => setCardHighlightedIndex(index)}
-                                                                            >
-                                                                                {card.name}
-                                                                            </div>
-                                                                        ))
-                                                                    ) : (
-                                                                        <div className="filter-modal__dropdown-item filter-modal__dropdown-item--no-results">
-                                                                            No cards found
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="label">Withdraw Charges</div>
-                                            <input
-                                                className="control"
-                                                type="number"
-                                                value={selectedTransaction.widthdraw_charges}
-                                                onChange={(e) => handleTransactionFieldChange('widthdraw_charges', parseFloat(e.target.value))}
-                                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                            />
-                                        </div>
-                                    </>
-                                )}
-                                <div>
-                                    <div className="label">Remarks</div>
-                                    <textarea
-                                        className="control"
-                                        rows={4}
-                                        value={selectedTransaction.remark}
-                                        onChange={(e) => handleTransactionFieldChange('remark', e.target.value)}
-                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                    />
-                                </div>
-                                <div className="inline-actions">
-                                    <button
-                                        className="main__button"
-                                        onClick={() => handleSaveTransaction(selectedTransaction)}
-                                        disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                    >
-                                        <Edit size={16} />
-                                        {selectedTransaction && isTransactionBeingSaved(selectedTransaction.id,editingTransactionIds) ? 'Saving...' : 'Save'}
-                                    </button>
-                                    <button
-                                        className="main__icon-button"
-                                        onClick={handleDeleteTransaction}
-                                        disabled={!selectedTransaction || isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
-                                    >
-                                        <Trash size={16} />
-                                        {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) ? 'Deleting...' : 'Delete'}
-                                    </button>
-                                    <button
-                                        className="main__secondary-button"
-                                        onClick={handleDeselectTransaction}
-                                    >
-                                        <X size={16} />
-                                        Close
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </div>
+                <ExportTransactionModal
+                    isOpen={isExportModalOpen}
+                    onClose={handleCloseExportModal}
+                    onExport={handleExport}
+                />
 
-            <TransactionFilterModal
-                isOpen={isFilterModalOpen}
-                onClose={handleCloseFilterModal}
-                onApplyFilters={handleApplyFilters}
-            />
-
-            <ExportTransactionModal
-                isOpen={isExportModalOpen}
-                onClose={handleCloseExportModal}
-                onExport={handleExport}
-            />
-
-            <DeleteTransactionConfirmModal
-                isOpen={isDeleteModalOpen}
-                onClose={handleDeleteCancel}
-                onDelete={handleDeleteConfirm}
-                transaction={getModalTransaction()}
+                <DeleteTransactionConfirmModal
+                    isOpen={isDeleteModalOpen}
+                    onClose={handleDeleteCancel}
+                    onDelete={handleDeleteConfirm}
+                    transaction={getModalTransaction()}
                 />
             </>
         );
     } catch (error) {
         logger.error('Error rendering transaction list:', error);
-        throw error;
+        showBoundary(error);
     }
 };
 
