@@ -1,11 +1,12 @@
 'use client'
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator } from 'lucide-react';
+import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2 } from 'lucide-react';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
 import toast from 'react-hot-toast';
+import DeleteScenarioConfirmModal from './DeleteScenarioConfirmModal';
 
 interface SavedScenario {
     id: string;
@@ -17,7 +18,14 @@ interface SavedScenario {
     savedAt: string;
 }
 
+interface BankChargePreset {
+    id: string;
+    name: string;
+    percentage: number;
+}
+
 const STORAGE_KEY = 'calculator_scenarios';
+const BANK_PRESETS_KEY = 'bank_charge_presets';
 const GST = 18;
 
 // Error Fallback Component for Simple Calculator Screen
@@ -84,8 +92,17 @@ const CalculatorScreenContent: React.FC = () => {
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [platformRateAmt, setPlatformRateAmt] = useState(0);
     const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
+    const [bankChargePresets, setBankChargePresets] = useState<BankChargePreset[]>([]);
+    const [showPresetManager, setShowPresetManager] = useState(false);
+    const [editingPreset, setEditingPreset] = useState<BankChargePreset | null>(null);
+    const [newPresetName, setNewPresetName] = useState('');
+    const [newPresetPercentage, setNewPresetPercentage] = useState(0);
+    const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [deleteModalMode, setDeleteModalMode] = useState<'single' | 'all'>('single');
+    const [scenarioToDelete, setScenarioToDelete] = useState<SavedScenario | null>(null);
 
-    // Load saved scenarios from localStorage on component mount
+    // Load saved scenarios and bank presets from localStorage on component mount
     React.useEffect(() => {
         const loadSavedScenarios = () => {
             try {
@@ -102,8 +119,34 @@ const CalculatorScreenContent: React.FC = () => {
             }
         };
 
+        const loadBankPresets = () => {
+            try {
+                const stored = localStorage.getItem(BANK_PRESETS_KEY);
+                if (stored) {
+                    const presets = JSON.parse(stored) as BankChargePreset[];
+                    setBankChargePresets(presets);
+                    logger.debug('Loaded bank charge presets from localStorage', { count: presets.length });
+                } else {
+                    // Initialize with some default presets
+                    const defaultPresets: BankChargePreset[] = [
+                        { id: '1', name: 'HDFC Bank', percentage: 2.5 },
+                        { id: '2', name: 'ICICI Bank', percentage: 2.8 },
+                        { id: '3', name: 'SBI', percentage: 2.0 },
+                    ];
+                    setBankChargePresets(defaultPresets);
+                    localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(defaultPresets));
+                    logger.debug('Initialized default bank charge presets');
+                }
+            } catch (error) {
+                logger.error('Failed to load bank charge presets:', error);
+                toast.error('Failed to load bank charge presets.');
+                setBankChargePresets([]);
+            }
+        };
+
         try {
             loadSavedScenarios();
+            loadBankPresets();
         } catch (error) {
             logger.error('Error during component initialization:', error);
             showBoundary(error);
@@ -159,11 +202,84 @@ const CalculatorScreenContent: React.FC = () => {
             setBankRatePercentage(scenario.bank);
             setPlatformRateAmt(scenario.platform);
             
+            // Check if the bank rate matches any preset and set selection
+            const matchingPreset = bankChargePresets.find(p => p.percentage === scenario.bank);
+            if (matchingPreset) {
+                setSelectedPresetId(matchingPreset.id);
+            } else {
+                setSelectedPresetId('');
+            }
+            
             toast.success('Scenario applied successfully!');
             logger.log('Applied scenario:', scenario);
         } catch (error) {
             logger.error('Failed to apply scenario:', error);
             toast.error('Failed to apply scenario');
+            showBoundary(error);
+        }
+    };
+
+    // Delete a single saved scenario
+    const handleDeleteScenario = (scenarioId: string) => {
+        try {
+            const scenario = savedScenarios.find(s => s.id === scenarioId);
+            if (!scenario) return;
+
+            setScenarioToDelete(scenario);
+            setDeleteModalMode('single');
+            setDeleteModalOpen(true);
+        } catch (error) {
+            logger.error('Failed to open delete scenario modal:', error);
+            toast.error('Failed to open delete dialog');
+            showBoundary(error);
+        }
+    };
+
+    // Confirm delete single scenario
+    const confirmDeleteScenario = () => {
+        try {
+            if (!scenarioToDelete) return;
+
+            const updatedScenarios = savedScenarios.filter(s => s.id !== scenarioToDelete.id);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedScenarios));
+            setSavedScenarios(updatedScenarios);
+            
+            logger.log('Scenario deleted:', scenarioToDelete);
+            setScenarioToDelete(null);
+        } catch (error) {
+            logger.error('Failed to delete scenario:', error);
+            toast.error('Failed to delete scenario');
+            showBoundary(error);
+        }
+    };
+
+    // Clear all saved scenarios
+    const handleClearAllScenarios = () => {
+        try {
+            if (savedScenarios.length === 0) {
+                toast.error('No scenarios to clear');
+                return;
+            }
+
+            setDeleteModalMode('all');
+            setDeleteModalOpen(true);
+        } catch (error) {
+            logger.error('Failed to open clear all modal:', error);
+            toast.error('Failed to open clear all dialog');
+            showBoundary(error);
+        }
+    };
+
+    // Confirm clear all scenarios
+    const confirmClearAllScenarios = () => {
+        try {
+            localStorage.removeItem(STORAGE_KEY);
+            setSavedScenarios([]);
+            
+            logger.log('All scenarios cleared');
+        } catch (error) {
+            logger.error('Failed to clear scenarios:', error);
+            toast.error('Failed to clear scenarios');
             showBoundary(error);
         }
     };
@@ -199,6 +315,124 @@ const CalculatorScreenContent: React.FC = () => {
         }
     };
 
+    // Bank Preset Management Functions
+    const handleSelectPreset = (presetId: string) => {
+        try {
+            if (!presetId) {
+                setSelectedPresetId('');
+                return;
+            }
+            const preset = bankChargePresets.find(p => p.id === presetId);
+            if (preset) {
+                setBankRatePercentage(preset.percentage);
+                setSelectedPresetId(presetId);
+                toast.success(`Applied ${preset.name} (${preset.percentage}%)`);
+                logger.log('Applied bank charge preset:', preset);
+            }
+        } catch (error) {
+            logger.error('Failed to apply preset:', error);
+            toast.error('Failed to apply preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleAddPreset = () => {
+        try {
+            if (!newPresetName.trim()) {
+                toast.error('Please enter a preset name');
+                return;
+            }
+            if (newPresetPercentage < 0 || newPresetPercentage > 100) {
+                toast.error('Percentage must be between 0 and 100');
+                return;
+            }
+
+            const newPreset: BankChargePreset = {
+                id: Date.now().toString(),
+                name: newPresetName.trim(),
+                percentage: newPresetPercentage
+            };
+
+            const updatedPresets = [...bankChargePresets, newPreset];
+            localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setBankChargePresets(updatedPresets);
+            setNewPresetName('');
+            setNewPresetPercentage(0);
+            
+            toast.success(`Added ${newPreset.name}`);
+            logger.log('Bank charge preset added:', newPreset);
+        } catch (error) {
+            logger.error('Failed to add preset:', error);
+            toast.error('Failed to add preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleStartEdit = (preset: BankChargePreset) => {
+        setEditingPreset(preset);
+        setNewPresetName(preset.name);
+        setNewPresetPercentage(preset.percentage);
+    };
+
+    const handleUpdatePreset = () => {
+        try {
+            if (!editingPreset) return;
+            if (!newPresetName.trim()) {
+                toast.error('Please enter a preset name');
+                return;
+            }
+            if (newPresetPercentage < 0 || newPresetPercentage > 100) {
+                toast.error('Percentage must be between 0 and 100');
+                return;
+            }
+
+            const updatedPresets = bankChargePresets.map(p =>
+                p.id === editingPreset.id
+                    ? { ...p, name: newPresetName.trim(), percentage: newPresetPercentage }
+                    : p
+            );
+
+            localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setBankChargePresets(updatedPresets);
+            setEditingPreset(null);
+            setNewPresetName('');
+            setNewPresetPercentage(0);
+            
+            toast.success('Preset updated successfully');
+            logger.log('Bank charge preset updated');
+        } catch (error) {
+            logger.error('Failed to update preset:', error);
+            toast.error('Failed to update preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingPreset(null);
+        setNewPresetName('');
+        setNewPresetPercentage(0);
+    };
+
+    const handleDeletePreset = (presetId: string) => {
+        try {
+            const preset = bankChargePresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            if (confirm(`Are you sure you want to delete "${preset.name}"?`)) {
+                const updatedPresets = bankChargePresets.filter(p => p.id !== presetId);
+                localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(updatedPresets));
+                setBankChargePresets(updatedPresets);
+                
+                toast.success(`Deleted ${preset.name}`);
+                logger.log('Bank charge preset deleted:', preset);
+            }
+        } catch (error) {
+            logger.error('Failed to delete preset:', error);
+            toast.error('Failed to delete preset');
+            showBoundary(error);
+        }
+    };
+
     // Example calculations (replace with real logic as needed)
     const bankRateDecimal = percentageToDecimal(bankRatePercentage);
     const ourRateDecimal = percentageToDecimal(ourRatePercentage);
@@ -230,6 +464,116 @@ const CalculatorScreenContent: React.FC = () => {
                 <div className="main__content">
                     <div className="main__view">
 
+                        {showPresetManager && (
+                            <div className="panel preset-manager">
+                                <div className="preset-manager__header">
+                                    <div className="section-title">Manage Bank Charge Presets</div>
+                                    <button 
+                                        className="preset-manager__close-btn" 
+                                        type="button"
+                                        onClick={() => setShowPresetManager(false)}
+                                        title="Close"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+                                <div className="preset-manager__content">
+                                    <div className="preset-manager__form">
+                                        <div className="input-field">
+                                            <div className="label">Preset Name</div>
+                                            <input
+                                                className="control"
+                                                type="text"
+                                                value={newPresetName}
+                                                onChange={e => setNewPresetName(e.target.value)}
+                                                placeholder="e.g., HDFC Bank"
+                                            />
+                                        </div>
+                                        <div className="input-field">
+                                            <div className="label">Percentage (%)</div>
+                                            <input
+                                                className="control"
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                step="0.01"
+                                                value={newPresetPercentage}
+                                                onChange={e => setNewPresetPercentage(clampPercent(parseFloat(e.target.value) || 0))}
+                                                placeholder="0 - 100"
+                                            />
+                                        </div>
+                                        <div className="preset-manager__form-actions">
+                                            {editingPreset ? (
+                                                <>
+                                                    <button 
+                                                        className="main__button" 
+                                                        type="button"
+                                                        onClick={handleUpdatePreset}
+                                                    >
+                                                        <Save size={16} />
+                                                        Update
+                                                    </button>
+                                                    <button 
+                                                        className="main__icon-button" 
+                                                        type="button"
+                                                        onClick={handleCancelEdit}
+                                                    >
+                                                        <X size={16} />
+                                                        Cancel
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <button 
+                                                    className="main__button" 
+                                                    type="button"
+                                                    onClick={handleAddPreset}
+                                                >
+                                                    <Save size={16} />
+                                                    Add Preset
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="preset-manager__list">
+                                        {bankChargePresets.map(preset => (
+                                            <div 
+                                                key={preset.id} 
+                                                className={`preset-item ${editingPreset?.id === preset.id ? 'preset-item--editing' : ''}`}
+                                            >
+                                                <div className="preset-item__info">
+                                                    <span className="preset-item__name">{preset.name}</span>
+                                                    <span className="preset-item__percentage">{preset.percentage}%</span>
+                                                </div>
+                                                <div className="preset-item__actions">
+                                                    <button 
+                                                        className="preset-item__action-btn preset-item__action-btn--edit" 
+                                                        type="button"
+                                                        onClick={() => handleStartEdit(preset)}
+                                                        title="Edit"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    <button 
+                                                        className="preset-item__action-btn preset-item__action-btn--delete" 
+                                                        type="button"
+                                                        onClick={() => handleDeletePreset(preset.id)}
+                                                        title="Delete"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {bankChargePresets.length === 0 && (
+                                            <div className="preset-manager__empty">
+                                                No presets yet. Add your first bank charge preset above.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="calculator-two-col">
                             <div className="panel">
                                 <div className="section-title">Inputs</div>
@@ -248,18 +592,47 @@ const CalculatorScreenContent: React.FC = () => {
                                         />
                                     </div>
                                     <div className="input-field">
-                                        <div className="label">Bank Charge (%)</div>
-                                        <input
-                                            className="control"
-                                            type="number"
-                                            min={0}
-                                            max={100}
-                                            step="0.01"
-                                            value={bankRatePercentage}
-                                            onChange={e => setBankRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
-                                            onFocus={e => e.target.select()}
-                                            placeholder="0 - 100"
-                                        />
+                                        <div className="label">
+                                            Bank Charge (%)
+                                            <button 
+                                                className="main__icon-button" 
+                                                type="button"
+                                                onClick={() => setShowPresetManager(!showPresetManager)}
+                                                style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px' }}
+                                            >
+                                                {showPresetManager ? 'Hide' : 'Manage'} Presets
+                                            </button>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <select
+                                                className="control preset-select"
+                                                onChange={e => handleSelectPreset(e.target.value)}
+                                                value={selectedPresetId}
+                                                style={{ flex: '0 0 auto', minWidth: '200px' }}
+                                            >
+                                                <option value="">Select a preset...</option>
+                                                {bankChargePresets.map(preset => (
+                                                    <option key={preset.id} value={preset.id}>
+                                                        {preset.name} ({preset.percentage}%)
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <input
+                                                className="control"
+                                                type="number"
+                                                min={0}
+                                                max={100}
+                                                step="0.01"
+                                                value={bankRatePercentage}
+                                                onChange={e => {
+                                                    setBankRatePercentage(clampPercent(parseFloat(e.target.value) || 0));
+                                                    setSelectedPresetId(''); // Clear selection when manually changed
+                                                }}
+                                                onFocus={e => e.target.select()}
+                                                placeholder="0 - 100"
+                                                style={{ flex: '1' }}
+                                            />
+                                        </div>
                                     </div>
                                     <div className="input-field">
                                         <div className="label">Our Charge (%)</div>
@@ -342,7 +715,21 @@ const CalculatorScreenContent: React.FC = () => {
                         </div>
 
                         <div className="panel">
-                            <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
+                                {savedScenarios.length > 0 && (
+                                    <button 
+                                        className="main__icon-button" 
+                                        type="button"
+                                        onClick={handleClearAllScenarios}
+                                        style={{ padding: '6px 12px', fontSize: '13px', color: '#dc3545' }}
+                                        title="Clear all saved scenarios"
+                                    >
+                                        <Trash2 size={14} />
+                                        Clear All
+                                    </button>
+                                )}
+                            </div>
                             {savedScenarios.length === 0 ? (
                                 <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
                                     No saved scenarios yet. Save your current calculation to get started.
@@ -350,9 +737,19 @@ const CalculatorScreenContent: React.FC = () => {
                             ) : (
                                 <div className="calculator-grid-3">
                                     {savedScenarios.map((s: SavedScenario, i: number) => (
-                                        <div className="panel" key={s.id}>
-                                            <div className="line" style={{ fontWeight: 600 }}>
-                                                {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
+                                        <div className="panel scenario-card" key={s.id}>
+                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                                                <div className="line" style={{ fontWeight: 600, flex: 1 }}>
+                                                    {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
+                                                </div>
+                                                <button 
+                                                    className="scenario-delete-btn" 
+                                                    type="button"
+                                                    onClick={() => handleDeleteScenario(s.id)}
+                                                    title="Delete this scenario"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
                                             </div>
                                             <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
                                             <div className="line" style={{ fontSize: '12px', color: '#666' }}>
@@ -377,6 +774,18 @@ const CalculatorScreenContent: React.FC = () => {
 
                     </div>
                 </div>
+
+                <DeleteScenarioConfirmModal
+                    isOpen={deleteModalOpen}
+                    onClose={() => {
+                        setDeleteModalOpen(false);
+                        setScenarioToDelete(null);
+                    }}
+                    onConfirm={deleteModalMode === 'single' ? confirmDeleteScenario : confirmClearAllScenarios}
+                    scenario={scenarioToDelete}
+                    mode={deleteModalMode}
+                    totalCount={savedScenarios.length}
+                />
             </div>
         );
     } catch (error) {

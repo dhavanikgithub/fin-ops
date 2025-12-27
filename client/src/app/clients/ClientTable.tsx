@@ -374,7 +374,7 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                         </td>
                                         <td>
                                             <div style={{ display: 'flex', gap: '8px' }}>
-                                                {!selectedClient &&
+                                                {/* {!selectedClient &&
                                                     (
                                                         <>
                                                             <button className="table__row-actions__deposit">
@@ -389,7 +389,7 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                                 <button className="table__row-actions">
                                                     <Wallet size={16} />
                                                     {client.transaction_count || 0} T
-                                                </button>
+                                                </button> */}
                                                 <button
                                                     className="row-actions"
                                                     onClick={() => onClientSelect && onClientSelect(client)}

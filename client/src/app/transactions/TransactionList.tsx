@@ -33,6 +33,9 @@ import useStateWithRef from '@/hooks/useStateWithRef';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
 
+// localStorage key for persisting filters
+const FILTERS_STORAGE_KEY = 'transaction_filters';
+
 interface TransactionListProps {
     onDeposit: () => void;
     onWithdraw: () => void;
@@ -201,16 +204,32 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
     const [isExportModalOpen, setIsExportModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedTransaction, setSelectedTransactionWithRef, selectedTransactionRef] = useStateWithRef<Transaction | null>(null);
-    const [activeFilters, setActiveFilters] = useState<FilterValues>({
-        types: [],
-        minAmount: '',
-        maxAmount: '',
-        startDate: '',
-        endDate: '',
-        banks: [],
-        cards: [],
-        clients: []
-    });
+    
+    // Initialize filters from localStorage or default values
+    const getInitialFilters = (): FilterValues => {
+        try {
+            const savedFilters = localStorage.getItem(FILTERS_STORAGE_KEY);
+            if (savedFilters) {
+                const parsed = JSON.parse(savedFilters);
+                logger.log('Loaded filters from localStorage:', parsed);
+                return parsed;
+            }
+        } catch (error) {
+            logger.error('Failed to load filters from localStorage:', error);
+        }
+        return {
+            types: [],
+            minAmount: '',
+            maxAmount: '',
+            startDate: '',
+            endDate: '',
+            banks: [],
+            cards: [],
+            clients: []
+        };
+    };
+    
+    const [activeFilters, setActiveFilters] = useState<FilterValues>(getInitialFilters());
     const [localSearchQuery, setLocalSearchQuery] = useState('');
     const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
@@ -225,10 +244,39 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
     const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
     const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
 
-    // Load initial transactions
+    // Load initial transactions and apply saved filters
     useEffect(() => {
-        dispatch(fetchTransactions());
+        // Check if there are any active filters
+        const hasActiveFilters = activeFilters.types.length > 0 ||
+            activeFilters.minAmount !== '' ||
+            activeFilters.maxAmount !== '' ||
+            activeFilters.startDate !== '' ||
+            activeFilters.endDate !== '' ||
+            activeFilters.banks.length > 0 ||
+            activeFilters.cards.length > 0 ||
+            activeFilters.clients.length > 0;
+
+        if (hasActiveFilters) {
+            // Apply saved filters
+            const apiFilters = convertUIFiltersToAPI(activeFilters);
+            dispatch(setFilters(apiFilters));
+            dispatch(applyFilters(apiFilters));
+            logger.log('Applied saved filters on mount:', activeFilters);
+        } else {
+            // Load all transactions if no filters
+            dispatch(fetchTransactions());
+        }
     }, [dispatch]);
+
+    // Save filters to localStorage whenever they change
+    useEffect(() => {
+        try {
+            localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(activeFilters));
+            logger.log('Saved filters to localStorage:', activeFilters);
+        } catch (error) {
+            logger.error('Failed to save filters to localStorage:', error);
+        }
+    }, [activeFilters]);
 
     // Handle search with debouncing
     const handleSearchChange = useCallback((value: string) => {
@@ -1050,6 +1098,7 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                     isOpen={isFilterModalOpen}
                     onClose={handleCloseFilterModal}
                     onApplyFilters={handleApplyFilters}
+                    activeFilters={activeFilters}
                 />
 
                 <ExportTransactionModal
