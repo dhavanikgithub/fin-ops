@@ -37,6 +37,14 @@ type DateRangeOption = 'today' | 'this-week' | 'this-month' | 'date-range';
 const RECENT_EXPORTS_KEY = 'recent_transaction_exports';
 const MAX_RECENT_EXPORTS = 5;
 
+// Helper function to format date to YYYY-MM-DD using local timezone
+const formatDateToString = (date: Date): string => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
 // Helper function to compute date ranges
 const computeDateRange = (option: DateRangeOption): { startDate: string; endDate: string } => {
     const today = new Date();
@@ -69,8 +77,8 @@ const computeDateRange = (option: DateRangeOption): { startDate: string; endDate
     }
 
     return {
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0]
+        startDate: formatDateToString(startDate),
+        endDate: formatDateToString(endDate)
     };
 };
 
@@ -305,7 +313,7 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
     };
 
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
-        const dateString = date ? date.toISOString().split('T')[0] : '';
+        const dateString = date ? formatDateToString(date) : '';
 
         // Clear any existing validation errors
         setFormErrors(prev => ({ ...prev, dateValidation: undefined }));
