@@ -25,8 +25,15 @@ interface BankChargePreset {
     percentage: number;
 }
 
+interface PlatformChargePreset {
+    id: string;
+    name: string;
+    amount: number;
+}
+
 const STORAGE_KEY = 'calculator_scenarios';
 const BANK_PRESETS_KEY = 'bank_charge_presets';
+const PLATFORM_PRESETS_KEY = 'platform_charge_presets';
 const GST = 18;
 
 // Error Fallback Component for Simple Calculator Screen
@@ -103,6 +110,12 @@ const CalculatorScreenContent: React.FC = () => {
     const [newPresetName, setNewPresetName] = useState('');
     const [newPresetPercentage, setNewPresetPercentage] = useState(0);
     const [selectedPresetId, setSelectedPresetId] = useState<string>('');
+    const [platformChargePresets, setPlatformChargePresets] = useState<PlatformChargePreset[]>([]);
+    const [showPlatformPresetManager, setShowPlatformPresetManager] = useState(false);
+    const [editingPlatformPreset, setEditingPlatformPreset] = useState<PlatformChargePreset | null>(null);
+    const [newPlatformPresetName, setNewPlatformPresetName] = useState('');
+    const [newPlatformPresetAmount, setNewPlatformPresetAmount] = useState(0);
+    const [selectedPlatformPresetId, setSelectedPlatformPresetId] = useState<string>('');
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteModalMode, setDeleteModalMode] = useState<'single' | 'all'>('single');
     const [scenarioToDelete, setScenarioToDelete] = useState<SavedScenario | null>(null);
@@ -149,9 +162,35 @@ const CalculatorScreenContent: React.FC = () => {
             }
         };
 
+        const loadPlatformPresets = () => {
+            try {
+                const stored = localStorage.getItem(PLATFORM_PRESETS_KEY);
+                if (stored) {
+                    const presets = JSON.parse(stored) as PlatformChargePreset[];
+                    setPlatformChargePresets(presets);
+                    logger.debug('Loaded platform charge presets from localStorage', { count: presets.length });
+                } else {
+                    // Initialize with some default presets
+                    const defaultPresets: PlatformChargePreset[] = [
+                        { id: '1', name: 'Standard Fee', amount: 50 },
+                        { id: '2', name: 'Premium Fee', amount: 100 },
+                        { id: '3', name: 'Enterprise Fee', amount: 200 },
+                    ];
+                    setPlatformChargePresets(defaultPresets);
+                    localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(defaultPresets));
+                    logger.debug('Initialized default platform charge presets');
+                }
+            } catch (error) {
+                logger.error('Failed to load platform charge presets:', error);
+                toast.error('Failed to load platform charge presets.');
+                setPlatformChargePresets([]);
+            }
+        };
+
         try {
             loadSavedScenarios();
             loadBankPresets();
+            loadPlatformPresets();
         } catch (error) {
             logger.error('Error during component initialization:', error);
             showBoundary(error);
@@ -213,6 +252,14 @@ const CalculatorScreenContent: React.FC = () => {
                 setSelectedPresetId(matchingPreset.id);
             } else {
                 setSelectedPresetId('');
+            }
+            
+            // Check if the platform rate matches any preset and set selection
+            const matchingPlatformPreset = platformChargePresets.find(p => p.amount === scenario.platform);
+            if (matchingPlatformPreset) {
+                setSelectedPlatformPresetId(matchingPlatformPreset.id);
+            } else {
+                setSelectedPlatformPresetId('');
             }
             
             toast.success('Scenario applied successfully!');
@@ -439,6 +486,124 @@ const CalculatorScreenContent: React.FC = () => {
         }
     };
 
+    // Platform Preset Management Functions
+    const handleSelectPlatformPreset = (presetId: string) => {
+        try {
+            if (!presetId) {
+                setSelectedPlatformPresetId('');
+                return;
+            }
+            const preset = platformChargePresets.find(p => p.id === presetId);
+            if (preset) {
+                setPlatformRateAmt(preset.amount);
+                setSelectedPlatformPresetId(presetId);
+                toast.success(`Applied ${preset.name} (₹${preset.amount})`);
+                logger.log('Applied platform charge preset:', preset);
+            }
+        } catch (error) {
+            logger.error('Failed to apply platform preset:', error);
+            toast.error('Failed to apply platform preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleAddPlatformPreset = () => {
+        try {
+            if (!newPlatformPresetName.trim()) {
+                toast.error('Please enter a preset name');
+                return;
+            }
+            if (newPlatformPresetAmount < 0) {
+                toast.error('Amount must be 0 or greater');
+                return;
+            }
+
+            const newPreset: PlatformChargePreset = {
+                id: Date.now().toString(),
+                name: newPlatformPresetName.trim(),
+                amount: newPlatformPresetAmount
+            };
+
+            const updatedPresets = [...platformChargePresets, newPreset];
+            localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setPlatformChargePresets(updatedPresets);
+            setNewPlatformPresetName('');
+            setNewPlatformPresetAmount(0);
+            
+            toast.success(`Added ${newPreset.name}`);
+            logger.log('Platform charge preset added:', newPreset);
+        } catch (error) {
+            logger.error('Failed to add platform preset:', error);
+            toast.error('Failed to add platform preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleStartEditPlatform = (preset: PlatformChargePreset) => {
+        setEditingPlatformPreset(preset);
+        setNewPlatformPresetName(preset.name);
+        setNewPlatformPresetAmount(preset.amount);
+    };
+
+    const handleUpdatePlatformPreset = () => {
+        try {
+            if (!editingPlatformPreset) return;
+            if (!newPlatformPresetName.trim()) {
+                toast.error('Please enter a preset name');
+                return;
+            }
+            if (newPlatformPresetAmount < 0) {
+                toast.error('Amount must be 0 or greater');
+                return;
+            }
+
+            const updatedPresets = platformChargePresets.map(p =>
+                p.id === editingPlatformPreset.id
+                    ? { ...p, name: newPlatformPresetName.trim(), amount: newPlatformPresetAmount }
+                    : p
+            );
+
+            localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setPlatformChargePresets(updatedPresets);
+            setEditingPlatformPreset(null);
+            setNewPlatformPresetName('');
+            setNewPlatformPresetAmount(0);
+            
+            toast.success('Platform preset updated successfully');
+            logger.log('Platform charge preset updated');
+        } catch (error) {
+            logger.error('Failed to update platform preset:', error);
+            toast.error('Failed to update platform preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleCancelEditPlatform = () => {
+        setEditingPlatformPreset(null);
+        setNewPlatformPresetName('');
+        setNewPlatformPresetAmount(0);
+    };
+
+    const handleDeletePlatformPreset = (presetId: string) => {
+        try {
+            const preset = platformChargePresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            if (confirm(`Are you sure you want to delete "${preset.name}"?`)) {
+                const updatedPresets = platformChargePresets.filter(p => p.id !== presetId);
+                localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(updatedPresets));
+                setPlatformChargePresets(updatedPresets);
+                
+                toast.success(`Deleted ${preset.name}`);
+                logger.log('Platform charge preset deleted:', preset);
+            }
+        } catch (error) {
+            logger.error('Failed to delete platform preset:', error);
+            toast.error('Failed to delete platform preset');
+            showBoundary(error);
+        }
+    };
+
     // Example calculations (replace with real logic as needed)
     const bankRateDecimal = percentageToDecimal(bankRatePercentage);
     const ourRateDecimal = percentageToDecimal(ourRatePercentage);
@@ -581,6 +746,109 @@ const CalculatorScreenContent: React.FC = () => {
                             </div>
                         )}
 
+                        {showPlatformPresetManager && (
+                            <div className="panel preset-manager">
+                                <div className="preset-manager__header">
+                                    <div className="section-title">Manage Platform Charge Presets</div>
+                                    <Button 
+                                        variant="ghost"
+                                        size="small"
+                                        icon={<X size={18} />}
+                                        onClick={() => setShowPlatformPresetManager(false)}
+                                        title="Close"
+                                        type="button"
+                                        className="preset-manager__close-btn"
+                                    />
+                                </div>
+                                <div className="preset-manager__content">
+                                    <div className="preset-manager__form">
+                                        <div className="input-field">
+                                            <div className="label">Preset Name</div>
+                                            <TextInput
+                                                value={newPlatformPresetName}
+                                                onChange={setNewPlatformPresetName}
+                                                placeholder="e.g., Standard Fee"
+                                            />
+                                        </div>
+                                        <div className="input-field">
+                                            <div className="label">Amount (₹)</div>
+                                            <NumericInput
+                                                value={newPlatformPresetAmount}
+                                                onChange={setNewPlatformPresetAmount}
+                                                placeholder="Enter amount"
+                                                min={0}
+                                            />
+                                        </div>
+                                        <div className="preset-manager__form-actions">
+                                            {editingPlatformPreset ? (
+                                                <>
+                                                    <Button 
+                                                        variant="primary"
+                                                        onClick={handleUpdatePlatformPreset}
+                                                        type="button"
+                                                        className="main__button"
+                                                    >
+                                                        Update
+                                                    </Button>
+                                                    <Button 
+                                                        variant="secondary"
+                                                        onClick={handleCancelEditPlatform}
+                                                        type="button"
+                                                        className="main__icon-button"
+                                                    >
+                                                        Cancel
+                                                    </Button>
+                                                </>
+                                            ) : (
+                                                <Button 
+                                                    variant="primary"
+                                                    onClick={handleAddPlatformPreset}
+                                                    type="button"
+                                                    className="main__button"
+                                                >
+                                                    Add Preset
+                                                </Button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <div className="preset-manager__list">
+                                        {platformChargePresets.map(preset => (
+                                            <div 
+                                                key={preset.id} 
+                                                className={`preset-item ${editingPlatformPreset?.id === preset.id ? 'preset-item--editing' : ''}`}
+                                            >
+                                                <div className="preset-item__info">
+                                                    <span className="preset-item__name">{preset.name}</span>
+                                                    <span className="preset-item__percentage">₹{preset.amount}</span>
+                                                </div>
+                                                <div className="preset-item__actions">
+                                                    <button
+                                                        className="preset-item__action-btn preset-item__action-btn--edit"
+                                                        onClick={() => handleStartEditPlatform(preset)}
+                                                        title="Edit preset"
+                                                    >
+                                                        <Edit2 size={14} />
+                                                    </button>
+                                                    <button
+                                                        className="preset-item__action-btn preset-item__action-btn--delete"
+                                                        onClick={() => handleDeletePlatformPreset(preset.id)}
+                                                        title="Delete preset"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {platformChargePresets.length === 0 && (
+                                            <div className="preset-manager__empty">
+                                                No platform charge presets yet. Add one above to get started.
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="calculator-two-col">
                             <div className="panel">
                                 <div className="section-title">Inputs</div>
@@ -646,13 +914,44 @@ const CalculatorScreenContent: React.FC = () => {
                                         />
                                     </div>
                                     <div className="input-field">
-                                        <div className="label">Platform Charge (₹)</div>
-                                        <NumericInput
-                                            value={platformRateAmt}
-                                            onChange={setPlatformRateAmt}
-                                            placeholder="Enter platform charge"
-                                            min={0}
-                                        />
+                                        <div className="label">
+                                            Platform Charge (₹)
+                                            <Button 
+                                                variant="secondary"
+                                                onClick={() => setShowPlatformPresetManager(!showPlatformPresetManager)}
+                                                type="button"
+                                                style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px' }}
+                                                className="main__icon-button"
+                                            >
+                                                {showPlatformPresetManager ? 'Hide' : 'Manage'} Presets
+                                            </Button>
+                                        </div>
+                                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                            <select
+                                                className="control preset-select"
+                                                onChange={e => handleSelectPlatformPreset(e.target.value)}
+                                                value={selectedPlatformPresetId}
+                                                style={{ flex: '1', minWidth: '0' }}
+                                            >
+                                                <option value="">Select a preset...</option>
+                                                {platformChargePresets.map(preset => (
+                                                    <option key={preset.id} value={preset.id}>
+                                                        {preset.name} (₹{preset.amount})
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <div style={{ flex: '1', minWidth: '0' }}>
+                                                <NumericInput
+                                                    value={platformRateAmt}
+                                                    onChange={(val) => {
+                                                        setPlatformRateAmt(val);
+                                                        setSelectedPlatformPresetId(''); // Clear selection when manually changed
+                                                    }}
+                                                    placeholder="Enter platform charge"
+                                                    min={0}
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="inline">
