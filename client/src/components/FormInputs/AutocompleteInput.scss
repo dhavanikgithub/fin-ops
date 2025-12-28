@@ -133,8 +133,8 @@
         transition: all 0.15s ease;
 
         &:hover:not(:disabled) {
-            background: var(--accent);
-            color: var(--destructive);
+            background: var(--destructive);
+            color: var(--primary-foreground);
         }
 
         &:disabled {
