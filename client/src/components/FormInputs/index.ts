@@ -31,3 +31,6 @@ export type { SelectInputProps, SelectOption } from './SelectInput';
 
 export { Button } from './Button';
 export type { ButtonProps } from './Button';
+
+export { ToggleSwitch } from './ToggleSwitch';
+export type { ToggleSwitchProps } from './ToggleSwitch';

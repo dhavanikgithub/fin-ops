@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2, Settings } from 'lucide-react';
-import { Button, NumericInput, TextInput } from '@/components/FormInputs';
+import { Button, NumericInput, TextInput, ToggleSwitch } from '@/components/FormInputs';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
@@ -772,20 +772,12 @@ const CalculatorScreenContent: React.FC = () => {
                                 <div className="preset-manager__content">
                                     {showPresetSettings && (
                                         <div className="preset-manager__settings">
-                                            <div className="preset-manager__settings-item">
-                                                <div>
-                                                    <div className="preset-manager__settings-label">Delete Confirmation</div>
-                                                    <div className="preset-manager__settings-description">Show confirmation dialog when deleting presets</div>
-                                                </div>
-                                                <label className="preset-manager__toggle">
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={requirePresetDeleteConfirmation}
-                                                        onChange={(e) => handleTogglePresetDeleteConfirmation(e.target.checked)}
-                                                    />
-                                                    <span className="preset-manager__toggle-slider"></span>
-                                                </label>
-                                            </div>
+                                            <ToggleSwitch
+                                                checked={requirePresetDeleteConfirmation}
+                                                onChange={handleTogglePresetDeleteConfirmation}
+                                                label="Delete Confirmation"
+                                                description="Show confirmation dialog when deleting presets"
+                                            />
                                         </div>
                                     )}
                                     <div className="preset-manager__form">
