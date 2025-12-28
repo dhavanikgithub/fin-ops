@@ -23,12 +23,16 @@ interface BankChargePreset {
     id: string;
     name: string;
     percentage: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 interface PlatformChargePreset {
     id: string;
     name: string;
     amount: number;
+    createdAt: string;
+    updatedAt: string;
 }
 
 const STORAGE_KEY = 'calculator_scenarios';
@@ -146,10 +150,11 @@ const CalculatorScreenContent: React.FC = () => {
                     logger.debug('Loaded bank charge presets from localStorage', { count: presets.length });
                 } else {
                     // Initialize with some default presets
+                    const now = new Date().toISOString();
                     const defaultPresets: BankChargePreset[] = [
-                        { id: '1', name: 'HDFC Bank', percentage: 2.5 },
-                        { id: '2', name: 'ICICI Bank', percentage: 2.8 },
-                        { id: '3', name: 'SBI', percentage: 2.0 },
+                        { id: '1', name: 'HDFC Bank', percentage: 2.5, createdAt: now, updatedAt: now },
+                        { id: '2', name: 'ICICI Bank', percentage: 2.8, createdAt: now, updatedAt: now },
+                        { id: '3', name: 'SBI', percentage: 2.0, createdAt: now, updatedAt: now },
                     ];
                     setBankChargePresets(defaultPresets);
                     localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(defaultPresets));
@@ -171,10 +176,11 @@ const CalculatorScreenContent: React.FC = () => {
                     logger.debug('Loaded platform charge presets from localStorage', { count: presets.length });
                 } else {
                     // Initialize with some default presets
+                    const now = new Date().toISOString();
                     const defaultPresets: PlatformChargePreset[] = [
-                        { id: '1', name: 'Standard Fee', amount: 50 },
-                        { id: '2', name: 'Premium Fee', amount: 100 },
-                        { id: '3', name: 'Enterprise Fee', amount: 200 },
+                        { id: '1', name: 'Standard Fee', amount: 50, createdAt: now, updatedAt: now },
+                        { id: '2', name: 'Premium Fee', amount: 100, createdAt: now, updatedAt: now },
+                        { id: '3', name: 'Enterprise Fee', amount: 200, createdAt: now, updatedAt: now },
                     ];
                     setPlatformChargePresets(defaultPresets);
                     localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(defaultPresets));
@@ -400,10 +406,13 @@ const CalculatorScreenContent: React.FC = () => {
                 return;
             }
 
+            const now = new Date().toISOString();
             const newPreset: BankChargePreset = {
                 id: Date.now().toString(),
                 name: newPresetName.trim(),
-                percentage: newPresetPercentage
+                percentage: newPresetPercentage,
+                createdAt: now,
+                updatedAt: now
             };
 
             const updatedPresets = [...bankChargePresets, newPreset];
@@ -441,7 +450,7 @@ const CalculatorScreenContent: React.FC = () => {
 
             const updatedPresets = bankChargePresets.map(p =>
                 p.id === editingPreset.id
-                    ? { ...p, name: newPresetName.trim(), percentage: newPresetPercentage }
+                    ? { ...p, name: newPresetName.trim(), percentage: newPresetPercentage, updatedAt: new Date().toISOString() }
                     : p
             );
 
@@ -518,10 +527,13 @@ const CalculatorScreenContent: React.FC = () => {
                 return;
             }
 
+            const now = new Date().toISOString();
             const newPreset: PlatformChargePreset = {
                 id: Date.now().toString(),
                 name: newPlatformPresetName.trim(),
-                amount: newPlatformPresetAmount
+                amount: newPlatformPresetAmount,
+                createdAt: now,
+                updatedAt: now
             };
 
             const updatedPresets = [...platformChargePresets, newPreset];
@@ -559,7 +571,7 @@ const CalculatorScreenContent: React.FC = () => {
 
             const updatedPresets = platformChargePresets.map(p =>
                 p.id === editingPlatformPreset.id
-                    ? { ...p, name: newPlatformPresetName.trim(), amount: newPlatformPresetAmount }
+                    ? { ...p, name: newPlatformPresetName.trim(), amount: newPlatformPresetAmount, updatedAt: new Date().toISOString() }
                     : p
             );
 
@@ -711,8 +723,16 @@ const CalculatorScreenContent: React.FC = () => {
                                                 className={`preset-item ${editingPreset?.id === preset.id ? 'preset-item--editing' : ''}`}
                                             >
                                                 <div className="preset-item__info">
-                                                    <span className="preset-item__name">{preset.name}</span>
-                                                    <span className="preset-item__percentage">{preset.percentage}%</span>
+                                                    <div>
+                                                        <span className="preset-item__name">{preset.name}</span>
+                                                        <span className="preset-item__percentage">{preset.percentage}%</span>
+                                                    </div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', marginTop: '4px' }}>
+                                                        Created: {new Date(preset.createdAt).toLocaleDateString()} {new Date(preset.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                                        {preset.updatedAt !== preset.createdAt && (
+                                                            <> • Modified: {new Date(preset.updatedAt).toLocaleDateString()} {new Date(preset.updatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="preset-item__actions">
                                                     <Button 
@@ -818,8 +838,16 @@ const CalculatorScreenContent: React.FC = () => {
                                                 className={`preset-item ${editingPlatformPreset?.id === preset.id ? 'preset-item--editing' : ''}`}
                                             >
                                                 <div className="preset-item__info">
-                                                    <span className="preset-item__name">{preset.name}</span>
-                                                    <span className="preset-item__percentage">₹{preset.amount}</span>
+                                                    <div>
+                                                        <span className="preset-item__name">{preset.name}</span>
+                                                        <span className="preset-item__percentage">₹{preset.amount}</span>
+                                                    </div>
+                                                    <div style={{ fontSize: '11px', color: 'var(--muted-foreground)', marginTop: '4px' }}>
+                                                        Created: {new Date(preset.createdAt).toLocaleDateString()} {new Date(preset.createdAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}
+                                                        {preset.updatedAt !== preset.createdAt && (
+                                                            <> • Modified: {new Date(preset.updatedAt).toLocaleDateString()} {new Date(preset.updatedAt).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="preset-item__actions">
                                                     <button
