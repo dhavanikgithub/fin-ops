@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { createTransaction } from '../../store/actions/transactionActions';
-import { AutocompleteInput, NumericInput, TextArea, AutocompleteOption } from '@/components/FormInputs';
+import { AutocompleteInput, NumericInput, TextArea, AutocompleteOption, Button } from '@/components/FormInputs';
 import './AddDeposit.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
@@ -30,10 +30,14 @@ const AddDepositErrorFallback: React.FC<{
                     <h1>Add Deposit Error</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onCancel}>
-                        <X size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={onCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -57,18 +61,20 @@ const AddDepositErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="ad__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
                                     onClick={onCancel}
+                                    className="main__icon-button"
                                 >
                                     Go Back
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -233,14 +239,23 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
                     <h1>New Deposit</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleCancel}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={handleCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
-                    <button className="main__button" onClick={handleSaveDeposit} disabled={transactionLoading}>
-                        <Save size={16} />
+                    </Button>
+                    <Button 
+                        variant="primary"
+                        icon={<Save size={16} />}
+                        onClick={handleSaveDeposit}
+                        disabled={transactionLoading}
+                        className="main__button"
+                    >
                         {transactionLoading ? 'Saving...' : 'Save Deposit'}
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -302,25 +317,36 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
                     {formErrors.general && (
                         <div className="ad__error-section">
                             <span className="ad__error">{formErrors.general}</span>
-                            <button 
+                            <Button 
+                                variant="ghost"
+                                size="small"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                                 type="button"
                                 className="ad__retry"
-                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                             >
                                 Try Again
-                            </button>
+                            </Button>
                         </div>
                     )}
 
                     <div className="main__footer-actions">
-                        <button className="main__icon-button" onClick={handleBackToTransactions}>
-                            <ArrowLeft size={16} />
+                        <Button 
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
+                            onClick={handleBackToTransactions}
+                            className="main__icon-button"
+                        >
                             Back to Transactions
-                        </button>
-                        <button className="main__button" onClick={handleSaveDeposit} disabled={transactionLoading}>
-                            <CheckCircle2 size={16} />
+                        </Button>
+                        <Button 
+                            variant="primary"
+                            icon={<CheckCircle2 size={16} />}
+                            onClick={handleSaveDeposit}
+                            disabled={transactionLoading}
+                            className="main__button"
+                        >
                             {transactionLoading ? 'Creating...' : 'Confirm & Add Deposit'}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

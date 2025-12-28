@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreClients, sortClients } from '../../store/actions/clientActions';
 import { toast } from 'react-hot-toast/headless';
 import logger from '@/utils/logger';
+import { Button } from '@/components/FormInputs';
 
 interface ClientTableProps {
     search?: string;
@@ -42,20 +43,22 @@ const ClientTableErrorFallback: React.FC<{
                         </details>
                     )}
                     <div className="ct__error-boundary-actions">
-                        <button 
-                            className="main__button"
+                        <Button
+                            variant="primary"
+                            icon={<RotateCcw size={16} />}
                             onClick={resetErrorBoundary}
+                            className="main__button"
                         >
-                            <RotateCcw size={16} />
                             Try Again
-                        </button>
-                        <button 
-                            className="main__icon-button"
+                        </Button>
+                        <Button
+                            variant="secondary"
+                            icon={<RefreshCw size={16} />}
                             onClick={() => window.location.reload()}
+                            className="main__icon-button"
                         >
-                            <RefreshCw size={16} />
                             Reload Page
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -390,13 +393,15 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                                     <Wallet size={16} />
                                                     {client.transaction_count || 0} T
                                                 </button> */}
-                                                <button
-                                                    className="row-actions"
+                                                <Button
+                                                    variant="ghost"
+                                                    size="small"
+                                                    icon={<MoreHorizontal size={16} />}
                                                     onClick={() => onClientSelect && onClientSelect(client)}
+                                                    className="row-actions"
                                                 >
-                                                    <MoreHorizontal size={16} />
                                                     Manage
-                                                </button>
+                                                </Button>
                                             </div>
                                         </td>
                                     </tr>

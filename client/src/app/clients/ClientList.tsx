@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { UserPlus, Edit, Search, UserMinus, ArrowDownLeft, ArrowUpRight, X, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { SearchInput, TextInput, TextArea } from '@/components/FormInputs';
+import { SearchInput, TextInput, TextArea, Button } from '@/components/FormInputs';
 import DeleteClientConfirmModal, { Client as ModalClient } from './DeleteClientConfirmModal';
 import './ClientList.scss';
 import ClientTable from './ClientTable';
@@ -32,10 +32,14 @@ const ClientListErrorFallback: React.FC<{
                     <h1>Error - Clients</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onNewClient}>
-                        <UserPlus size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<UserPlus size={16} />}
+                        onClick={onNewClient}
+                        className="main__icon-button"
+                    >
                         New Client
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -59,27 +63,30 @@ const ClientListErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="cl__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<UserPlus size={16} />}
                                     onClick={onNewClient}
-                                >
-                                    <UserPlus size={16} />
-                                    Add New Client
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Add New Client
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -322,10 +329,14 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                         <h1>Clients</h1>
                     </div>
                     <div className="main__header-right">
-                        <button className="main__icon-button" onClick={handleNewClient}>
-                            <UserPlus size={16} />
+                        <Button 
+                            variant="secondary"
+                            icon={<UserPlus size={16} />}
+                            onClick={handleNewClient}
+                            className="main__icon-button"
+                        >
                             New Client
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -389,14 +400,20 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                             </div> : null}
                             <div className="detail__divider" />
                             <div className="detail__quick-actions">
-                                <button className="quick-btn quick-btn--outlined deposit">
-                                    <ArrowDownLeft size={16} />
+                                <Button 
+                                    variant="outline"
+                                    icon={<ArrowDownLeft size={16} />}
+                                    className="quick-btn quick-btn--outlined deposit"
+                                >
                                     Deposit
-                                </button>
-                                <button className="quick-btn quick-btn--outlined withdraw">
-                                    <ArrowUpRight size={16} />
+                                </Button>
+                                <Button 
+                                    variant="outline"
+                                    icon={<ArrowUpRight size={16} />}
+                                    className="quick-btn quick-btn--outlined withdraw"
+                                >
                                     Withdraw
-                                </button>
+                                </Button>
                             </div>
                             <div className="detail__divider" />
                             <div>
@@ -451,30 +468,33 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                                         />
                                     </div>
                                     <div className="inline-actions">
-                                        <button
-                                            className="main__button"
+                                        <Button 
+                                            variant="primary"
+                                            icon={<Edit size={16} />}
                                             onClick={() => handleSaveClient(selectedClient)}
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                            className="main__button"
                                         >
-                                            <Edit size={16} />
                                             {selectedClient && savingClientIds.includes(selectedClient.id) ? 'Saving...' : 'Save'}
-                                        </button>
-                                        <button
-                                            className="main__icon-button"
+                                        </Button>
+                                        <Button 
+                                            variant="secondary"
+                                            icon={<UserMinus size={16} />}
                                             onClick={handleDeleteClient}
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                            className="main__icon-button"
                                         >
-                                            <UserMinus size={16} />
                                             {selectedClient && deletingClientIds.includes(selectedClient.id) ? 'Deleting...' : 'Delete'}
-                                        </button>
-                                        <button
-                                            className="main__secondary-button"
+                                        </Button>
+                                        <Button 
+                                            variant="secondary"
+                                            icon={<X size={16} />}
                                             onClick={handleDeselectClient}
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                            className="main__secondary-button"
                                         >
-                                            <X size={16} />
                                             Cancel
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

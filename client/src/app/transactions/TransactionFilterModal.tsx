@@ -4,7 +4,7 @@ import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { X, RotateCcw, Filter, Banknote, CreditCard, User, Plus, Check } from 'lucide-react';
 import './TransactionFilterModal.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
-import { AutocompleteInput, AutocompleteOption, NumericInput, PillToggleGroup } from '@/components/FormInputs';
+import { AutocompleteInput, AutocompleteOption, NumericInput, PillToggleGroup, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchBankAutocomplete } from '../../store/actions/bankActions';
 import { clearBankAutocomplete } from '../../store/slices/bankAutocompleteSlice';
@@ -41,10 +41,15 @@ const FilterModalErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () 
             <div className="filter-modal" onClick={e => e.stopPropagation()}>
                 <div className="filter-modal__header">
                     <h2 className="filter-modal__title">Filter Error</h2>
-                    <button className="filter-modal__close" onClick={onClose}>
-                        <X size={16} />
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        icon={<X size={16} />}
+                        onClick={onClose}
+                        className="filter-modal__close"
+                    >
                         Close
-                    </button>
+                    </Button>
                 </div>
                 <div className="filter-modal__body">
                     <div className="filter-modal__error-section">
@@ -58,8 +63,8 @@ const FilterModalErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () 
                             </details>
                         )}
                         <div style={{ display: 'flex', gap: 12, marginTop: 8 }}>
-                            <button className="filter-modal__apply" onClick={resetErrorBoundary}>Try Again</button>
-                            <button className="filter-modal__reset" onClick={onClose}>Close</button>
+                            <Button variant="primary" onClick={resetErrorBoundary} className="filter-modal__apply">Try Again</Button>
+                            <Button variant="secondary" onClick={onClose} className="filter-modal__reset">Close</Button>
                         </div>
                     </div>
                 </div>
@@ -76,14 +81,15 @@ const BankTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () =
                 <div className="filter-modal__token filter-modal__token--error">
                     <Banknote size={14} />
                     <span>Bank search unavailable</span>
-                    <button
-                        type="button"
-                        className="filter-modal__token-retry"
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        icon={<RotateCcw size={12} />}
                         onClick={resetErrorBoundary}
                         title="Retry bank search"
-                    >
-                        <RotateCcw size={12} />
-                    </button>
+                        type="button"
+                        className="filter-modal__token-retry"
+                    />
                 </div>
                 {process.env.NODE_ENV === 'development' && (
                     <div className="filter-modal__error-hint" title={`Bank Error: ${error.message}`}>
@@ -103,14 +109,15 @@ const CardTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: () =
                 <div className="filter-modal__token filter-modal__token--error">
                     <CreditCard size={14} />
                     <span>Card search unavailable</span>
-                    <button
-                        type="button"
-                        className="filter-modal__token-retry"
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        icon={<RotateCcw size={12} />}
                         onClick={resetErrorBoundary}
                         title="Retry card search"
-                    >
-                        <RotateCcw size={12} />
-                    </button>
+                        type="button"
+                        className="filter-modal__token-retry"
+                    />
                 </div>
                 {process.env.NODE_ENV === 'development' && (
                     <div className="filter-modal__error-hint" title={`Card Error: ${error.message}`}>
@@ -130,14 +137,15 @@ const ClientTokensErrorFallback: React.FC<{ error: Error; resetErrorBoundary: ()
                 <div className="filter-modal__token filter-modal__token--error">
                     <User size={14} />
                     <span>Client search unavailable</span>
-                    <button
-                        type="button"
-                        className="filter-modal__token-retry"
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        icon={<RotateCcw size={12} />}
                         onClick={resetErrorBoundary}
                         title="Retry client search"
-                    >
-                        <RotateCcw size={12} />
-                    </button>
+                        type="button"
+                        className="filter-modal__token-retry"
+                    />
                 </div>
                 {process.env.NODE_ENV === 'development' && (
                     <div className="filter-modal__error-hint" title={`Client Error: ${error.message}`}>
@@ -191,13 +199,14 @@ const BankTokensContent: React.FC<{
                         <div key={item.value} className="filter-modal__token">
                             <Banknote size={14} />
                             <span>{item.label}</span>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="small"
+                                icon={<X size={12} />}
+                                onClick={() => handleRemoveToken('banks', item)}
                                 type="button"
                                 className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('banks', item)}
-                            >
-                                <X size={12} />
-                            </button>
+                            />
                         </div>
                     ))}
                     <div className="filter-modal__add-token">
@@ -263,13 +272,14 @@ const CardTokensContent: React.FC<{
                         <div key={item.value} className="filter-modal__token">
                             <CreditCard size={14} />
                             <span>{item.label}</span>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="small"
+                                icon={<X size={12} />}
+                                onClick={() => handleRemoveToken('cards', item)}
                                 type="button"
                                 className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('cards', item)}
-                            >
-                                <X size={12} />
-                            </button>
+                            />
                         </div>
                     ))}
                     <div className="filter-modal__add-token">
@@ -335,13 +345,14 @@ const ClientTokensContent: React.FC<{
                         <div key={item.value} className="filter-modal__token">
                             <User size={14} />
                             <span>{item.label}</span>
-                            <button
+                            <Button
+                                variant="ghost"
+                                size="small"
+                                icon={<X size={12} />}
+                                onClick={() => handleRemoveToken('clients', item)}
                                 type="button"
                                 className="filter-modal__token-remove"
-                                onClick={() => handleRemoveToken('clients', item)}
-                            >
-                                <X size={12} />
-                            </button>
+                            />
                         </div>
                     ))}
                     <div className="filter-modal__add-token">
@@ -556,10 +567,15 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
                 <div className="filter-modal" onClick={(e) => e.stopPropagation()}>
                     <div className="filter-modal__header">
                         <h2 className="filter-modal__title">Filter Transactions</h2>
-                        <button className="filter-modal__close" onClick={onClose}>
-                            <X size={16} />
+                        <Button
+                            variant="ghost"
+                            size="small"
+                            icon={<X size={16} />}
+                            onClick={onClose}
+                            className="filter-modal__close"
+                        >
                             Close
-                        </button>
+                        </Button>
                     </div>
     
                     <div className="filter-modal__body">
@@ -666,18 +682,30 @@ const TransactionFilterModalContent: React.FC<FilterModalProps> = ({ isOpen, onC
                     </div>
     
                     <div className="filter-modal__footer">
-                        <button className="filter-modal__clear" onClick={handleReset}>
+                        <Button
+                            variant="ghost"
+                            onClick={handleReset}
+                            className="filter-modal__clear"
+                        >
                             Clear current filters
-                        </button>
+                        </Button>
                         <div className="filter-modal__actions">
-                            <button className="filter-modal__reset" onClick={handleReset}>
-                                <RotateCcw size={16} />
+                            <Button
+                                variant="secondary"
+                                icon={<RotateCcw size={16} />}
+                                onClick={handleReset}
+                                className="filter-modal__reset"
+                            >
                                 Reset
-                            </button>
-                            <button className="filter-modal__apply" onClick={handleApply}>
-                                <Filter size={16} />
+                            </Button>
+                            <Button
+                                variant="primary"
+                                icon={<Filter size={16} />}
+                                onClick={handleApply}
+                                className="filter-modal__apply"
+                            >
                                 Apply Filters
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

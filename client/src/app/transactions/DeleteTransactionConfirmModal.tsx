@@ -2,6 +2,7 @@
 import React from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Trash2, X, Hash, Calendar, User, Banknote, IndianRupee, Percent, AlertTriangle, Trash, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import './DeleteTransactionConfirmModal.scss';
 import { isWithdraw, isWithdrawLabel, TransactionType } from '@/utils/transactionUtils';
 import { formatAmountAsCurrency, formatDateToReadable, formatDateWithTime, formatTime } from '@/utils/helperFunctions';
@@ -81,14 +82,22 @@ const DeleteModalErrorFallback: React.FC<{
                 </div>
 
                 <div className="delete-modal__footer">
-                    <button className="delete-modal__cancel" onClick={handleClose}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary" 
+                        icon={<X size={16} />}
+                        onClick={handleClose}
+                        className="delete-modal__cancel"
+                    >
                         Close
-                    </button>
-                    <button className="delete-modal__delete" onClick={handleTryAgain}>
-                        <RotateCcw size={16} />
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        icon={<RotateCcw size={16} />}
+                        onClick={handleTryAgain}
+                        className="delete-modal__delete"
+                    >
                         Try Again
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -195,14 +204,22 @@ const DeleteTransactionConfirmModalContent: React.FC<DeleteTransactionConfirmMod
                     </div>
 
                     <div className="delete-modal__footer">
-                        <button className="delete-modal__cancel" onClick={handleCancel}>
-                            <X size={16} />
+                        <Button 
+                            variant="secondary" 
+                            icon={<X size={16} />}
+                            onClick={handleCancel}
+                            className="delete-modal__cancel"
+                        >
                             Cancel
-                        </button>
-                        <button className="delete-modal__delete" onClick={handleDelete}>
-                            <Trash size={16} />
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            icon={<Trash size={16} />}
+                            onClick={handleDelete}
+                            className="delete-modal__delete"
+                        >
                             Delete Transaction
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

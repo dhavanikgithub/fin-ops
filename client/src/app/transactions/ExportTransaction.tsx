@@ -4,7 +4,7 @@ import { Download, X, User } from 'lucide-react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import './ExportTransaction.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
-import { AutocompleteInput, AutocompleteOption } from '@/components/FormInputs';
+import { AutocompleteInput, AutocompleteOption, Button } from '@/components/FormInputs';
 import logger from '@/utils/logger';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
@@ -48,9 +48,13 @@ const ExportErrorFallback: React.FC<{
                         <X size={18} />
                         Export Error
                     </h2>
-                    <button className="export-modal__close" onClick={handleClose}>
-                        <X size={16} />
-                    </button>
+                    <Button
+                        variant="ghost"
+                        size="small"
+                        icon={<X size={16} />}
+                        onClick={handleClose}
+                        className="export-modal__close"
+                    />
                 </div>
                 <div className="export-modal__body">
                     <div className="export-modal__error-section">
@@ -60,13 +64,15 @@ const ExportErrorFallback: React.FC<{
                         <p style={{ fontSize: '12px', color: 'var(--muted-foreground)', marginTop: '8px' }}>
                             {process.env.NODE_ENV === 'development' && error.message}
                         </p>
-                        <button
+                        <Button
+                            variant="ghost"
+                            size="small"
+                            onClick={handleRetry}
                             type="button"
                             className="export-modal__retry"
-                            onClick={handleRetry}
                         >
                             Try Again
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -262,22 +268,28 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                         <Download size={18} />
                         Export Transactions
                     </h2>
-                    <button className="export-modal__close" onClick={handleCancel}>
-                        <X size={16} />
-                    </button>
+                    <Button 
+                        variant="ghost"
+                        size="small"
+                        icon={<X size={16} />}
+                        onClick={handleCancel}
+                        className="export-modal__close"
+                    />
                 </div>
 
                 {formErrors.general ? (
                     <div className="export-modal__body">
                         <div className="export-modal__error-section">
                             <span className="export-modal__error">{formErrors.general}</span>
-                            <button
+                            <Button 
+                                variant="ghost"
+                                size="small"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                                 type="button"
                                 className="export-modal__retry"
-                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                             >
                                 Try Again
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 ) : (
@@ -352,14 +364,15 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                             </div>
                         </div>
                         <div className="export-modal__footer">
-                            <button
-                                className="export-modal__export"
+                            <Button 
+                                variant="primary"
+                                icon={<Download size={16} />}
                                 onClick={handleExport}
                                 disabled={reportLoading || !exportSettings.startDate || !exportSettings.endDate}
+                                className="export-modal__export"
                             >
-                                <Download size={16} />
                                 {reportLoading ? 'Generating Report...' : 'Export'}
-                            </button>
+                            </Button>
                         </div>
                     </>
                 )}

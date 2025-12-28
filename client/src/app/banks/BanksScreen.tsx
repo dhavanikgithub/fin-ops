@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, Building2 } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import './BanksScreen.scss';
 import BankList from './BankList';
 import AddBankScreen from './AddBank';
@@ -37,27 +38,30 @@ const BanksScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="bs__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Building2 size={16} />}
                                     onClick={() => window.location.href = '/banks'}
-                                >
-                                    <Building2 size={16} />
-                                    Reload Banks
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Banks
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

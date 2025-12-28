@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, Users } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import './ClientsScreen.scss';
 import ClientList from './ClientList';
 import AddClientScreen from './AddClient';
@@ -37,27 +38,30 @@ const ClientsScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="cs__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Users size={16} />}
                                     onClick={() => window.location.href = '/clients'}
-                                >
-                                    <Users size={16} />
-                                    Reload Clients
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Clients
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

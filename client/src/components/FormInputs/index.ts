@@ -28,3 +28,6 @@ export type { PillToggleGroupProps, PillToggleOption } from './PillToggleGroup';
 
 export { SelectInput } from './SelectInput';
 export type { SelectInputProps, SelectOption } from './SelectInput';
+
+export { Button } from './Button';
+export type { ButtonProps } from './Button';

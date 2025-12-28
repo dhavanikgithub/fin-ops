@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Plus, Edit, Trash, MoreHorizontal, CreditCard, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { SearchInput, TextInput } from '@/components/FormInputs';
+import { SearchInput, TextInput, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
     fetchPaginatedCards, 
@@ -37,10 +37,14 @@ const CardListErrorFallback: React.FC<{
                     <h1>Error - Cards</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onNewCard}>
-                        <Plus size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<Plus size={16} />}
+                        onClick={onNewCard}
+                        className="main__icon-button"
+                    >
                         New Card
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -64,27 +68,30 @@ const CardListErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="cl__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Plus size={16} />}
                                     onClick={onNewCard}
-                                >
-                                    <Plus size={16} />
-                                    Add New Card
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Add New Card
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -270,10 +277,14 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
                         <CreditCard size={20} /> <h1>Cards</h1>
                     </div>
                     <div className="main__header-right">
-                        <button className="main__icon-button" onClick={onNewCard}>
-                            <Plus size={16} />
+                        <Button 
+                            variant="secondary"
+                            icon={<Plus size={16} />}
+                            onClick={onNewCard}
+                            className="main__icon-button"
+                        >
                             New Card
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -298,7 +309,13 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
                         {error && (
                             <div className="main__error">
                                 Error: {error}
-                                <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                                <Button 
+                                    variant="ghost"
+                                    size="small"
+                                    onClick={() => dispatch(clearError())}
+                                >
+                                    Dismiss
+                                </Button>
                             </div>
                         )}
 
@@ -325,14 +342,16 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
                                             <div className="meta-label">Transactions</div>
                                             <div className="meta-value">{card.transaction_count.toLocaleString()}</div>
                                         </div>
-                                        <button 
-                                            className="row-actions" 
+                                        <Button 
+                                            variant="ghost"
+                                            size="small"
+                                            icon={<MoreHorizontal size={16} />}
                                             onClick={() => handleEditCard(card)}
                                             disabled={deleting.includes(card.id)}
+                                            className="row-actions"
                                         >
-                                            <MoreHorizontal size={16} />
                                             Manage
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
@@ -357,9 +376,13 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
                                     <div className="detail__name">Edit Card</div>
                                     <div className="label">Update card details or delete</div>
                                 </div>
-                                <button className="detail__cancel" onClick={handleCancelEdit}>
-                                    <X size={16} />
-                                </button>
+                                <Button 
+                                    variant="ghost"
+                                    size="small"
+                                    icon={<X size={16} />}
+                                    onClick={handleCancelEdit}
+                                    className="detail__cancel"
+                                />
                             </div>
                             <div className="form">
                                 <div>
@@ -387,31 +410,25 @@ const CardListContent: React.FC<CardListProps> = ({ onNewCard }) => {
                                     />
                                 </div>
                                 <div className="inline-actions">
-                                    <button 
-                                        className="main__button"
+                                    <Button 
+                                        variant="primary"
+                                        icon={isUpdating ? undefined : <Edit size={16} />}
                                         onClick={handleSaveCard}
                                         disabled={isUpdating || isDeleting || !editForm.name.trim()}
+                                        loading={isUpdating}
+                                        className="main__button"
                                     >
-                                        {isUpdating ? (
-                                            <>
-                                                <Loader className="spinner" size={16} />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Edit size={16} />
-                                                Save
-                                            </>
-                                        )}
-                                    </button>
-                                    <button 
-                                        className="main__icon-button" 
+                                        {isUpdating ? 'Saving...' : 'Save'}
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<Trash size={16} />}
                                         onClick={handleDeleteCard}
                                         disabled={isUpdating || isDeleting}
+                                        className="main__icon-button"
                                     >
-                                        <Trash size={16} />
                                         Delete
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2 } from 'lucide-react';
-import { NumericInput, TextInput } from '@/components/FormInputs';
+import { Button, NumericInput, TextInput } from '@/components/FormInputs';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
@@ -56,27 +56,30 @@ const SimpleCalculatorErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="sc__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Calculator size={16} />}
                                     onClick={() => window.location.href = '/special-calculators/simple-calculator'}
-                                >
-                                    <Calculator size={16} />
-                                    Reload Calculator
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Calculator
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -471,14 +474,15 @@ const CalculatorScreenContent: React.FC = () => {
                             <div className="panel preset-manager">
                                 <div className="preset-manager__header">
                                     <div className="section-title">Manage Bank Charge Presets</div>
-                                    <button 
-                                        className="preset-manager__close-btn" 
-                                        type="button"
+                                    <Button 
+                                        variant="ghost"
+                                        size="small"
+                                        icon={<X size={18} />}
                                         onClick={() => setShowPresetManager(false)}
                                         title="Close"
-                                    >
-                                        <X size={18} />
-                                    </button>
+                                        type="button"
+                                        className="preset-manager__close-btn"
+                                    />
                                 </div>
                                 <div className="preset-manager__content">
                                     <div className="preset-manager__form">
@@ -503,32 +507,35 @@ const CalculatorScreenContent: React.FC = () => {
                                         <div className="preset-manager__form-actions">
                                             {editingPreset ? (
                                                 <>
-                                                    <button 
-                                                        className="main__button" 
-                                                        type="button"
+                                                    <Button 
+                                                        variant="primary"
+                                                        icon={<Save size={16} />}
                                                         onClick={handleUpdatePreset}
-                                                    >
-                                                        <Save size={16} />
-                                                        Update
-                                                    </button>
-                                                    <button 
-                                                        className="main__icon-button" 
                                                         type="button"
-                                                        onClick={handleCancelEdit}
+                                                        className="main__button"
                                                     >
-                                                        <X size={16} />
+                                                        Update
+                                                    </Button>
+                                                    <Button 
+                                                        variant="secondary"
+                                                        icon={<X size={16} />}
+                                                        onClick={handleCancelEdit}
+                                                        type="button"
+                                                        className="main__icon-button"
+                                                    >
                                                         Cancel
-                                                    </button>
+                                                    </Button>
                                                 </>
                                             ) : (
-                                                <button 
-                                                    className="main__button" 
-                                                    type="button"
+                                                <Button 
+                                                    variant="primary"
+                                                    icon={<Save size={16} />}
                                                     onClick={handleAddPreset}
+                                                    type="button"
+                                                    className="main__button"
                                                 >
-                                                    <Save size={16} />
                                                     Add Preset
-                                                </button>
+                                                </Button>
                                             )}
                                         </div>
                                     </div>
@@ -543,22 +550,24 @@ const CalculatorScreenContent: React.FC = () => {
                                                     <span className="preset-item__percentage">{preset.percentage}%</span>
                                                 </div>
                                                 <div className="preset-item__actions">
-                                                    <button 
-                                                        className="preset-item__action-btn preset-item__action-btn--edit" 
-                                                        type="button"
+                                                    <Button 
+                                                        variant="ghost"
+                                                        size="small"
+                                                        icon={<Edit2 size={14} />}
                                                         onClick={() => handleStartEdit(preset)}
                                                         title="Edit"
-                                                    >
-                                                        <Edit2 size={14} />
-                                                    </button>
-                                                    <button 
-                                                        className="preset-item__action-btn preset-item__action-btn--delete" 
                                                         type="button"
+                                                        className="preset-item__action-btn preset-item__action-btn--edit"
+                                                    />
+                                                    <Button 
+                                                        variant="ghost"
+                                                        size="small"
+                                                        icon={<Trash2 size={14} />}
                                                         onClick={() => handleDeletePreset(preset.id)}
                                                         title="Delete"
-                                                    >
-                                                        <Trash2 size={14} />
-                                                    </button>
+                                                        type="button"
+                                                        className="preset-item__action-btn preset-item__action-btn--delete"
+                                                    />
                                                 </div>
                                             </div>
                                         ))}
@@ -588,14 +597,15 @@ const CalculatorScreenContent: React.FC = () => {
                                     <div className="input-field">
                                         <div className="label">
                                             Bank Charge (%)
-                                            <button 
-                                                className="main__icon-button" 
-                                                type="button"
+                                            <Button 
+                                                variant="secondary"
                                                 onClick={() => setShowPresetManager(!showPresetManager)}
+                                                type="button"
                                                 style={{ marginLeft: '8px', padding: '4px 8px', fontSize: '12px' }}
+                                                className="main__icon-button"
                                             >
                                                 {showPresetManager ? 'Hide' : 'Manage'} Presets
-                                            </button>
+                                            </Button>
                                         </div>
                                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                                             <select
@@ -647,18 +657,33 @@ const CalculatorScreenContent: React.FC = () => {
                                 </div>
                                 <div className="inline">
                                     <div className="pill">GST: {GST}% (fixed)</div>
-                                    <button className="main__icon-button" type="button" onClick={handleRecalculate}>
-                                        <RefreshCcw size={16} />
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<RefreshCcw size={16} />}
+                                        onClick={handleRecalculate}
+                                        type="button"
+                                        className="main__icon-button"
+                                    >
                                         Recalculate
-                                    </button>
-                                    <button className="main__button" type="button" onClick={handleSaveScenario}>
-                                        <Save size={16} />
+                                    </Button>
+                                    <Button 
+                                        variant="primary"
+                                        icon={<Save size={16} />}
+                                        onClick={handleSaveScenario}
+                                        type="button"
+                                        className="main__button"
+                                    >
                                         Save
-                                    </button>
-                                    <button className="main__icon-button" type="button" onClick={handleReset}>
-                                        <RotateCcw size={16} />
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<RotateCcw size={16} />}
+                                        onClick={handleReset}
+                                        type="button"
+                                        className="main__icon-button"
+                                    >
                                         Reset
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
 
@@ -701,16 +726,17 @@ const CalculatorScreenContent: React.FC = () => {
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
                                 <div className="section-title">Saved Scenarios ({savedScenarios.length})</div>
                                 {savedScenarios.length > 0 && (
-                                    <button 
-                                        className="main__icon-button" 
-                                        type="button"
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<Trash2 size={14} />}
                                         onClick={handleClearAllScenarios}
+                                        type="button"
                                         style={{ padding: '6px 12px', fontSize: '13px', color: '#dc3545' }}
                                         title="Clear all saved scenarios"
+                                        className="main__icon-button"
                                     >
-                                        <Trash2 size={14} />
                                         Clear All
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                             {savedScenarios.length === 0 ? (
@@ -725,14 +751,15 @@ const CalculatorScreenContent: React.FC = () => {
                                                 <div className="line" style={{ fontWeight: 600, flex: 1 }}>
                                                     {formatAmountAsCurrency(s.amount)} • Our {s.our}% • Bank {s.bank}%
                                                 </div>
-                                                <button 
-                                                    className="scenario-delete-btn" 
-                                                    type="button"
+                                                <Button 
+                                                    variant="ghost"
+                                                    size="small"
+                                                    icon={<Trash2 size={14} />}
                                                     onClick={() => handleDeleteScenario(s.id)}
                                                     title="Delete this scenario"
-                                                >
-                                                    <Trash2 size={14} />
-                                                </button>
+                                                    type="button"
+                                                    className="scenario-delete-btn"
+                                                />
                                             </div>
                                             <div className="line"><span>Platform</span><span>{formatAmountAsCurrency(s.platform)}</span></div>
                                             <div className="line" style={{ fontSize: '12px', color: '#666' }}>
@@ -740,14 +767,15 @@ const CalculatorScreenContent: React.FC = () => {
                                             </div>
                                             <div className="inline" style={{ justifyContent: 'space-between', marginTop: 4 }}>
                                                 <div className="pill">GST {s.gst}%</div>
-                                                <button 
-                                                    className="main__icon-button" 
-                                                    type="button"
+                                                <Button 
+                                                    variant="secondary"
+                                                    icon={<Play size={16} />}
                                                     onClick={() => handleApplyScenario(s)}
+                                                    type="button"
+                                                    className="main__icon-button"
                                                 >
-                                                    <Play size={16} />
                                                     Apply
-                                                </button>
+                                                </Button>
                                             </div>
                                         </div>
                                     ))}

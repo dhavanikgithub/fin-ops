@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { TextInput, TextArea } from '@/components/FormInputs';
+import { TextInput, TextArea, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createBank } from '../../store/actions/bankActions';
 import { clearError } from '../../store/slices/bankSlice';
@@ -35,10 +35,13 @@ const AddBankErrorFallback: React.FC<{
                     <h1>Error - Add Bank</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onCancel}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={onCancel}
+                    >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -62,27 +65,27 @@ const AddBankErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="ab__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
                                     onClick={onBackToBanks}
                                 >
-                                    <ArrowLeft size={16} />
                                     Back to Banks
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
                                     onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -207,31 +210,23 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
                         <h1>Add New Bank</h1>
                     </div>
                     <div className="main__header-right">
-                        <button 
-                            className="main__icon-button" 
+                        <Button 
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
                             onClick={handleBackToBanks}
                             disabled={isDisabled}
                         >
-                            <ArrowLeft size={16} />
                             Back to Banks
-                        </button>
-                        <button 
-                            className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                        </Button>
+                        <Button 
+                            variant="primary"
+                            icon={creating ? undefined : <Save size={16} />}
                             onClick={handleSaveBank}
                             disabled={isDisabled || !isFormValid}
+                            loading={creating}
                         >
-                            {creating ? (
-                                <>
-                                    <Loader className="spinner" size={16} />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={16} />
-                                    Save Bank
-                                </>
-                            )}
-                        </button>
+                            {creating ? 'Saving...' : 'Save Bank'}
+                        </Button>
                     </div>
                 </header>
 
@@ -285,31 +280,23 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
                         </div>
 
                         <div className="main__footer-actions">
-                            <button 
-                                className="main__icon-button" 
+                            <Button 
+                                variant="secondary"
+                                icon={<X size={16} />}
                                 onClick={handleCancel}
                                 disabled={isDisabled}
                             >
-                                <X size={16} />
                                 Cancel
-                            </button>
-                            <button 
-                                className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                            </Button>
+                            <Button 
+                                variant="primary"
+                                icon={creating ? undefined : <CheckCircle2 size={16} />}
                                 onClick={handleSaveBank}
                                 disabled={isDisabled || !isFormValid}
+                                loading={creating}
                             >
-                                {creating ? (
-                                    <>
-                                        <Loader className="spinner" size={16} />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 size={16} />
-                                        Create Bank
-                                    </>
-                                )}
-                            </button>
+                                {creating ? 'Creating...' : 'Create Bank'}
+                            </Button>
                         </div>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ import { Home, ArrowLeft, Users, Banknote, CreditCard, Calculator } from 'lucide
 import { useRouter } from 'next/navigation';
 import './not-found.scss';
 import App from '@/components/App';
+import { Button } from '@/components/FormInputs';
 
 const NotFound: React.FC = () => {
     const router = useRouter();
@@ -41,32 +42,26 @@ const NotFound: React.FC = () => {
                                         Choose a destination below to continue.
                                     </div>
                                     <div className="not-found__actions">
-                                        <button className="not-found__button primary" onClick={handleGoHome}>
-                                            <Home size={16} />
+                                        <Button variant="primary" icon={<Home size={16} />} onClick={handleGoHome}>
                                             Go to Dashboard
-                                        </button>
-                                        <button className="not-found__button secondary" onClick={handleGoBack}>
-                                            <ArrowLeft size={16} />
+                                        </Button>
+                                        <Button variant="secondary" icon={<ArrowLeft size={16} />} onClick={handleGoBack}>
                                             Go Back
-                                        </button>
+                                        </Button>
                                     </div>
                                     <div className="not-found__quick-links">
-                                        <button className="not-found__link" onClick={() => handleNavigate('/clients')}>
-                                            <Users size={16} />
+                                        <Button variant="outline" icon={<Users size={16} />} onClick={() => handleNavigate('/clients')}>
                                             Clients
-                                        </button>
-                                        <button className="not-found__link" onClick={() => handleNavigate('/banks')}>
-                                            <Banknote size={16} />
+                                        </Button>
+                                        <Button variant="outline" icon={<Banknote size={16} />} onClick={() => handleNavigate('/banks')}>
                                             Banks
-                                        </button>
-                                        <button className="not-found__link" onClick={() => handleNavigate('/cards')}>
-                                            <CreditCard size={16} />
+                                        </Button>
+                                        <Button variant="outline" icon={<CreditCard size={16} />} onClick={() => handleNavigate('/cards')}>
                                             Cards
-                                        </button>
-                                        <button className="not-found__link" onClick={() => handleNavigate('/calculator')}>
-                                            <Calculator size={16} />
+                                        </Button>
+                                        <Button variant="outline" icon={<Calculator size={16} />} onClick={() => handleNavigate('/calculator')}>
                                             Charge Calculator
-                                        </button>
+                                        </Button>
                                     </div>
                                     <div className="not-found__hint">
                                         Tip: Use the navigation to move to the next step in your flow.

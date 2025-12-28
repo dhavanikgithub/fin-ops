@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { UserPlus, X, Save, User, Mail, Phone, MapPin, ArrowLeft, CheckCircle2, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { TextInput, TextArea } from '@/components/FormInputs';
+import { TextInput, TextArea, Button } from '@/components/FormInputs';
 import './AddClient.scss';
 import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -37,10 +37,14 @@ const AddClientErrorFallback: React.FC<{
                     <h1>Error - Add Client</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onCancel}>
-                        <X size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={onCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -64,27 +68,30 @@ const AddClientErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="ac__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
                                     onClick={onBackToClients}
-                                >
-                                    <ArrowLeft size={16} />
-                                    Back to Clients
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Back to Clients
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -197,22 +204,24 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                         <h1>New Client</h1>
                     </div>
                     <div className="main__header-right">
-                        <button 
-                            className="main__icon-button" 
+                        <Button 
+                            variant="secondary"
+                            icon={<X size={16} />}
                             onClick={handleCancel}
                             disabled={creating}
+                            className="main__icon-button"
                         >
-                            <X size={16} />
                             Cancel
-                        </button>
-                        <button 
-                            className="main__button" 
+                        </Button>
+                        <Button 
+                            variant="primary"
+                            icon={<Save size={16} />}
                             onClick={handleSaveClient}
                             disabled={creating || !formData.fullName.trim()}
+                            className="main__button"
                         >
-                            <Save size={16} />
                             {creating ? 'Creating...' : 'Save Client'}
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -289,22 +298,24 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                             </div>
 
                             <div className="main__footer-actions">
-                                <button 
-                                    className="main__icon-button" 
+                                <Button 
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
                                     onClick={handleBackToClients}
                                     disabled={creating}
+                                    className="main__icon-button"
                                 >
-                                    <ArrowLeft size={16} />
                                     Back to Clients
-                                </button>
-                                <button 
-                                    className="main__button" 
+                                </Button>
+                                <Button 
+                                    variant="primary"
+                                    icon={<CheckCircle2 size={16} />}
                                     onClick={handleSaveClient}
                                     disabled={creating || !formData.fullName.trim()}
+                                    className="main__button"
                                 >
-                                    <CheckCircle2 size={16} />
                                     {creating ? 'Creating...' : 'Create Client'}
-                                </button>
+                                </Button>
                             </div>
                         </div>
 

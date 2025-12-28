@@ -14,7 +14,7 @@ import {
     Home,
     Calculator
 } from 'lucide-react';
-import { NumericInput, PillToggleGroup } from '@/components/FormInputs';
+import { Button, NumericInput, PillToggleGroup } from '@/components/FormInputs';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
 import logger from '@/utils/logger';
@@ -74,27 +74,30 @@ const FinkedaScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="fs__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Calculator size={16} />}
                                     onClick={() => window.location.href = '/special-calculators/finkeda-special'}
-                                >
-                                    <Calculator size={16} />
-                                    Reload Calculator
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Calculator
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -427,22 +430,40 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
 
                                 <div className="finkeda-actions">
                                     <div className="pill">GST: {GST}% (fixed)</div>
-                                    <button className="main__icon-button" onClick={handleToggleSettings}>
-                                        <Settings size={16} />
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<Settings size={16} />}
+                                        onClick={handleToggleSettings}
+                                        className="main__icon-button"
+                                    >
                                         {showSettings ? 'Hide Settings' : 'Show Settings'}
-                                    </button>
-                                    <button className="main__icon-button" onClick={handleRecalculate}>
-                                        <RefreshCcw size={16} />
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<RefreshCcw size={16} />}
+                                        onClick={handleRecalculate}
+                                        className="main__icon-button"
+                                    >
                                         Recalculate
-                                    </button>
-                                    <button className="main__button" type="button" onClick={handleSaveScenario}>
-                                        <Save size={16} />
+                                    </Button>
+                                    <Button 
+                                        variant="primary"
+                                        icon={<Save size={16} />}
+                                        onClick={handleSaveScenario}
+                                        type="button"
+                                        className="main__button"
+                                    >
                                         Save
-                                    </button>
-                                    <button className="main__icon-button" type="button" onClick={handleReset}>
-                                        <RotateCcw size={16} />
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<RotateCcw size={16} />}
+                                        onClick={handleReset}
+                                        type="button"
+                                        className="main__icon-button"
+                                    >
                                         Reset
-                                    </button>
+                                    </Button>
                                 </div>
 
                                 {showSettings && (
@@ -474,14 +495,15 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                                             <div className="finkeda-badge">
                                                 Current: {selectedCardType} ({selectedCardType === CARD_TYPES.RUPAY ? rupayChargeAmount : masterChargeAmount}%)
                                             </div>
-                                            <button
-                                                className="main__button"
+                                            <Button 
+                                                variant="primary"
+                                                icon={<Save size={16} />}
                                                 onClick={handleUpdateSettings}
                                                 disabled={isUpdatingSettings}
+                                                className="main__button"
                                             >
-                                                <Save size={16} />
                                                 {isUpdatingSettings ? 'Updating...' : 'Update Settings'}
-                                            </button>
+                                            </Button>
                                         </div>
                                     </>
                                 )}
@@ -550,13 +572,15 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                                                     {calc.savedAt}
                                                 </td>
                                                 <td>
-                                                    <button 
-                                                        className="finkeda-row-actions"
+                                                    <Button 
+                                                        variant="ghost"
+                                                        size="small"
+                                                        icon={<Play size={16} />}
                                                         onClick={() => handleApplyScenario(calc)}
+                                                        className="finkeda-row-actions"
                                                     >
-                                                        <Play size={16} />
                                                         Apply
-                                                    </button>
+                                                    </Button>
                                                 </td>
                                             </tr>
                                         ))}

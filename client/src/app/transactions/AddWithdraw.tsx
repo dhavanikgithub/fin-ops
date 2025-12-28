@@ -10,7 +10,7 @@ import { clearCardAutocomplete } from '../../store/slices/cardAutocompleteSlice'
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { createTransaction } from '../../store/actions/transactionActions';
-import { AutocompleteInput, NumericInput, TextArea, AutocompleteOption } from '@/components/FormInputs';
+import { AutocompleteInput, NumericInput, TextArea, AutocompleteOption, Button } from '@/components/FormInputs';
 import './AddWithdraw.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
@@ -34,10 +34,14 @@ const AddWithdrawErrorFallback: React.FC<{
                     <h1>Add Withdraw Error</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onCancel}>
-                        <X size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={onCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -61,18 +65,20 @@ const AddWithdrawErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="aw__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
                                     onClick={onCancel}
+                                    className="main__icon-button"
                                 >
                                     Go Back
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -316,14 +322,23 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                     <h1>New Withdraw</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={handleCancel}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={handleCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
-                    <button className="main__button" onClick={handleSaveWithdraw} disabled={transactionLoading}>
-                        <Save size={16} />
+                    </Button>
+                    <Button 
+                        variant="primary"
+                        icon={<Save size={16} />}
+                        onClick={handleSaveWithdraw}
+                        disabled={transactionLoading}
+                        className="main__button"
+                    >
                         {transactionLoading ? 'Saving...' : 'Save Withdraw'}
-                    </button>
+                    </Button>
                 </div>
 
             </header>
@@ -431,25 +446,36 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                     {formErrors.general && (
                         <div className="aw__error-section">
                             <span className="aw__error">{formErrors.general}</span>
-                            <button 
+                            <Button 
+                                variant="ghost"
+                                size="small"
+                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                                 type="button"
                                 className="aw__retry"
-                                onClick={() => setFormErrors(prev => ({ ...prev, general: undefined }))}
                             >
                                 Try Again
-                            </button>
+                            </Button>
                         </div>
                     )}
 
                     <div className="main__footer-actions">
-                        <button className="main__icon-button" onClick={handleBackToTransactions}>
-                            <ArrowLeft size={16} />
+                        <Button 
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
+                            onClick={handleBackToTransactions}
+                            className="main__icon-button"
+                        >
                             Back to Transactions
-                        </button>
-                        <button className="main__button" onClick={handleSaveWithdraw} disabled={transactionLoading}>
-                            <CheckCircle2 size={16} />
+                        </Button>
+                        <Button 
+                            variant="primary"
+                            icon={<CheckCircle2 size={16} />}
+                            onClick={handleSaveWithdraw}
+                            disabled={transactionLoading}
+                            className="main__button"
+                        >
                             {transactionLoading ? 'Creating...' : 'Confirm & Add Withdraw'}
-                        </button>
+                        </Button>
 
                     </div>
                 </div>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, CreditCard } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import CardList from './CardList';
 import AddCardScreen from './AddCard';
 import './CardsScreen.scss';
@@ -37,27 +38,30 @@ const CardsScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="cs__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<CreditCard size={16} />}
                                     onClick={() => window.location.href = '/cards'}
-                                >
-                                    <CreditCard size={16} />
-                                    Reload Cards
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Cards
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

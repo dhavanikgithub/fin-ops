@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { UserX, X, AlertTriangle, User, Mail, Phone, Building2, Hash, MapPin, Wallet } from 'lucide-react';
-import { CheckboxInput } from '@/components/FormInputs';
+import { CheckboxInput, Button } from '@/components/FormInputs';
 import './DeleteClientConfirmModal.scss';
 
 export interface Client {
@@ -124,14 +124,22 @@ const DeleteClientConfirmModal: React.FC<DeleteClientConfirmModalProps> = ({
                 </div>
 
                 <div className="delete-modal__footer">
-                    <button className="delete-modal__cancel" onClick={handleCancel}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary" 
+                        icon={<X size={16} />}
+                        onClick={handleCancel}
+                        className="delete-modal__cancel"
+                    >
                         Cancel
-                    </button>
-                    <button className="delete-modal__delete" onClick={handleDelete}>
-                        <UserX size={16} />
+                    </Button>
+                    <Button 
+                        variant="destructive" 
+                        icon={<UserX size={16} />}
+                        onClick={handleDelete}
+                        className="delete-modal__delete"
+                    >
                         Delete Client
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

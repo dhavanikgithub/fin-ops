@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { SearchInput, TextInput } from '@/components/FormInputs';
+import { SearchInput, TextInput, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
     fetchPaginatedBanks, 
@@ -41,10 +41,13 @@ const BankListErrorFallback: React.FC<{
                     <h1>Error - Banks</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onNewBank}>
-                        <Plus size={16} />
+                    <Button 
+                        variant="secondary"
+                        icon={<Plus size={16} />}
+                        onClick={onNewBank}
+                    >
                         Add New Bank
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -68,27 +71,27 @@ const BankListErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="bl__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Plus size={16} />}
                                     onClick={onNewBank}
                                 >
-                                    <Plus size={16} />
                                     Add New Bank
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
                                     onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -309,10 +312,13 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                         <h1>Banks</h1>
                     </div>
                     <div className="main__header-right">
-                        <button className="main__icon-button" onClick={handleNewBank}>
-                            <Plus size={16} />
+                        <Button 
+                            variant="secondary"
+                            icon={<Plus size={16} />}
+                            onClick={handleNewBank}
+                        >
                             Add New Bank
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -337,7 +343,13 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                         {error && (
                             <div className="main__error">
                                 Error: {error}
-                                <button onClick={() => dispatch(clearError())}>Dismiss</button>
+                                <Button 
+                                    variant="ghost"
+                                    size="small"
+                                    onClick={() => dispatch(clearError())}
+                                >
+                                    Dismiss
+                                </Button>
                             </div>
                         )}
 
@@ -364,14 +376,16 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                             <div className="meta-label">Transactions</div>
                                             <div className="meta-value">{bank.transaction_count.toLocaleString()}</div>
                                         </div>
-                                        <button 
-                                            className="row-actions"
+                                        <Button 
+                                            variant="ghost"
+                                            size="small"
+                                            icon={<MoreHorizontal size={16} />}
                                             onClick={() => handleEditBank(bank)}
                                             disabled={deleting.includes(bank.id)}
+                                            className="row-actions"
                                         >
-                                            <MoreHorizontal size={16} />
                                             Manage
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             ))}
@@ -423,39 +437,31 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                     />
                                 </div>
                                 <div className="inline-actions">
-                                    <button 
-                                        className="main__button"
+                                    <Button 
+                                        variant="primary"
+                                        icon={isUpdating ? undefined : <Edit size={16} />}
                                         onClick={handleSaveBank}
                                         disabled={isUpdating || isDeleting || !editForm.name.trim()}
+                                        loading={isUpdating}
                                     >
-                                        {isUpdating ? (
-                                            <>
-                                                <Loader className="spinner" size={16} />
-                                                Saving...
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Edit size={16} />
-                                                Save
-                                            </>
-                                        )}
-                                    </button>
-                                    <button 
-                                        className="main__icon-button" 
+                                        {isUpdating ? 'Saving...' : 'Save'}
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<Trash size={16} />}
                                         onClick={handleDeleteBank}
                                         disabled={isUpdating || isDeleting}
                                     >
-                                        <Trash size={16} />
                                         Delete
-                                    </button>
-                                    <button 
-                                        className="main__secondary-button" 
+                                    </Button>
+                                    <Button 
+                                        variant="secondary"
+                                        icon={<X size={16} />}
                                         onClick={handleCancelEdit}
                                         disabled={isUpdating || isDeleting}
                                     >
-                                        <X size={16} />
                                         Cancel
-                                    </button>
+                                    </Button>
                                 </div>
                             </div>
                         </div>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { AutocompleteInput, AutocompleteOption, SearchInput, NumericInput, TextArea, PillToggleGroup } from '@/components/FormInputs';
+import { AutocompleteInput, AutocompleteOption, SearchInput, NumericInput, TextArea, PillToggleGroup, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
     fetchTransactions,
@@ -51,13 +51,14 @@ const SearchBarErrorFallback: React.FC<{
         <div className="main__search-row">
             <div className="tl__search-error">
                 <span className="tl__search-error-message">Search unavailable</span>
-                <button
-                    className="tl__search-error-retry"
+                <Button
+                    variant="ghost"
+                    size="small"
+                    icon={<RotateCcw size={14} />}
                     onClick={resetErrorBoundary}
                     title="Retry search"
-                >
-                    <RotateCcw size={14} />
-                </button>
+                    className="tl__search-error-retry"
+                />
             </div>
             {process.env.NODE_ENV === 'development' && (
                 <div className="tl__search-error-details" title={`Error: ${error.message}`}>
@@ -105,14 +106,12 @@ const TransactionListErrorFallback: React.FC<{
                     <h1>Error - Transactions</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onDeposit}>
-                        <ArrowDownLeft size={16} />
+                    <Button variant="secondary" icon={<ArrowDownLeft size={16} />} onClick={onDeposit}>
                         Deposit
-                    </button>
-                    <button className="main__icon-button" onClick={onWithdraw}>
-                        <ArrowUpRight size={16} />
+                    </Button>
+                    <Button variant="secondary" icon={<ArrowUpRight size={16} />} onClick={onWithdraw}>
                         Withdraw
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -136,27 +135,30 @@ const TransactionListErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="tl__error-boundary-actions">
-                                <button
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<ArrowDownLeft size={16} />}
                                     onClick={onDeposit}
-                                >
-                                    <ArrowDownLeft size={16} />
-                                    Add Deposit
-                                </button>
-                                <button
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Add Deposit
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -493,18 +495,15 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                         <h1>Transactions</h1>
                     </div>
                     <div className="main__header-right">
-                        <button className="main__icon-button" onClick={handleOpenExportModal}>
-                            <Download size={16} />
+                        <Button variant="secondary" icon={<Download size={16} />} onClick={handleOpenExportModal}>
                             Export
-                        </button>
-                        <button className="main__button" onClick={onDeposit}>
-                            <ArrowDownLeft size={16} />
+                        </Button>
+                        <Button variant="primary" icon={<ArrowDownLeft size={16} />} onClick={onDeposit}>
                             Deposit
-                        </button>
-                        <button className="main__button" onClick={onWithdraw}>
-                            <ArrowUpRight size={16} />
+                        </Button>
+                        <Button variant="primary" icon={<ArrowUpRight size={16} />} onClick={onWithdraw}>
                             Withdraw
-                        </button>
+                        </Button>
                     </div>
                 </header>
 
@@ -531,16 +530,15 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                                 />
                             </ErrorBoundary>
                             <div className="main__actions">
-                                <button
-                                    className={`main__icon-button ${filterCount > 0 ? 'main__icon-button--active' : ''}`}
+                                <Button
+                                    variant="secondary"
+                                    icon={<SlidersHorizontal size={16} />}
                                     onClick={handleOpenFilterModal}
+                                    badge={filterCount > 0 ? filterCount : undefined}
+                                    className={`main__icon-button ${filterCount > 0 ? 'main__icon-button--active' : ''}`}
                                 >
-                                    <SlidersHorizontal size={16} />
                                     Filters
-                                    {filterCount > 0 && (
-                                        <span className="main__filter-badge">{filterCount}</span>
-                                    )}
-                                </button>
+                                </Button>
                             </div>
                         </div>
 
@@ -685,29 +683,32 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                                         />
                                     </div>
                                     <div className="inline-actions">
-                                        <button
-                                            className="main__button"
+                                        <Button
+                                            variant="primary"
+                                            icon={<Edit size={16} />}
                                             onClick={() => handleSaveTransaction(selectedTransaction)}
                                             disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                            className="main__button"
                                         >
-                                            <Edit size={16} />
                                             {selectedTransaction && isTransactionBeingSaved(selectedTransaction.id, editingTransactionIds) ? 'Saving...' : 'Save'}
-                                        </button>
-                                        <button
-                                            className="main__icon-button"
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            icon={<Trash size={16} />}
                                             onClick={handleDeleteTransaction}
                                             disabled={!selectedTransaction || isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                            className="main__icon-button"
                                         >
-                                            <Trash size={16} />
                                             {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) ? 'Deleting...' : 'Delete'}
-                                        </button>
-                                        <button
-                                            className="main__secondary-button"
+                                        </Button>
+                                        <Button
+                                            variant="secondary"
+                                            icon={<X size={16} />}
                                             onClick={handleDeselectTransaction}
+                                            className="main__secondary-button"
                                         >
-                                            <X size={16} />
                                             Close
-                                        </button>
+                                        </Button>
                                     </div>
                                 </div>
                             </div>

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { CreditCard, X, Save, LayoutDashboard, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
-import { TextInput, TextArea } from '@/components/FormInputs';
+import { TextInput, TextArea, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createCard } from '../../store/actions/cardActions';
 import { clearError } from '../../store/slices/cardSlice';
@@ -35,10 +35,14 @@ const AddCardErrorFallback: React.FC<{
                     <h1>Error - Add Card</h1>
                 </div>
                 <div className="main__header-right">
-                    <button className="main__icon-button" onClick={onCancel}>
-                        <X size={16} />
+                    <Button
+                        variant="secondary"
+                        icon={<X size={16} />}
+                        onClick={onCancel}
+                        className="main__icon-button"
+                    >
                         Cancel
-                    </button>
+                    </Button>
                 </div>
             </header>
 
@@ -62,27 +66,30 @@ const AddCardErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="ac__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
                                     onClick={onBackToCards}
-                                >
-                                    <ArrowLeft size={16} />
-                                    Back to Cards
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Back to Cards
+                                </Button>
+                                <Button
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -197,31 +204,25 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
                         <h1>Add New Card</h1>
                     </div>
                     <div className="main__header-right">
-                        <button 
-                            className="main__icon-button" 
+                        <Button 
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
                             onClick={handleBackToCards}
                             disabled={isDisabled}
+                            className="main__icon-button"
                         >
-                            <ArrowLeft size={16} />
                             Back to Cards
-                        </button>
-                        <button 
-                            className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                        </Button>
+                        <Button 
+                            variant="primary"
+                            icon={creating ? undefined : <Save size={16} />}
                             onClick={handleSaveCard}
                             disabled={isDisabled || !isFormValid}
+                            loading={creating}
+                            className="main__button"
                         >
-                            {creating ? (
-                                <>
-                                    <Loader className="spinner" size={16} />
-                                    Saving...
-                                </>
-                            ) : (
-                                <>
-                                    <Save size={16} />
-                                    Save Card
-                                </>
-                            )}
-                        </button>
+                            {creating ? 'Saving...' : 'Save Card'}
+                        </Button>
                     </div>
                 </header>
 
@@ -273,31 +274,25 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
                         </div>
 
                         <div className="main__footer-actions">
-                            <button 
-                                className="main__icon-button" 
+                            <Button 
+                                variant="secondary"
+                                icon={<X size={16} />}
                                 onClick={handleCancel}
                                 disabled={isDisabled}
+                                className="main__icon-button"
                             >
-                                <X size={16} />
                                 Cancel
-                            </button>
-                            <button 
-                                className={`main__button ${!isFormValid ? 'main__button--disabled' : ''}`}
+                            </Button>
+                            <Button 
+                                variant="primary"
+                                icon={creating ? undefined : <CheckCircle2 size={16} />}
                                 onClick={handleSaveCard}
                                 disabled={isDisabled || !isFormValid}
+                                loading={creating}
+                                className="main__button"
                             >
-                                {creating ? (
-                                    <>
-                                        <Loader className="spinner" size={16} />
-                                        Creating...
-                                    </>
-                                ) : (
-                                    <>
-                                        <CheckCircle2 size={16} />
-                                        Create Card
-                                    </>
-                                )}
-                            </button>
+                                {creating ? 'Creating...' : 'Create Card'}
+                            </Button>
                         </div>
                     </div>
 

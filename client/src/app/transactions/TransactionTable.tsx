@@ -1,6 +1,6 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal, Check, X, AlertTriangle } from 'lucide-react';
+import { Eye, ChevronDown, ChevronUp, ArrowDownLeft, ArrowUpRight, MoreHorizontal, Check, X, AlertTriangle, RotateCcw, RefreshCw } from 'lucide-react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { loadMoreTransactions, sortTransactions } from '../../store/actions/transactionActions';
@@ -10,6 +10,7 @@ import { getTransactionTypeLabel, isDeposit, isWithdraw } from '@/utils/transact
 import { formatAmountWithSymbol, formatDateToReadable, formatTime, getAvatarColor, getAvatarInitials } from '@/utils/helperFunctions';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { Button } from '@/components/FormInputs';
 
 interface TableProps {
     selectedTransaction?: Transaction | null;
@@ -42,18 +43,22 @@ const TransactionTableErrorFallback: React.FC<{
                             </details>
                         )}
                         <div className="table__error-boundary-actions">
-                            <button 
-                                className="table__error-boundary-retry"
+                            <Button
+                                variant="primary"
+                                icon={<RotateCcw size={16} />}
                                 onClick={resetErrorBoundary}
+                                className="table__error-boundary-retry"
                             >
                                 Try Again
-                            </button>
-                            <button 
-                                className="table__error-boundary-refresh"
+                            </Button>
+                            <Button
+                                variant="secondary"
+                                icon={<RefreshCw size={16} />}
                                 onClick={() => window.location.reload()}
+                                className="table__error-boundary-refresh"
                             >
                                 Refresh Page
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>
@@ -553,12 +558,15 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                 {transaction.remark.length > 30 ? (
                                                     <span className="table__notes-text">
                                                         {transaction.remark.slice(0, 30)}
-                                                        <button
-                                                            className="table__notes-viewmore"
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="small"
+                                                            icon={<Eye size={12} />}
                                                             onClick={(e) => handleNotesView(e, transaction.remark)}
+                                                            className="table__notes-viewmore"
                                                         >
                                                             ...
-                                                        </button>
+                                                        </Button>
                                                     </span>
                                                 ) : (
                                                     <span className="table__notes-text">
@@ -570,13 +578,15 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                         </td>
 
                                         <td>
-                                            <button
-                                                className="row-actions"
+                                            <Button
+                                                variant="ghost"
+                                                size="small"
+                                                icon={<MoreHorizontal size={16} />}
                                                 onClick={() => handleTransactionSelect(transaction)}
+                                                className="row-actions"
                                             >
-                                                <MoreHorizontal size={16} />
                                                 Manage
-                                            </button>
+                                            </Button>
                                         </td>
                                     </tr>
                                 );

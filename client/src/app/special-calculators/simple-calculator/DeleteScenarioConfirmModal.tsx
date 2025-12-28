@@ -2,6 +2,7 @@
 import React from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Trash2, X, Calendar, IndianRupee, Percent, AlertTriangle, Trash, RotateCcw } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import './DeleteScenarioConfirmModal.scss';
 import { formatAmountAsCurrency, formatDateWithTime } from '@/utils/helperFunctions';
 import logger from '@/utils/logger';
@@ -79,14 +80,22 @@ const DeleteScenarioModalErrorFallback: React.FC<{
                 </div>
 
                 <div className="delete-scenario-modal__footer">
-                    <button className="delete-scenario-modal__cancel" onClick={handleClose}>
-                        <X size={16} />
+                    <Button 
+                        variant="secondary" 
+                        icon={<X size={16} />}
+                        onClick={handleClose}
+                        className="delete-scenario-modal__cancel"
+                    >
                         Close
-                    </button>
-                    <button className="delete-scenario-modal__delete" onClick={handleTryAgain}>
-                        <RotateCcw size={16} />
+                    </Button>
+                    <Button 
+                        variant="primary" 
+                        icon={<RotateCcw size={16} />}
+                        onClick={handleTryAgain}
+                        className="delete-scenario-modal__delete"
+                    >
                         Try Again
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
@@ -220,14 +229,22 @@ const DeleteScenarioConfirmModalContent: React.FC<DeleteScenarioConfirmModalProp
                     </div>
 
                     <div className="delete-scenario-modal__footer">
-                        <button className="delete-scenario-modal__cancel" onClick={handleCancel}>
-                            <X size={16} />
+                        <Button 
+                            variant="secondary" 
+                            icon={<X size={16} />}
+                            onClick={handleCancel}
+                            className="delete-scenario-modal__cancel"
+                        >
                             Cancel
-                        </button>
-                        <button className="delete-scenario-modal__delete" onClick={handleDelete}>
-                            <Trash size={16} />
+                        </Button>
+                        <Button 
+                            variant="destructive" 
+                            icon={<Trash size={16} />}
+                            onClick={handleDelete}
+                            className="delete-scenario-modal__delete"
+                        >
                             {mode === 'single' ? 'Delete Scenario' : `Delete All (${totalCount})`}
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { AlertTriangle, RotateCcw, Home, ArrowUpDown } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import TransactionList from './TransactionList';
 import AddDepositScreen from './AddDeposit';
 import AddWithdrawScreen from './AddWithdraw';
@@ -38,27 +39,30 @@ const TransactionScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="ts__error-boundary-actions">
-                                <button 
-                                    className="main__button"
+                                <Button 
+                                    variant="primary"
+                                    icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
+                                    className="main__button"
                                 >
-                                    <RotateCcw size={16} />
                                     Try Again
-                                </button>
-                                <button 
-                                    className="main__icon-button"
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<ArrowUpDown size={16} />}
                                     onClick={() => window.location.href = '/transactions'}
-                                >
-                                    <ArrowUpDown size={16} />
-                                    Reload Transactions
-                                </button>
-                                <button 
                                     className="main__icon-button"
-                                    onClick={() => window.location.href = '/'}
                                 >
-                                    <Home size={16} />
+                                    Reload Transactions
+                                </Button>
+                                <Button 
+                                    variant="secondary"
+                                    icon={<Home size={16} />}
+                                    onClick={() => window.location.href = '/'}
+                                    className="main__icon-button"
+                                >
                                     Go to Dashboard
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>

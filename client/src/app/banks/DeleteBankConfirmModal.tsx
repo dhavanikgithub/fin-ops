@@ -1,7 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { Building2, X, AlertTriangle, Trash2, UndoIcon, List, BadgeDollarSign } from 'lucide-react';
-import { CheckboxInput } from '@/components/FormInputs';
+import { CheckboxInput, Button } from '@/components/FormInputs';
 import './DeleteBankConfirmModal.scss';
 
 export interface Bank {
@@ -57,10 +57,15 @@ const DeleteBankConfirmModal: React.FC<DeleteBankConfirmModalProps> = ({
                         <Building2 size={18} />
                         Delete Bank Account
                     </h2>
-                    <button className="delete-modal__close" onClick={handleCancel}>
-                        <X size={16} />
+                    <Button 
+                        variant="ghost" 
+                        size="small" 
+                        icon={<X size={16} />}
+                        onClick={handleCancel}
+                        className="delete-modal__close"
+                    >
                         Close
-                    </button>
+                    </Button>
                 </div>
 
                 <div className="delete-modal__body">
@@ -116,14 +121,22 @@ const DeleteBankConfirmModal: React.FC<DeleteBankConfirmModalProps> = ({
                 </div>
 
                 <div className="delete-modal__footer">
-                    <button className="delete-modal__cancel" onClick={handleCancel}>
-                        <UndoIcon size={16} />
+                    <Button 
+                        variant="secondary" 
+                        icon={<UndoIcon size={16} />}
+                        onClick={handleCancel}
+                        className="delete-modal__cancel"
+                    >
                         Cancel
-                    </button>
-                    <button className="delete-modal__delete" onClick={handleDelete}>
-                        <Trash2 size={16} />
+                    </Button>
+                    <Button 
+                        variant="destructive" 
+                        icon={<Trash2 size={16} />}
+                        onClick={handleDelete}
+                        className="delete-modal__delete"
+                    >
                         Delete Bank
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>

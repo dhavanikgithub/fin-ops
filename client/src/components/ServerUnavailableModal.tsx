@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect } from 'react';
 import { ServerOff, X, AlertTriangle, Square, RotateCcw, Clock3, RefreshCcw, Inbox } from 'lucide-react';
+import { Button } from '@/components/FormInputs';
 import './ServerUnavailableModal.scss';
 
 interface ServerUnavailableModalProps {
@@ -100,10 +101,15 @@ const ServerUnavailableModal: React.FC<ServerUnavailableModalProps> = ({
                         Server Unavailable
                     </h2>
                     {isServerHealthy && (
-                        <button className="server-modal__close" onClick={handleCloseClick}>
-                            <X size={16} />
+                        <Button 
+                            variant="ghost" 
+                            size="small" 
+                            icon={<X size={16} />}
+                            onClick={handleCloseClick}
+                            className="server-modal__close"
+                        >
                             Close
-                        </button>
+                        </Button>
                     )}
                 </div>
 
@@ -153,19 +159,24 @@ const ServerUnavailableModal: React.FC<ServerUnavailableModalProps> = ({
 
                 <div className="server-modal__footer">
                     {isServerHealthy && (
-                        <button className="server-modal__dismiss" onClick={handleDismiss}>
-                            <Square size={16} />
+                        <Button 
+                            variant="secondary" 
+                            icon={<Square size={16} />}
+                            onClick={handleDismiss}
+                            className="server-modal__dismiss"
+                        >
                             Dismiss
-                        </button>
+                        </Button>
                     )}
-                    <button 
-                        className="server-modal__try-again" 
+                    <Button 
+                        variant="primary" 
+                        icon={<RotateCcw size={16} className={isRetrying ? 'spinning' : ''} />}
                         onClick={handleTryAgain}
                         disabled={isRetrying}
+                        className="server-modal__try-again"
                     >
-                        <RotateCcw size={16} className={isRetrying ? 'spinning' : ''} />
                         {isRetrying ? 'Retrying...' : 'Try Again'}
-                    </button>
+                    </Button>
                 </div>
             </div>
         </div>
