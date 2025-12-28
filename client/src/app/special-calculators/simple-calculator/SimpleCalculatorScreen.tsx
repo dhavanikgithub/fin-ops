@@ -1,13 +1,14 @@
 'use client'
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2 } from 'lucide-react';
+import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2, Settings } from 'lucide-react';
 import { Button, NumericInput, TextInput } from '@/components/FormInputs';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
 import toast from 'react-hot-toast';
 import DeleteScenarioConfirmModal from './DeleteScenarioConfirmModal';
+import DeletePresetConfirmModal, { PresetToDelete } from './DeletePresetConfirmModal';
 
 interface SavedScenario {
     id: string;
@@ -38,6 +39,7 @@ interface PlatformChargePreset {
 const STORAGE_KEY = 'calculator_scenarios';
 const BANK_PRESETS_KEY = 'bank_charge_presets';
 const PLATFORM_PRESETS_KEY = 'platform_charge_presets';
+const SETTINGS_KEY = 'calculator_settings';
 const GST = 18;
 
 // Error Fallback Component for Simple Calculator Screen
@@ -123,6 +125,10 @@ const CalculatorScreenContent: React.FC = () => {
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [deleteModalMode, setDeleteModalMode] = useState<'single' | 'all'>('single');
     const [scenarioToDelete, setScenarioToDelete] = useState<SavedScenario | null>(null);
+    const [deletePresetModalOpen, setDeletePresetModalOpen] = useState(false);
+    const [presetToDelete, setPresetToDelete] = useState<PresetToDelete | null>(null);
+    const [showPresetSettings, setShowPresetSettings] = useState(false);
+    const [requirePresetDeleteConfirmation, setRequirePresetDeleteConfirmation] = useState(true);
 
     // Load saved scenarios and bank presets from localStorage on component mount
     React.useEffect(() => {
@@ -193,10 +199,24 @@ const CalculatorScreenContent: React.FC = () => {
             }
         };
 
+        const loadSettings = () => {
+            try {
+                const stored = localStorage.getItem(SETTINGS_KEY);
+                if (stored) {
+                    const settings = JSON.parse(stored);
+                    setRequirePresetDeleteConfirmation(settings.requirePresetDeleteConfirmation ?? true);
+                    logger.debug('Loaded calculator settings from localStorage');
+                }
+            } catch (error) {
+                logger.error('Failed to load calculator settings:', error);
+            }
+        };
+
         try {
             loadSavedScenarios();
             loadBankPresets();
             loadPlatformPresets();
+            loadSettings();
         } catch (error) {
             logger.error('Error during component initialization:', error);
             showBoundary(error);
@@ -475,21 +495,57 @@ const CalculatorScreenContent: React.FC = () => {
         setNewPresetPercentage(0);
     };
 
+    const handleTogglePresetDeleteConfirmation = (enabled: boolean) => {
+        try {
+            setRequirePresetDeleteConfirmation(enabled);
+            const settings = { requirePresetDeleteConfirmation: enabled };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            logger.log('Updated preset delete confirmation setting:', enabled);
+            toast.success(`Delete confirmation ${enabled ? 'enabled' : 'disabled'}`);
+        } catch (error) {
+            logger.error('Failed to update settings:', error);
+            toast.error('Failed to update settings');
+        }
+    };
+
     const handleDeletePreset = (presetId: string) => {
         try {
             const preset = bankChargePresets.find(p => p.id === presetId);
             if (!preset) return;
 
-            if (confirm(`Are you sure you want to delete "${preset.name}"?`)) {
-                const updatedPresets = bankChargePresets.filter(p => p.id !== presetId);
-                localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(updatedPresets));
-                setBankChargePresets(updatedPresets);
-                
-                toast.success(`Deleted ${preset.name}`);
-                logger.log('Bank charge preset deleted:', preset);
+            if (requirePresetDeleteConfirmation) {
+                // Show modal
+                setPresetToDelete({
+                    id: preset.id,
+                    name: preset.name,
+                    value: `${preset.percentage}%`,
+                    type: 'bank'
+                });
+                setDeletePresetModalOpen(true);
+            } else {
+                // Direct delete without confirmation
+                confirmDeleteBankPreset(presetId);
             }
         } catch (error) {
             logger.error('Failed to delete preset:', error);
+            toast.error('Failed to delete preset');
+            showBoundary(error);
+        }
+    };
+
+    const confirmDeleteBankPreset = (presetId: string) => {
+        try {
+            const preset = bankChargePresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            const updatedPresets = bankChargePresets.filter(p => p.id !== presetId);
+            localStorage.setItem(BANK_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setBankChargePresets(updatedPresets);
+            
+            toast.success(`Deleted ${preset.name}`);
+            logger.log('Bank charge preset deleted:', preset);
+        } catch (error) {
+            logger.error('Failed to delete bank preset:', error);
             toast.error('Failed to delete preset');
             showBoundary(error);
         }
@@ -601,17 +657,58 @@ const CalculatorScreenContent: React.FC = () => {
             const preset = platformChargePresets.find(p => p.id === presetId);
             if (!preset) return;
 
-            if (confirm(`Are you sure you want to delete "${preset.name}"?`)) {
-                const updatedPresets = platformChargePresets.filter(p => p.id !== presetId);
-                localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(updatedPresets));
-                setPlatformChargePresets(updatedPresets);
-                
-                toast.success(`Deleted ${preset.name}`);
-                logger.log('Platform charge preset deleted:', preset);
+            if (requirePresetDeleteConfirmation) {
+                // Show modal
+                setPresetToDelete({
+                    id: preset.id,
+                    name: preset.name,
+                    value: `₹${preset.amount}`,
+                    type: 'platform'
+                });
+                setDeletePresetModalOpen(true);
+            } else {
+                // Direct delete without confirmation
+                confirmDeletePlatformPreset(presetId);
             }
         } catch (error) {
             logger.error('Failed to delete platform preset:', error);
             toast.error('Failed to delete platform preset');
+            showBoundary(error);
+        }
+    };
+
+    const confirmDeletePlatformPreset = (presetId: string) => {
+        try {
+            const preset = platformChargePresets.find(p => p.id === presetId);
+            if (!preset) return;
+
+            const updatedPresets = platformChargePresets.filter(p => p.id !== presetId);
+            localStorage.setItem(PLATFORM_PRESETS_KEY, JSON.stringify(updatedPresets));
+            setPlatformChargePresets(updatedPresets);
+            
+            toast.success(`Deleted ${preset.name}`);
+            logger.log('Platform charge preset deleted:', preset);
+        } catch (error) {
+            logger.error('Failed to delete platform preset:', error);
+            toast.error('Failed to delete platform preset');
+            showBoundary(error);
+        }
+    };
+
+    const handleConfirmDeletePreset = () => {
+        try {
+            if (!presetToDelete) return;
+
+            if (presetToDelete.type === 'bank') {
+                confirmDeleteBankPreset(presetToDelete.id);
+            } else {
+                confirmDeletePlatformPreset(presetToDelete.id);
+            }
+
+            setPresetToDelete(null);
+        } catch (error) {
+            logger.error('Failed to confirm delete preset:', error);
+            toast.error('Failed to delete preset');
             showBoundary(error);
         }
     };
@@ -651,17 +748,46 @@ const CalculatorScreenContent: React.FC = () => {
                             <div className="panel preset-manager">
                                 <div className="preset-manager__header">
                                     <div className="section-title">Manage Bank Charge Presets</div>
-                                    <Button 
-                                        variant="ghost"
-                                        size="small"
-                                        icon={<X size={18} />}
-                                        onClick={() => setShowPresetManager(false)}
-                                        title="Close"
-                                        type="button"
-                                        className="preset-manager__close-btn"
-                                    />
+                                    <div style={{ display: 'flex', gap: '8px' }}>
+                                        <Button 
+                                            variant="ghost"
+                                            size="small"
+                                            icon={<Settings size={18} />}
+                                            onClick={() => setShowPresetSettings(!showPresetSettings)}
+                                            title="Settings"
+                                            type="button"
+                                            className="preset-manager__close-btn"
+                                        />
+                                        <Button 
+                                            variant="ghost"
+                                            size="small"
+                                            icon={<X size={18} />}
+                                            onClick={() => setShowPresetManager(false)}
+                                            title="Close"
+                                            type="button"
+                                            className="preset-manager__close-btn"
+                                        />
+                                    </div>
                                 </div>
                                 <div className="preset-manager__content">
+                                    {showPresetSettings && (
+                                        <div className="preset-manager__settings">
+                                            <div className="preset-manager__settings-item">
+                                                <div>
+                                                    <div className="preset-manager__settings-label">Delete Confirmation</div>
+                                                    <div className="preset-manager__settings-description">Show confirmation dialog when deleting presets</div>
+                                                </div>
+                                                <label className="preset-manager__toggle">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={requirePresetDeleteConfirmation}
+                                                        onChange={(e) => handleTogglePresetDeleteConfirmation(e.target.checked)}
+                                                    />
+                                                    <span className="preset-manager__toggle-slider"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="preset-manager__form">
                                         <div className="input-field">
                                             <div className="label">Preset Name</div>
@@ -1123,6 +1249,16 @@ const CalculatorScreenContent: React.FC = () => {
                     scenario={scenarioToDelete}
                     mode={deleteModalMode}
                     totalCount={savedScenarios.length}
+                />
+
+                <DeletePresetConfirmModal
+                    isOpen={deletePresetModalOpen}
+                    onClose={() => {
+                        setDeletePresetModalOpen(false);
+                        setPresetToDelete(null);
+                    }}
+                    onConfirm={handleConfirmDeletePreset}
+                    preset={presetToDelete}
                 />
             </div>
         );
