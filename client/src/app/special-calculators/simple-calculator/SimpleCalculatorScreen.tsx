@@ -91,6 +91,14 @@ const CalculatorScreenContent: React.FC = () => {
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [platformRateAmt, setPlatformRateAmt] = useState(0);
+    
+    // Display string states for input fields (to handle typing decimals like "0.")
+    const [amountDisplay, setAmountDisplay] = useState('');
+    const [bankRateDisplay, setBankRateDisplay] = useState('');
+    const [ourRateDisplay, setOurRateDisplay] = useState('');
+    const [platformRateDisplay, setPlatformRateDisplay] = useState('');
+    const [presetPercentageDisplay, setPresetPercentageDisplay] = useState('');
+    
     const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
     const [bankChargePresets, setBankChargePresets] = useState<BankChargePreset[]>([]);
     const [showPresetManager, setShowPresetManager] = useState(false);
@@ -198,9 +206,13 @@ const CalculatorScreenContent: React.FC = () => {
     const handleApplyScenario = (scenario: SavedScenario) => {
         try {
             setAmount(scenario.amount);
+            setAmountDisplay(scenario.amount.toString());
             setOurRatePercentage(scenario.our);
+            setOurRateDisplay(scenario.our.toString());
             setBankRatePercentage(scenario.bank);
+            setBankRateDisplay(scenario.bank.toString());
             setPlatformRateAmt(scenario.platform);
+            setPlatformRateDisplay(scenario.platform.toString());
             
             // Check if the bank rate matches any preset and set selection
             const matchingPreset = bankChargePresets.find(p => p.percentage === scenario.bank);
@@ -288,9 +300,14 @@ const CalculatorScreenContent: React.FC = () => {
     const handleReset = () => {
         try {
             setAmount(0);
+            setAmountDisplay('');
             setBankRatePercentage(0);
+            setBankRateDisplay('');
             setOurRatePercentage(0);
+            setOurRateDisplay('');
             setPlatformRateAmt(0);
+            setPlatformRateDisplay('');
+            setSelectedPresetId('');
             
             toast.success('Calculator reset successfully!');
             logger.log('Input fields reset to default values');
@@ -325,6 +342,7 @@ const CalculatorScreenContent: React.FC = () => {
             const preset = bankChargePresets.find(p => p.id === presetId);
             if (preset) {
                 setBankRatePercentage(preset.percentage);
+                setBankRateDisplay(preset.percentage.toString());
                 setSelectedPresetId(presetId);
                 toast.success(`Applied ${preset.name} (${preset.percentage}%)`);
                 logger.log('Applied bank charge preset:', preset);
@@ -358,6 +376,7 @@ const CalculatorScreenContent: React.FC = () => {
             setBankChargePresets(updatedPresets);
             setNewPresetName('');
             setNewPresetPercentage(0);
+            setPresetPercentageDisplay('');
             
             toast.success(`Added ${newPreset.name}`);
             logger.log('Bank charge preset added:', newPreset);
@@ -372,6 +391,7 @@ const CalculatorScreenContent: React.FC = () => {
         setEditingPreset(preset);
         setNewPresetName(preset.name);
         setNewPresetPercentage(preset.percentage);
+        setPresetPercentageDisplay(preset.percentage.toString());
     };
 
     const handleUpdatePreset = () => {
@@ -397,6 +417,7 @@ const CalculatorScreenContent: React.FC = () => {
             setEditingPreset(null);
             setNewPresetName('');
             setNewPresetPercentage(0);
+            setPresetPercentageDisplay('');
             
             toast.success('Preset updated successfully');
             logger.log('Bank charge preset updated');
@@ -411,6 +432,7 @@ const CalculatorScreenContent: React.FC = () => {
         setEditingPreset(null);
         setNewPresetName('');
         setNewPresetPercentage(0);
+        setPresetPercentageDisplay('');
     };
 
     const handleDeletePreset = (presetId: string) => {
@@ -493,12 +515,23 @@ const CalculatorScreenContent: React.FC = () => {
                                             <div className="label">Percentage (%)</div>
                                             <input
                                                 className="control"
-                                                type="number"
-                                                min={0}
-                                                max={100}
-                                                step="0.01"
-                                                value={newPresetPercentage}
-                                                onChange={e => setNewPresetPercentage(clampPercent(parseFloat(e.target.value) || 0))}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={presetPercentageDisplay}
+                                                onChange={e => {
+                                                    const val = e.target.value;
+                                                    // Only allow positive numbers with decimals
+                                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                        setPresetPercentageDisplay(val);
+                                                        setNewPresetPercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
+                                                    }
+                                                }}
+                                                onBlur={() => {
+                                                    // Format on blur
+                                                    if (presetPercentageDisplay && newPresetPercentage > 0) {
+                                                        setPresetPercentageDisplay(newPresetPercentage.toString());
+                                                    }
+                                                }}
                                                 placeholder="0 - 100"
                                             />
                                         </div>
@@ -582,12 +615,24 @@ const CalculatorScreenContent: React.FC = () => {
                                         <div className="label">Amount (₹)</div>
                                         <input
                                             className="control"
-                                            type="number"
-                                            min={0}
-                                            step="0.01"
-                                            value={amount}
-                                            onChange={e => setAmount(clampPositive(parseFloat(e.target.value) || 0))}
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={amountDisplay}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                // Only allow positive numbers with decimals
+                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                    setAmountDisplay(val);
+                                                    setAmount(val === '' || val === '.' ? 0 : clampPositive(parseFloat(val) || 0));
+                                                }
+                                            }}
                                             onFocus={e => e.target.select()}
+                                            onBlur={() => {
+                                                // Format on blur
+                                                if (amountDisplay && amount > 0) {
+                                                    setAmountDisplay(amount.toString());
+                                                }
+                                            }}
                                             placeholder="Enter amount"
                                         />
                                     </div>
@@ -608,7 +653,7 @@ const CalculatorScreenContent: React.FC = () => {
                                                 className="control preset-select"
                                                 onChange={e => handleSelectPreset(e.target.value)}
                                                 value={selectedPresetId}
-                                                style={{ flex: '0 0 auto', minWidth: '200px' }}
+                                                style={{ flex: '1', minWidth: '0' }}
                                             >
                                                 <option value="">Select a preset...</option>
                                                 {bankChargePresets.map(preset => (
@@ -619,18 +664,27 @@ const CalculatorScreenContent: React.FC = () => {
                                             </select>
                                             <input
                                                 className="control"
-                                                type="number"
-                                                min={0}
-                                                max={100}
-                                                step="0.01"
-                                                value={bankRatePercentage}
+                                                type="text"
+                                                inputMode="decimal"
+                                                value={bankRateDisplay}
                                                 onChange={e => {
-                                                    setBankRatePercentage(clampPercent(parseFloat(e.target.value) || 0));
-                                                    setSelectedPresetId(''); // Clear selection when manually changed
+                                                    const val = e.target.value;
+                                                    // Only allow positive numbers with decimals
+                                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                        setBankRateDisplay(val);
+                                                        setBankRatePercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
+                                                        setSelectedPresetId(''); // Clear selection when manually changed
+                                                    }
                                                 }}
                                                 onFocus={e => e.target.select()}
+                                                onBlur={() => {
+                                                    // Format on blur
+                                                    if (bankRateDisplay && bankRatePercentage > 0) {
+                                                        setBankRateDisplay(bankRatePercentage.toString());
+                                                    }
+                                                }}
                                                 placeholder="0 - 100"
-                                                style={{ flex: '1' }}
+                                                style={{ flex: '1', minWidth: '0' }}
                                             />
                                         </div>
                                     </div>
@@ -638,13 +692,24 @@ const CalculatorScreenContent: React.FC = () => {
                                         <div className="label">Our Charge (%)</div>
                                         <input
                                             className="control"
-                                            type="number"
-                                            min={0}
-                                            max={100}
-                                            step="0.01"
-                                            value={ourRatePercentage}
-                                            onChange={e => setOurRatePercentage(clampPercent(parseFloat(e.target.value) || 0))}
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={ourRateDisplay}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                // Only allow positive numbers with decimals
+                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                    setOurRateDisplay(val);
+                                                    setOurRatePercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
+                                                }
+                                            }}
                                             onFocus={e => e.target.select()}
+                                            onBlur={() => {
+                                                // Format on blur
+                                                if (ourRateDisplay && ourRatePercentage > 0) {
+                                                    setOurRateDisplay(ourRatePercentage.toString());
+                                                }
+                                            }}
                                             placeholder="0 - 100"
                                         />
                                     </div>
@@ -652,12 +717,24 @@ const CalculatorScreenContent: React.FC = () => {
                                         <div className="label">Platform Charge (₹)</div>
                                         <input
                                             className="control"
-                                            type="number"
-                                            min={0}
-                                            step="0.01"
-                                            value={platformRateAmt}
-                                            onChange={e => setPlatformRateAmt(clampPositive(parseFloat(e.target.value) || 0))}
+                                            type="text"
+                                            inputMode="decimal"
+                                            value={platformRateDisplay}
+                                            onChange={e => {
+                                                const val = e.target.value;
+                                                // Only allow positive numbers with decimals
+                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                                    setPlatformRateDisplay(val);
+                                                    setPlatformRateAmt(val === '' || val === '.' ? 0 : clampPositive(parseFloat(val) || 0));
+                                                }
+                                            }}
                                             onFocus={e => e.target.select()}
+                                            onBlur={() => {
+                                                // Format on blur
+                                                if (platformRateDisplay && platformRateAmt > 0) {
+                                                    setPlatformRateDisplay(platformRateAmt.toString());
+                                                }
+                                            }}
                                             placeholder="Enter platform charge"
                                         />
                                     </div>

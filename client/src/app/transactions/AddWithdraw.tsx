@@ -109,6 +109,10 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         notes: ''
     });
 
+    // Display string states for numeric inputs
+    const [amountDisplay, setAmountDisplay] = useState('');
+    const [chargesDisplay, setChargesDisplay] = useState('');
+
     // Autocomplete states
     const [clientSearch, setClientSearch] = useState('');
     const [bankSearch, setBankSearch] = useState('');
@@ -791,10 +795,22 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                                 </label>
                                 <input
                                     type="text"
+                                    inputMode="decimal"
                                     className={`aw__input ${formErrors.amount ? 'aw__input--error' : ''}`}
-                                    value={formData.amount}
-                                    onChange={(e) => handleInputChange('amount', e.target.value)}
+                                    value={amountDisplay}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                            setAmountDisplay(val);
+                                            handleInputChange('amount', val);
+                                        }
+                                    }}
                                     onFocus={e => e.target.select()}
+                                    onBlur={() => {
+                                        if (amountDisplay && parseFloat(formData.amount) > 0) {
+                                            setAmountDisplay(parseFloat(formData.amount).toString());
+                                        }
+                                    }}
                                     placeholder="₹ 0.00"
                                 />
                                 {formErrors.amount && (
@@ -810,10 +826,24 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                                 </label>
                                 <input
                                     type="text"
+                                    inputMode="decimal"
                                     className={`aw__input ${formErrors.charges ? 'aw__input--error' : ''}`}
-                                    value={formData.chargesPct}
-                                    onChange={(e) => handleInputChange('chargesPct', e.target.value)}
+                                    value={chargesDisplay}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                            setChargesDisplay(val);
+                                            handleInputChange('chargesPct', val || '0');
+                                        }
+                                    }}
                                     onFocus={e => e.target.select()}
+                                    onBlur={() => {
+                                        if (chargesDisplay && parseFloat(formData.chargesPct) > 0) {
+                                            setChargesDisplay(parseFloat(formData.chargesPct).toString());
+                                        } else if (!chargesDisplay) {
+                                            setChargesDisplay('0');
+                                        }
+                                    }}
                                     placeholder="0"
                                 />
                                 {formErrors.charges && (

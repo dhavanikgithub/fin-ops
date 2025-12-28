@@ -97,6 +97,9 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
         notes: ''
     });
 
+    // Display string state for amount input
+    const [amountDisplay, setAmountDisplay] = useState('');
+
     // Client autocomplete states
     const [clientSearch, setClientSearch] = useState('');
     const [showClientDropdown, setShowClientDropdown] = useState(false);
@@ -421,10 +424,22 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
                             </label>
                             <input
                                 type="text"
+                                inputMode="decimal"
                                 className={`ad__input ${formErrors.amount ? 'ad__input--error' : ''}`}
-                                value={formData.amount}
-                                onChange={(e) => handleInputChange('amount', e.target.value)}
+                                value={amountDisplay}
+                                onChange={(e) => {
+                                    const val = e.target.value;
+                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                                        setAmountDisplay(val);
+                                        handleInputChange('amount', val);
+                                    }
+                                }}
                                 onFocus={e => e.target.select()}
+                                onBlur={() => {
+                                    if (amountDisplay && parseFloat(formData.amount) > 0) {
+                                        setAmountDisplay(parseFloat(formData.amount).toString());
+                                    }
+                                }}
                                 placeholder="0.00"
                             />
                             {formErrors.amount && (
