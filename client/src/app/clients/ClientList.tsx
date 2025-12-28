@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { UserPlus, Edit, Search, UserMinus, ArrowDownLeft, ArrowUpRight, X, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { SearchInput, TextInput, TextArea } from '@/components/FormInputs';
 import DeleteClientConfirmModal, { Client as ModalClient } from './DeleteClientConfirmModal';
 import './ClientList.scss';
 import ClientTable from './ClientTable';
@@ -331,19 +332,12 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                 <div className="main__content">
                     <div className="main__view">
                         <div className="main__view-header">
-                            <div className="main__search-row">
-                                <span className="main__search-icon">
-                                    <Search size={16} />
-                                </span>
-                                <input
-                                    type="text"
-                                    className="main__input"
-                                    placeholder="Search clients..."
-                                    value={localSearchQuery}
-                                    onChange={e => handleSearchChange(e.target.value)}
-                                    onFocus={e => e.target.select()}
-                                />
-                            </div>
+                            <SearchInput
+                                value={localSearchQuery}
+                                onChange={handleSearchChange}
+                                placeholder="Search clients..."
+                                loading={loading}
+                            />
                             {/* <div className="main__actions">
                                 <button className="main__icon-button">
                                     <SlidersHorizontal size={16} />
@@ -419,48 +413,40 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                                 <div className="client-edit__form">
                                     <div>
                                         <div className="label">Client Name</div>
-                                        <input
-                                            className="control"
+                                        <TextInput
                                             value={selectedClient.name || ''}
-                                            onChange={(e) => handleEditFormChange('name', e.target.value)}
-                                            onFocus={e => e.target.select()}
+                                            onChange={(value) => handleEditFormChange('name', value)}
                                             placeholder="Enter client name"
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                         />
                                     </div>
                                     <div>
                                         <div className="label">Email</div>
-                                        <input
-                                            className="control"
-                                            value={selectedClient.email || ''}
-                                            onChange={(e) => handleEditFormChange('email', e.target.value)}
-                                            onFocus={e => e.target.select()}
-                                            placeholder="client@example.com"
+                                        <TextInput
                                             type="email"
+                                            value={selectedClient.email || ''}
+                                            onChange={(value) => handleEditFormChange('email', value)}
+                                            placeholder="client@example.com"
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                         />
                                     </div>
                                     <div>
                                         <div className="label">Contact Number</div>
-                                        <input
-                                            className="control"
-                                            value={selectedClient.contact || ''}
-                                            onChange={(e) => handleEditFormChange('contact', e.target.value)}
-                                            onFocus={e => e.target.select()}
-                                            placeholder="+91 98765 43210"
+                                        <TextInput
                                             type="tel"
+                                            value={selectedClient.contact || ''}
+                                            onChange={(value) => handleEditFormChange('contact', value)}
+                                            placeholder="+91 98765 43210"
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                         />
                                     </div>
                                     <div>
                                         <div className="label">Address</div>
-                                        <textarea
-                                            className="control"
-                                            rows={4}
+                                        <TextArea
                                             value={selectedClient.address || ''}
-                                            onChange={(e) => handleEditFormChange('address', e.target.value)}
-                                            onFocus={e => e.target.select()}
+                                            onChange={(value) => handleEditFormChange('address', value)}
                                             placeholder="Street address, city, state, pincode"
+                                            rows={4}
                                             disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
                                         />
                                     </div>

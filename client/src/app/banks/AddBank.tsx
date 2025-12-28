@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Building2, X, Save, Calendar, LayoutDashboard, IndianRupee, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { TextInput, TextArea } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createBank } from '../../store/actions/bankActions';
 import { clearError } from '../../store/slices/bankSlice';
@@ -251,19 +252,14 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
                                     <Building2 size={16} />
                                     Bank Name *
                                 </label>
-                                <input
-                                    type="text"
-                                    className={`ab__input ${!isFormValid && creationAttempted ? 'ab__input--error' : ''}`}
+                                <TextInput
                                     value={formData.bankName}
-                                    onChange={(e) => handleInputChange('bankName', e.target.value)}
-                                    onFocus={e => e.target.select()}
+                                    onChange={(value) => handleInputChange('bankName', value)}
                                     placeholder="Enter bank name"
                                     disabled={isDisabled}
+                                    error={!isFormValid && creationAttempted ? 'Bank name is required' : undefined}
                                 />
                                 <span className="ab__hint">Example: HDFC Bank, Axis Bank, etc.</span>
-                                {!isFormValid && creationAttempted && (
-                                    <span className="ab__error">Bank name is required</span>
-                                )}
                             </div>
 
                             <div className="ab__field">
@@ -271,11 +267,9 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
                                     <StickyNote size={16} />
                                     Notes (Optional)
                                 </label>
-                                <textarea
-                                    className="ab__textarea"
+                                <TextArea
                                     value={formData.notes}
-                                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                                    onFocus={e => e.target.select()}
+                                    onChange={(value) => handleInputChange('notes', value)}
                                     placeholder="Any additional notes about this bank..."
                                     rows={4}
                                     disabled={isDisabled}

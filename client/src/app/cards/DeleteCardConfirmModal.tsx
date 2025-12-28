@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { CreditCard, X, AlertTriangle, Trash2, UndoIcon, List } from 'lucide-react';
+import { CheckboxInput } from '@/components/FormInputs';
 import './DeleteCardConfirmModal.scss';
 
 export interface Card {
@@ -88,19 +89,14 @@ const DeleteCardConfirmModal: React.FC<DeleteCardConfirmModalProps> = ({
                     </div>
 
                     <div className="delete-modal__options">
-                        <div className="delete-modal__check delete-modal__check--disabled">
-                            <input 
-                                type="checkbox"
-                                id="deleteTransactions"
-                                className="delete-modal__checkbox"
-                                checked={deleteTransactions}
-                                onChange={(e) => setDeleteTransactions(e.target.checked)}
-                                disabled={true}
-                            />
-                            <label htmlFor="deleteTransactions" className="delete-modal__check-text">
-                                Also delete all linked transactions (Required)
-                            </label>
-                        </div>
+                        <CheckboxInput
+                            id="deleteTransactions"
+                            checked={deleteTransactions}
+                            onChange={setDeleteTransactions}
+                            label="Also delete all linked transactions (Required)"
+                            disabled={true}
+                            className="delete-modal__check--disabled"
+                        />
                         <div className="delete-modal__hint">
                             All transactions associated with this card must be deleted to maintain data integrity.
                         </div>

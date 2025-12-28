@@ -4,6 +4,7 @@ import { Download, X, User } from 'lucide-react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import './ExportTransaction.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
+import { AutocompleteInput, AutocompleteOption } from '@/components/FormInputs';
 import logger from '@/utils/logger';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
@@ -93,173 +94,35 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
     const [exportSettings, setExportSettings] = useState<ExportSettings>(initialSettings);
 
     const [dateValidationError, setDateValidationError] = useState<string>('');
-    const [clientSearch, setClientSearch] = useState('');
-    const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
 
-    // Debounced timer for client search
-    const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
-
-    // Memoized debounced client search with error handling
-    const debouncedClientSearch = useCallback((searchTerm: string) => {
-        if (clientSearchDebounceTimer.current) {
-            clearTimeout(clientSearchDebounceTimer.current);
-        }
-
-        const timer = setTimeout(async () => {
-            try {
-                if (searchTerm.trim()) {
-                    await dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
-                } else {
-                    dispatch(clearClientAutocomplete());
-                }
-            } catch (error) {
-                // Handle unexpected errors in client search
-                logger.error('Unexpected error during client search:', error);
-                // Don't trigger error boundary for autocomplete failures
-                // Just show a toast and continue
-                toast.error('Failed to search clients. Please try again.');
+    // Client search handler
+    const handleClientSearch = useCallback((searchTerm: string) => {
+        try {
+            if (searchTerm.trim()) {
+                dispatch(fetchClientAutocomplete({ search: searchTerm, limit: 5 }));
+            } else {
+                dispatch(clearClientAutocomplete());
             }
-        }, 300);
-
-        clientSearchDebounceTimer.current = timer;
+        } catch (error) {
+            logger.error('Unexpected error during client search:', error);
+            toast.error('Failed to search clients. Please try again.');
+        }
     }, [dispatch]);
 
-    // Cleanup timer when modal closes
+    // Cleanup when modal closes
     useEffect(() => {
         if (!isOpen) {
-            setClientSearch('');
-            setClientHighlightedIndex(0);
-        }
-
-        return () => {
-            if (clientSearchDebounceTimer.current) {
-                clearTimeout(clientSearchDebounceTimer.current);
-            }
-        };
-    }, [isOpen, dispatch]);
-
-    // Trigger search when client search term changes
-    useEffect(() => {
-        if (clientSearch.trim()) {
-            debouncedClientSearch(clientSearch);
-        } else if (clientSearch === '') {
             dispatch(clearClientAutocomplete());
         }
-    }, [clientSearch, debouncedClientSearch, dispatch]);
-
-    // Reset highlighted index when items change
-    useEffect(() => {
-        if (clientAutocompleteItems.length > 0) {
-            setClientHighlightedIndex(0);
-        }
-    }, [clientAutocompleteItems.length]);
+    }, [isOpen, dispatch]);
 
 
-    // Keyboard navigation for client search
-    const handleClientKeyDown = (e: React.KeyboardEvent) => {
-        const availableClients = clientAutocompleteItems;
-        if (!clientSearch || availableClients.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setClientHighlightedIndex(prev =>
-                    prev < availableClients.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setClientHighlightedIndex(prev =>
-                    prev > 0 ? prev - 1 : availableClients.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (availableClients.length > 0) {
-                    const selectedClient = availableClients[clientHighlightedIndex];
-                    setExportSettings(prev => ({
-                        ...prev,
-                        client: { label: selectedClient.name, value: selectedClient.id }
-                    }));
-                    setClientSearch('');
-                    setClientHighlightedIndex(0);
-                    dispatch(clearClientAutocomplete());
-                }
-                break;
-            case 'Escape':
-                e.preventDefault();
-                setClientSearch('');
-                setClientHighlightedIndex(0);
-                dispatch(clearClientAutocomplete());
-                break;
-        }
-    };
-
-    // Render client autocomplete with token display
-    const renderClientAutocomplete = () => {
-        return (
-            <div className="export-modal__client-field">
-                {exportSettings.client ? (
-                    <div className="export-modal__client-selected">
-                        <div className="export-modal__client-token">
-                            <User size={14} />
-                            <span>{exportSettings.client.label}</span>
-                            <button
-                                type="button"
-                                className="export-modal__token-remove"
-                                onClick={() => setExportSettings(prev => ({ ...prev, client: null }))}
-                            >
-                                <X size={12} />
-                            </button>
-                        </div>
-                    </div>
-                ) : (
-                    <div className="export-modal__client-search" style={{ position: 'relative' }}>
-                        <input
-                            type="text"
-                            className="export-modal__input"
-                            placeholder="Search client..."
-                            value={clientSearch}
-                            onChange={e => setClientSearch(e.target.value)}
-                            onKeyDown={handleClientKeyDown}
-                            autoComplete="off"
-                        />
-                        {clientSearch && (
-                            <div className="export-modal__dropdown">
-                                {clientLoading ? (
-                                    <div className="export-modal__dropdown-item export-modal__dropdown-item--loading">
-                                        Loading clients...
-                                    </div>
-                                ) : clientAutocompleteItems.length > 0 ? (
-                                    clientAutocompleteItems.map((client, index) => (
-                                        <div
-                                            key={client.id}
-                                            className={`export-modal__dropdown-item ${index === clientHighlightedIndex ? 'export-modal__dropdown-item--highlighted' : ''}`}
-                                            onClick={() => {
-                                                setExportSettings(prev => ({
-                                                    ...prev,
-                                                    client: { label: client.name, value: client.id }
-                                                }));
-                                                setClientSearch('');
-                                                setClientHighlightedIndex(0);
-                                                dispatch(clearClientAutocomplete());
-                                            }}
-                                            onMouseEnter={() => setClientHighlightedIndex(index)}
-                                        >
-                                            {client.name}
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="export-modal__dropdown-item export-modal__dropdown-item--no-results">
-                                        No clients found
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
-                )}
-            </div>
-        );
+    // Client change handler - converts between AutocompleteOption and ExportSettings format
+    const handleClientChange = (client: AutocompleteOption | null) => {
+        setExportSettings(prev => ({
+            ...prev,
+            client: client ? { label: client.name, value: client.id } : null
+        }));
     };
 
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
@@ -474,7 +337,16 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                                 </div>
                                 <div className="export-modal__field">
                                     <label className="export-modal__label">Client</label>
-                                    {renderClientAutocomplete()}
+                                    <AutocompleteInput
+                                        value={exportSettings.client ? { id: exportSettings.client.value, name: exportSettings.client.label } : null}
+                                        onChange={handleClientChange}
+                                        options={clientAutocompleteItems}
+                                        loading={clientLoading}
+                                        placeholder="Search client..."
+                                        icon={<User size={16} />}
+                                        onSearch={handleClientSearch}
+                                        hint="Optional: Filter report by specific client."
+                                    />
                                 </div>
 
                             </div>

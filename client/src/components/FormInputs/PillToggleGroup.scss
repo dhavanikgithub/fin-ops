@@ -1,0 +1,72 @@
+.pill-toggle-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    &__item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        user-select: none;
+        padding: 6px 14px;
+        border-radius: var(--radius-xl);
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--foreground);
+        transition:
+            background 0.18s,
+            border-color 0.18s,
+            color 0.18s;
+
+        &:hover:not(&--disabled) {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+
+        &--disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+
+    &__input {
+        display: none;
+    }
+
+    &__indicator {
+        width: 18px;
+        height: 18px;
+        border: 1px solid var(--muted-foreground);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        background: var(--card);
+        transition: border-color 0.2s;
+        margin-right: 2px;
+
+        svg {
+            display: none;
+            width: 14px;
+            height: 14px;
+            color: var(--primary-foreground);
+        }
+    }
+
+    &__input:checked + &__indicator {
+        border-color: var(--primary);
+        background: var(--primary);
+
+        svg {
+            display: block;
+        }
+    }
+
+    &__label {
+        color: var(--foreground);
+    }
+}

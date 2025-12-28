@@ -10,6 +10,7 @@ import { clearCardAutocomplete } from '../../store/slices/cardAutocompleteSlice'
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
 import { clearClientAutocomplete } from '../../store/slices/clientAutocompleteSlice';
 import { createTransaction } from '../../store/actions/transactionActions';
+import { AutocompleteInput, NumericInput, TextArea, AutocompleteOption } from '@/components/FormInputs';
 import './AddWithdraw.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
@@ -98,39 +99,21 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
     }>({});
 
     const [formData, setFormData] = useState({
-        client: '',
-        clientId: null as number | null,
-        bank: '',
-        bankId: null as number | null,
-        card: '',
-        cardId: null as number | null,
-        amount: '',
-        chargesPct: '0',
+        client: null as AutocompleteOption | null,
+        bank: null as AutocompleteOption | null,
+        card: null as AutocompleteOption | null,
+        amount: 0,
+        chargesPct: 0,
         notes: ''
     });
-
-    // Display string states for numeric inputs
-    const [amountDisplay, setAmountDisplay] = useState('');
-    const [chargesDisplay, setChargesDisplay] = useState('');
-
-    // Autocomplete states
-    const [clientSearch, setClientSearch] = useState('');
-    const [bankSearch, setBankSearch] = useState('');
-    const [cardSearch, setCardSearch] = useState('');
-    const [showClientDropdown, setShowClientDropdown] = useState(false);
-    const [showBankDropdown, setShowBankDropdown] = useState(false);
-    const [showCardDropdown, setShowCardDropdown] = useState(false);
-    const [clientHighlightedIndex, setClientHighlightedIndex] = useState(0);
-    const [bankHighlightedIndex, setBankHighlightedIndex] = useState(0);
-    const [cardHighlightedIndex, setCardHighlightedIndex] = useState(0);
 
     // Debounced search timers
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
     const bankSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
     const cardSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
-    // Debounced client search with error handling
-    const debouncedClientSearch = useCallback(async (searchTerm: string) => {
+    // Search handlers with debouncing
+    const handleClientSearch = useCallback((searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {
             clearTimeout(clientSearchDebounceTimer.current);
         }
@@ -151,8 +134,7 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         clientSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced bank search with error handling
-    const debouncedBankSearch = useCallback(async (searchTerm: string) => {
+    const handleBankSearch = useCallback((searchTerm: string) => {
         if (bankSearchDebounceTimer.current) {
             clearTimeout(bankSearchDebounceTimer.current);
         }
@@ -173,8 +155,7 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         bankSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Debounced card search with error handling
-    const debouncedCardSearch = useCallback(async (searchTerm: string) => {
+    const handleCardSearch = useCallback((searchTerm: string) => {
         if (cardSearchDebounceTimer.current) {
             clearTimeout(cardSearchDebounceTimer.current);
         }
@@ -195,38 +176,6 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         cardSearchDebounceTimer.current = timer;
     }, [dispatch]);
 
-    // Effects to handle search changes
-    useEffect(() => {
-        if (showClientDropdown) {
-            debouncedClientSearch(clientSearch);
-        }
-    }, [clientSearch, debouncedClientSearch, showClientDropdown]);
-
-    useEffect(() => {
-        if (showBankDropdown) {
-            debouncedBankSearch(bankSearch);
-        }
-    }, [bankSearch, debouncedBankSearch, showBankDropdown]);
-
-    useEffect(() => {
-        if (showCardDropdown) {
-            debouncedCardSearch(cardSearch);
-        }
-    }, [cardSearch, debouncedCardSearch, showCardDropdown]);
-
-    // Reset highlighted indices when items change
-    useEffect(() => {
-        setClientHighlightedIndex(0);
-    }, [clientAutocompleteItems]);
-
-    useEffect(() => {
-        setBankHighlightedIndex(0);
-    }, [bankAutocompleteItems]);
-
-    useEffect(() => {
-        setCardHighlightedIndex(0);
-    }, [cardAutocompleteItems]);
-
     // Cleanup timeout on unmount
     useEffect(() => {
         return () => {
@@ -242,183 +191,38 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         };
     }, []);
 
-    const handleInputChange = (field: string, value: string) => {
-        setFormData(prev => ({
-            ...prev,
-            [field]: value
-        }));
-        
-        // Clear field-specific errors when user starts typing
-        if (formErrors[field as keyof typeof formErrors]) {
-            setFormErrors(prev => ({ ...prev, [field]: undefined }));
-        }
-    };
-
-    const handleClientSelect = (client: { id: number; name: string }) => {
-        try {
-            setFormData(prev => ({
-                ...prev,
-                client: client.name,
-                clientId: client.id
-            }));
-            setClientSearch('');
-            setShowClientDropdown(false);
-            setClientHighlightedIndex(0);
-            // Clear client error when valid client is selected
+    // Form field change handlers
+    const handleClientChange = (client: AutocompleteOption | null) => {
+        setFormData(prev => ({ ...prev, client }));
+        if (client && formErrors.client) {
             setFormErrors(prev => ({ ...prev, client: undefined }));
-        } catch (error) {
-            logger.error('Error selecting client:', error);
-            showBoundary(error);
         }
     };
 
-    const handleBankSelect = (bank: { id: number; name: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            bank: bank.name,
-            bankId: bank.id
-        }));
-        setBankSearch('');
-        setShowBankDropdown(false);
-        setBankHighlightedIndex(0);
+    const handleBankChange = (bank: AutocompleteOption | null) => {
+        setFormData(prev => ({ ...prev, bank }));
     };
 
-    const handleCardSelect = (card: { id: number; name: string }) => {
-        setFormData(prev => ({
-            ...prev,
-            card: card.name,
-            cardId: card.id
-        }));
-        setCardSearch('');
-        setShowCardDropdown(false);
-        setCardHighlightedIndex(0);
+    const handleCardChange = (card: AutocompleteOption | null) => {
+        setFormData(prev => ({ ...prev, card }));
     };
 
-    const handleClientRemove = () => {
-        setFormData(prev => ({
-            ...prev,
-            client: '',
-            clientId: null
-        }));
-        setShowClientDropdown(true);
-        setClientSearch('');
-        setClientHighlightedIndex(0);
-    };
-
-    const handleBankRemove = () => {
-        setFormData(prev => ({
-            ...prev,
-            bank: '',
-            bankId: null
-        }));
-        setShowBankDropdown(true);
-        setBankSearch('');
-        setBankHighlightedIndex(0);
-    };
-
-    const handleCardRemove = () => {
-        setFormData(prev => ({
-            ...prev,
-            card: '',
-            cardId: null
-        }));
-        setShowCardDropdown(true);
-        setCardSearch('');
-        setCardHighlightedIndex(0);
-    };
-
-    // Keyboard navigation handlers
-    const handleClientKeyDown = (e: React.KeyboardEvent) => {
-        if (!showClientDropdown || clientAutocompleteItems.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setClientHighlightedIndex(prev => 
-                    prev < clientAutocompleteItems.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setClientHighlightedIndex(prev => 
-                    prev > 0 ? prev - 1 : clientAutocompleteItems.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (clientAutocompleteItems.length > 0) {
-                    handleClientSelect(clientAutocompleteItems[clientHighlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                e.preventDefault();
-                setShowClientDropdown(false);
-                setClientSearch('');
-                setClientHighlightedIndex(0);
-                break;
+    const handleAmountChange = (amount: number) => {
+        setFormData(prev => ({ ...prev, amount }));
+        if (formErrors.amount) {
+            setFormErrors(prev => ({ ...prev, amount: undefined }));
         }
     };
 
-    const handleBankKeyDown = (e: React.KeyboardEvent) => {
-        if (!showBankDropdown || bankAutocompleteItems.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setBankHighlightedIndex(prev => 
-                    prev < bankAutocompleteItems.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setBankHighlightedIndex(prev => 
-                    prev > 0 ? prev - 1 : bankAutocompleteItems.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (bankAutocompleteItems.length > 0) {
-                    handleBankSelect(bankAutocompleteItems[bankHighlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                e.preventDefault();
-                setShowBankDropdown(false);
-                setBankSearch('');
-                setBankHighlightedIndex(0);
-                break;
+    const handleChargesChange = (chargesPct: number) => {
+        setFormData(prev => ({ ...prev, chargesPct }));
+        if (formErrors.charges) {
+            setFormErrors(prev => ({ ...prev, charges: undefined }));
         }
     };
 
-    const handleCardKeyDown = (e: React.KeyboardEvent) => {
-        if (!showCardDropdown || cardAutocompleteItems.length === 0) return;
-
-        switch (e.key) {
-            case 'ArrowDown':
-                e.preventDefault();
-                setCardHighlightedIndex(prev => 
-                    prev < cardAutocompleteItems.length - 1 ? prev + 1 : 0
-                );
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                setCardHighlightedIndex(prev => 
-                    prev > 0 ? prev - 1 : cardAutocompleteItems.length - 1
-                );
-                break;
-            case 'Enter':
-                e.preventDefault();
-                if (cardAutocompleteItems.length > 0) {
-                    handleCardSelect(cardAutocompleteItems[cardHighlightedIndex]);
-                }
-                break;
-            case 'Escape':
-                e.preventDefault();
-                setShowCardDropdown(false);
-                setCardSearch('');
-                setCardHighlightedIndex(0);
-                break;
-        }
+    const handleNotesChange = (notes: string) => {
+        setFormData(prev => ({ ...prev, notes }));
     };
 
     // Form validation function (Expected Error Handling)
@@ -426,30 +230,22 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
         const errors: { [key: string]: string } = {};
 
         // Client validation
-        if (!formData.clientId || !formData.client) {
+        if (!formData.client) {
             errors.client = 'Please select a client';
         }
 
         // Amount validation
-        if (!formData.amount) {
-            errors.amount = 'Please enter an amount';
-        } else {
-            const amount = parseFloat(formData.amount);
-            if (isNaN(amount) || amount <= 0) {
-                errors.amount = 'Please enter a valid amount greater than 0';
-            } else if (amount > 10000000) { // 10 million limit
-                errors.amount = 'Amount cannot exceed ₹10,000,000';
-            }
+        if (formData.amount <= 0) {
+            errors.amount = 'Please enter a valid amount greater than 0';
+        } else if (formData.amount > 10000000) { // 10 million limit
+            errors.amount = 'Amount cannot exceed ₹10,000,000';
         }
 
         // Charges validation
-        if (formData.chargesPct) {
-            const charges = parseFloat(formData.chargesPct);
-            if (isNaN(charges) || charges < 0) {
-                errors.charges = 'Charges must be a valid percentage (0 or greater)';
-            } else if (charges > 100) {
-                errors.charges = 'Charges cannot exceed 100%';
-            }
+        if (formData.chargesPct < 0) {
+            errors.charges = 'Charges must be a valid percentage (0 or greater)';
+        } else if (formData.chargesPct > 100) {
+            errors.charges = 'Charges cannot exceed 100%';
         }
 
         return {
@@ -473,16 +269,13 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
 
             logger.log('Creating withdraw with data:', formData);
 
-            const chargesAmount = parseFloat(formData.chargesPct) || 0;
-            const transactionAmount = parseFloat(formData.amount);
-
             const transactionData = {
-                client_id: formData.clientId!,
+                client_id: formData.client!.id,
                 transaction_type: 1, // 1 for withdraw
-                widthdraw_charges: chargesAmount,
-                transaction_amount: transactionAmount,
-                bank_id: formData.bankId || undefined,
-                card_id: formData.cardId || undefined,
+                widthdraw_charges: formData.chargesPct,
+                transaction_amount: formData.amount,
+                bank_id: formData.bank?.id || undefined,
+                card_id: formData.card?.id || undefined,
                 remark: formData.notes || undefined
             };
 
@@ -551,322 +344,87 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                     </div>
 
                     <div className="aw__form">
-                        <div className="aw__field">
-                            <label className="aw__label">
-                                <User size={16} />
-                                Select Client
-                            </label>
-                            <div className="aw__autocomplete">
-                                <div className="aw__autocomplete-input">
-                                    {formData.client && !showClientDropdown && (
-                                        <div className="aw__token">
-                                            <User size={14} />
-                                            <span>{formData.client}</span>
-                                            <button
-                                                type="button"
-                                                className="aw__token-remove"
-                                                onClick={handleClientRemove}
-                                            >
-                                                <X size={12} />
-                                            </button>
-                                        </div>
-                                    )}
-                                    {(!formData.client || showClientDropdown) && (
-                                        <div className="aw__search" style={{ position: 'relative' }}>
-                                            <input
-                                                type="text"
-                                                className="aw__input"
-                                                placeholder="Search client..."
-                                                value={showClientDropdown ? clientSearch : formData.client}
-                                                onChange={e => {
-                                                    if (showClientDropdown) {
-                                                        setClientSearch(e.target.value);
-                                                    } else {
-                                                        handleInputChange('client', e.target.value);
-                                                    }
-                                                }}
-                                                onFocus={() => {
-                                                    setShowClientDropdown(true);
-                                                    setClientSearch(formData.client || '');
-                                                }}
-                                                onBlur={() => setTimeout(() => {
-                                                    setShowClientDropdown(false);
-                                                    setClientSearch('');
-                                                    setClientHighlightedIndex(0);
-                                                }, 200)}
-                                                onKeyDown={handleClientKeyDown}
-                                                autoComplete="off"
-                                            />
-                                            {showClientDropdown && clientSearch && (
-                                                <div className="aw__dropdown">
-                                                    {clientLoading ? (
-                                                        <div className="aw__dropdown-item aw__dropdown-item--loading">
-                                                            Loading...
-                                                        </div>
-                                                    ) : clientAutocompleteItems.length > 0 ? (
-                                                        clientAutocompleteItems.map((client, index) => (
-                                                            <div
-                                                                key={client.id}
-                                                                className={`aw__dropdown-item ${index === clientHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
-                                                                onClick={() => handleClientSelect(client)}
-                                                                onMouseEnter={() => setClientHighlightedIndex(index)}
-                                                            >
-                                                                {client.name}
-                                                            </div>
-                                                        ))
-                                                    ) : (
-                                                        <div className="aw__dropdown-item aw__dropdown-item--no-results">
-                                                            No clients found
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                            {formErrors.client && (
-                                <span className="aw__error">{formErrors.client}</span>
-                            )}
-                            <span className="aw__hint">Search existing clients to withdraw funds.</span>
-                        </div>
+                        <AutocompleteInput
+                            value={formData.client}
+                            onChange={handleClientChange}
+                            options={clientAutocompleteItems}
+                            loading={clientLoading}
+                            label="Select Client"
+                            placeholder="Search client..."
+                            icon={<User size={16} />}
+                            onSearch={handleClientSearch}
+                            error={formErrors.client}
+                            hint="Search existing clients to withdraw funds."
+                            className="aw__field"
+                        />
 
                         <div className="aw__dual">
-                            <div className="aw__field">
-                                <label className="aw__label">
-                                    <Building2 size={16} />
-                                    From Bank
-                                </label>
-                                <div className="aw__autocomplete">
-                                    <div className="aw__autocomplete-input">
-                                        {formData.bank && !showBankDropdown && (
-                                            <div className="aw__token">
-                                                <Banknote size={14} />
-                                                <span>{formData.bank}</span>
-                                                <button
-                                                    type="button"
-                                                    className="aw__token-remove"
-                                                    onClick={handleBankRemove}
-                                                >
-                                                    <X size={12} />
-                                                </button>
-                                            </div>
-                                        )}
-                                        {(!formData.bank || showBankDropdown) && (
-                                            <div className="aw__search" style={{ position: 'relative' }}>
-                                                <input
-                                                    type="text"
-                                                    className="aw__input"
-                                                    placeholder="Search bank..."
-                                                    value={showBankDropdown ? bankSearch : formData.bank}
-                                                    onChange={e => {
-                                                        if (showBankDropdown) {
-                                                            setBankSearch(e.target.value);
-                                                        } else {
-                                                            handleInputChange('bank', e.target.value);
-                                                        }
-                                                    }}
-                                                    onFocus={() => {
-                                                        setShowBankDropdown(true);
-                                                        setBankSearch(formData.bank || '');
-                                                    }}
-                                                    onBlur={() => setTimeout(() => {
-                                                        setShowBankDropdown(false);
-                                                        setBankSearch('');
-                                                        setBankHighlightedIndex(0);
-                                                    }, 200)}
-                                                    onKeyDown={handleBankKeyDown}
-                                                    autoComplete="off"
-                                                />
-                                                {showBankDropdown && bankSearch && (
-                                                    <div className="aw__dropdown">
-                                                        {bankLoading ? (
-                                                            <div className="aw__dropdown-item aw__dropdown-item--loading">
-                                                                Loading...
-                                                            </div>
-                                                        ) : bankAutocompleteItems.length > 0 ? (
-                                                            bankAutocompleteItems.map((bank, index) => (
-                                                                <div
-                                                                    key={bank.id}
-                                                                    className={`aw__dropdown-item ${index === bankHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
-                                                                    onClick={() => handleBankSelect(bank)}
-                                                                    onMouseEnter={() => setBankHighlightedIndex(index)}
-                                                                >
-                                                                    {bank.name}
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="aw__dropdown-item aw__dropdown-item--no-results">
-                                                                No banks found
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <span className="aw__hint">Source account for withdrawal.</span>
-                            </div>
+                            <AutocompleteInput
+                                value={formData.bank}
+                                onChange={handleBankChange}
+                                options={bankAutocompleteItems}
+                                loading={bankLoading}
+                                label="From Bank"
+                                placeholder="Search bank..."
+                                icon={<Building2 size={16} />}
+                                onSearch={handleBankSearch}
+                                hint="Source account for withdrawal."
+                                className="aw__field"
+                            />
 
-                            <div className="aw__field">
-                                <label className="aw__label">
-                                    <CreditCard size={16} />
-                                    Card
-                                </label>
-                                <div className="aw__autocomplete">
-                                    <div className="aw__autocomplete-input">
-                                        {formData.card && !showCardDropdown && (
-                                            <div className="aw__token">
-                                                <CreditCard size={14} />
-                                                <span>{formData.card}</span>
-                                                <button
-                                                    type="button"
-                                                    className="aw__token-remove"
-                                                    onClick={handleCardRemove}
-                                                >
-                                                    <X size={12} />
-                                                </button>
-                                            </div>
-                                        )}
-                                        {(!formData.card || showCardDropdown) && (
-                                            <div className="aw__search" style={{ position: 'relative' }}>
-                                                <input
-                                                    type="text"
-                                                    className="aw__input"
-                                                    placeholder="Search card..."
-                                                    value={showCardDropdown ? cardSearch : formData.card}
-                                                    onChange={e => {
-                                                        if (showCardDropdown) {
-                                                            setCardSearch(e.target.value);
-                                                        } else {
-                                                            handleInputChange('card', e.target.value);
-                                                        }
-                                                    }}
-                                                    onFocus={() => {
-                                                        setShowCardDropdown(true);
-                                                        setCardSearch(formData.card || '');
-                                                    }}
-                                                    onBlur={() => setTimeout(() => {
-                                                        setShowCardDropdown(false);
-                                                        setCardSearch('');
-                                                        setCardHighlightedIndex(0);
-                                                    }, 200)}
-                                                    onKeyDown={handleCardKeyDown}
-                                                    autoComplete="off"
-                                                />
-                                                {showCardDropdown && cardSearch && (
-                                                    <div className="aw__dropdown">
-                                                        {cardLoading ? (
-                                                            <div className="aw__dropdown-item aw__dropdown-item--loading">
-                                                                Loading...
-                                                            </div>
-                                                        ) : cardAutocompleteItems.length > 0 ? (
-                                                            cardAutocompleteItems.map((card, index) => (
-                                                                <div
-                                                                    key={card.id}
-                                                                    className={`aw__dropdown-item ${index === cardHighlightedIndex ? 'aw__dropdown-item--highlighted' : ''}`}
-                                                                    onClick={() => handleCardSelect(card)}
-                                                                    onMouseEnter={() => setCardHighlightedIndex(index)}
-                                                                >
-                                                                    {card.name}
-                                                                </div>
-                                                            ))
-                                                        ) : (
-                                                            <div className="aw__dropdown-item aw__dropdown-item--no-results">
-                                                                No cards found
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                <span className="aw__hint">Linked card for transaction (optional).</span>
-                            </div>
-                        </div>
-
-                        <div className="aw__dual">
-                            <div className="aw__field">
-                                <label className="aw__label">
-                                    <IndianRupee size={16} />
-                                    Withdraw Amount
-                                </label>
-                                <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    className={`aw__input ${formErrors.amount ? 'aw__input--error' : ''}`}
-                                    value={amountDisplay}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                            setAmountDisplay(val);
-                                            handleInputChange('amount', val);
-                                        }
-                                    }}
-                                    onFocus={e => e.target.select()}
-                                    onBlur={() => {
-                                        if (amountDisplay && parseFloat(formData.amount) > 0) {
-                                            setAmountDisplay(parseFloat(formData.amount).toString());
-                                        }
-                                    }}
-                                    placeholder="₹ 0.00"
-                                />
-                                {formErrors.amount && (
-                                    <span className="aw__error">{formErrors.amount}</span>
-                                )}
-                                <span className="aw__hint">Enter the amount to withdraw.</span>
-                            </div>
-
-                            <div className="aw__field">
-                                <label className="aw__label">
-                                    <Percent size={16} />
-                                    Charges (%)
-                                </label>
-                                <input
-                                    type="text"
-                                    inputMode="decimal"
-                                    className={`aw__input ${formErrors.charges ? 'aw__input--error' : ''}`}
-                                    value={chargesDisplay}
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                            setChargesDisplay(val);
-                                            handleInputChange('chargesPct', val || '0');
-                                        }
-                                    }}
-                                    onFocus={e => e.target.select()}
-                                    onBlur={() => {
-                                        if (chargesDisplay && parseFloat(formData.chargesPct) > 0) {
-                                            setChargesDisplay(parseFloat(formData.chargesPct).toString());
-                                        } else if (!chargesDisplay) {
-                                            setChargesDisplay('0');
-                                        }
-                                    }}
-                                    placeholder="0"
-                                />
-                                {formErrors.charges && (
-                                    <span className="aw__error">{formErrors.charges}</span>
-                                )}
-                                <span className="aw__hint">Enter fee percentage to apply.</span>
-                            </div>
-                        </div>
-
-                        <div className="aw__field">
-                            <label className="aw__label">
-                                <StickyNote size={16} />
-                                Notes
-                            </label>
-                            <textarea
-                                className="aw__textarea"
-                                value={formData.notes}
-                                onChange={(e) => handleInputChange('notes', e.target.value)}
-                                onFocus={e => e.target.select()}
-                                placeholder="Optional notes for this withdrawal..."
-                                rows={5}
+                            <AutocompleteInput
+                                value={formData.card}
+                                onChange={handleCardChange}
+                                options={cardAutocompleteItems}
+                                loading={cardLoading}
+                                label="Card"
+                                placeholder="Search card..."
+                                icon={<CreditCard size={16} />}
+                                onSearch={handleCardSearch}
+                                hint="Linked card for transaction (optional)."
+                                className="aw__field"
                             />
                         </div>
+
+                        <div className="aw__dual">
+                            <NumericInput
+                                value={formData.amount}
+                                onChange={handleAmountChange}
+                                label="Withdraw Amount"
+                                placeholder="₹ 0.00"
+                                icon={<IndianRupee size={16} />}
+                                min={0}
+                                max={10000000}
+                                showClearButton={true}
+                                error={formErrors.amount}
+                                hint="Enter the amount to withdraw."
+                                className="aw__field"
+                            />
+
+                            <NumericInput
+                                value={formData.chargesPct}
+                                onChange={handleChargesChange}
+                                label="Charges (%)"
+                                placeholder="0"
+                                icon={<Percent size={16} />}
+                                min={0}
+                                max={100}
+                                showClearButton={true}
+                                error={formErrors.charges}
+                                hint="Enter fee percentage to apply."
+                                className="aw__field"
+                            />
+                        </div>
+
+                        <TextArea
+                            value={formData.notes}
+                            onChange={handleNotesChange}
+                            label="Notes"
+                            placeholder="Optional notes for this withdrawal..."
+                            icon={<StickyNote size={16} />}
+                            rows={5}
+                            className="aw__field"
+                        />
                     </div>
 
                     {/* General Error Display */}

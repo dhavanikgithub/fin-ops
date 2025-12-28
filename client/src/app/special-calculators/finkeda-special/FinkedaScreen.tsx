@@ -14,6 +14,7 @@ import {
     Home,
     Calculator
 } from 'lucide-react';
+import { NumericInput, PillToggleGroup } from '@/components/FormInputs';
 import './FinkedaScreen.scss';
 import Finkeda from '@/components/Icons/Finkeda';
 import logger from '@/utils/logger';
@@ -110,13 +111,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [selectedCardType, setSelectedCardType] = useState<CardType>(CARD_TYPES.RUPAY);
 
-    // Display string states for input fields (to handle typing decimals like "0.")
-    const [amountDisplay, setAmountDisplay] = useState('');
-    const [ourRateDisplay, setOurRateDisplay] = useState('');
-    const [bankRateDisplay, setBankRateDisplay] = useState('');
-    const [rupayChargeDisplay, setRupayChargeDisplay] = useState('');
-    const [masterChargeDisplay, setMasterChargeDisplay] = useState('');
-
     // Settings state
     const [settings, setSettings] = useState<FinkedaSettings | null>(initialSettings);
     const [rupayChargeAmount, setRupayChargeAmount] = useState<number>(initialSettings?.rupay_card_charge_amount || 0);
@@ -159,8 +153,6 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                 const masterCharge = parseFloat(initialSettings.master_card_charge_amount.toString());
                 setRupayChargeAmount(rupayCharge);
                 setMasterChargeAmount(masterCharge);
-                setRupayChargeDisplay(rupayCharge.toString());
-                setMasterChargeDisplay(masterCharge.toString());
                 logger.debug('Updated settings from initial settings', initialSettings);
             }
         } catch (error) {
@@ -266,20 +258,15 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
     const handleApplyScenario = (scenario: RecentCalculation) => {
         try {
             setAmount(scenario.amount);
-            setAmountDisplay(scenario.amount.toString());
             setSelectedCardType(scenario.cardType);
             setOurRatePercentage(scenario.ourRatePercentage);
-            setOurRateDisplay(scenario.ourRatePercentage.toString());
             setBankRatePercentage(scenario.bankRatePercentage);
-            setBankRateDisplay(scenario.bankRatePercentage.toString());
             
             // Update the corresponding charge amounts based on card type
             if (scenario.cardType === CARD_TYPES.RUPAY) {
                 setRupayChargeAmount(scenario.platformRatePercentage);
-                setRupayChargeDisplay(scenario.platformRatePercentage.toString());
             } else {
                 setMasterChargeAmount(scenario.platformRatePercentage);
-                setMasterChargeDisplay(scenario.platformRatePercentage.toString());
             }
             
             toast.success('Scenario applied successfully!');
@@ -314,11 +301,8 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
     const handleReset = () => {
         try {
             setAmount(0);
-            setAmountDisplay('');
             setOurRatePercentage(0);
-            setOurRateDisplay('');
             setBankRatePercentage(0);
-            setBankRateDisplay('');
             setSelectedCardType(CARD_TYPES.RUPAY);
             toast.success('Form reset successfully!');
             logger.log('Form reset to default values');
@@ -396,48 +380,21 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                                 <div className="finkeda-form-row">
                                     <div className="finkeda-field">
                                         <div className="finkeda-label">Amount (₹)</div>
-                                        <input
-                                            className="finkeda-control"
-                                            type="text"
-                                            inputMode="decimal"
+                                        <NumericInput
+                                            value={amount}
+                                            onChange={setAmount}
                                             placeholder="Enter amount ₹"
-                                            value={amountDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setAmountDisplay(val);
-                                                    setAmount(val === '' || val === '.' ? 0 : parseFloat(val) || 0);
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                if (amountDisplay && amount > 0) {
-                                                    setAmountDisplay(amount.toString());
-                                                }
-                                            }}
+                                            min={0}
                                         />
                                     </div>
                                     <div className="finkeda-field">
                                         <div className="finkeda-label">Bank Charge (%)</div>
-                                        <input
-                                            className="finkeda-control"
-                                            type="text"
-                                            inputMode="decimal"
+                                        <NumericInput
+                                            value={bankRatePercentage}
+                                            onChange={setBankRatePercentage}
                                             placeholder="Bank charge %"
-                                            value={bankRateDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setBankRateDisplay(val);
-                                                    setBankRatePercentage(val === '' || val === '.' ? 0 : parseFloat(val) || 0);
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                if (bankRateDisplay && bankRatePercentage > 0) {
-                                                    setBankRateDisplay(bankRatePercentage.toString());
-                                                }
-                                            }}
+                                            min={0}
+                                            max={100}
                                         />
                                     </div>
                                 </div>
@@ -445,55 +402,26 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                                 <div className="finkeda-form-row">
                                     <div className="finkeda-field">
                                         <div className="finkeda-label">My Charges (%)</div>
-                                        <input
-                                            className="finkeda-control"
-                                            type="text"
-                                            inputMode="decimal"
+                                        <NumericInput
+                                            value={ourRatePercentage}
+                                            onChange={setOurRatePercentage}
                                             placeholder="Enter %"
-                                            value={ourRateDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setOurRateDisplay(val);
-                                                    setOurRatePercentage(val === '' || val === '.' ? 0 : parseFloat(val) || 0);
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                if (ourRateDisplay && ourRatePercentage > 0) {
-                                                    setOurRateDisplay(ourRatePercentage.toString());
-                                                }
-                                            }}
+                                            min={0}
+                                            max={100}
                                         />
                                     </div>
                                     <div className="finkeda-field">
                                         <div className="finkeda-label">Card Type</div>
-                                        <div className="finkeda-pills">
-                                            <label className="finkeda-pill-checkbox">
-                                                <input
-                                                    type="radio"
-                                                    name="cardType"
-                                                    checked={selectedCardType === CARD_TYPES.RUPAY}
-                                                    onChange={() => handleCardTypeToggle(CARD_TYPES.RUPAY)}
-                                                />
-                                                <span className="finkeda-custom-radio">
-                                                    {selectedCardType === CARD_TYPES.RUPAY && <Check size={14} />}
-                                                </span>
-                                                <span>Rupay ({rupayChargeAmount}%)</span>
-                                            </label>
-                                            <label className="finkeda-pill-checkbox">
-                                                <input
-                                                    type="radio"
-                                                    name="cardType"
-                                                    checked={selectedCardType === CARD_TYPES.MASTER}
-                                                    onChange={() => handleCardTypeToggle(CARD_TYPES.MASTER)}
-                                                />
-                                                <span className="finkeda-custom-radio">
-                                                    {selectedCardType === CARD_TYPES.MASTER && <Check size={14} />}
-                                                </span>
-                                                <span>Master ({masterChargeAmount}%)</span>
-                                            </label>
-                                        </div>
+                                        <PillToggleGroup
+                                            type="radio"
+                                            value={selectedCardType}
+                                            onChange={(value) => handleCardTypeToggle(value as CardType)}
+                                            options={[
+                                                { label: `Rupay (${rupayChargeAmount}%)`, value: CARD_TYPES.RUPAY },
+                                                { label: `Master (${masterChargeAmount}%)`, value: CARD_TYPES.MASTER }
+                                            ]}
+                                            name="cardType"
+                                        />
                                     </div>
                                 </div>
 
@@ -522,48 +450,22 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                                         <div className="finkeda-form-row">
                                             <div className="finkeda-field">
                                                 <div className="finkeda-label">Rupay Charge (%)</div>
-                                                <input
-                                                    className="finkeda-control"
-                                                    type="text"
-                                                    inputMode="decimal"
+                                                <NumericInput
+                                                    value={rupayChargeAmount}
+                                                    onChange={setRupayChargeAmount}
                                                     placeholder="Rupay charge %"
-                                                    value={rupayChargeDisplay}
-                                                    onChange={e => {
-                                                        const val = e.target.value;
-                                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                            setRupayChargeDisplay(val);
-                                                            setRupayChargeAmount(val === '' || val === '.' ? 0 : parseFloat(val) || 0);
-                                                        }
-                                                    }}
-                                                    onFocus={e => e.target.select()}
-                                                    onBlur={() => {
-                                                        if (rupayChargeDisplay && rupayChargeAmount > 0) {
-                                                            setRupayChargeDisplay(rupayChargeAmount.toString());
-                                                        }
-                                                    }}
+                                                    min={0}
+                                                    max={100}
                                                 />
                                             </div>
                                             <div className="finkeda-field">
                                                 <div className="finkeda-label">Master Charge (%)</div>
-                                                <input
-                                                    className="finkeda-control"
-                                                    type="text"
-                                                    inputMode="decimal"
+                                                <NumericInput
+                                                    value={masterChargeAmount}
+                                                    onChange={setMasterChargeAmount}
                                                     placeholder="Master charge %"
-                                                    value={masterChargeDisplay}
-                                                    onChange={e => {
-                                                        const val = e.target.value;
-                                                        if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                            setMasterChargeDisplay(val);
-                                                            setMasterChargeAmount(val === '' || val === '.' ? 0 : parseFloat(val) || 0);
-                                                        }
-                                                    }}
-                                                    onFocus={e => e.target.select()}
-                                                    onBlur={() => {
-                                                        if (masterChargeDisplay && masterChargeAmount > 0) {
-                                                            setMasterChargeDisplay(masterChargeAmount.toString());
-                                                        }
-                                                    }}
+                                                    min={0}
+                                                    max={100}
                                                 />
                                             </div>
                                         </div>

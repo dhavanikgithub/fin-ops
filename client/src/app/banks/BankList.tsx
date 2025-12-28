@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { Plus, SlidersHorizontal, Edit, Trash, MoreHorizontal, Building2, Search, X, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { SearchInput, TextInput } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { 
     fetchPaginatedBanks, 
@@ -318,19 +319,12 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                 <div className="main__content">
                     <div className="main__view">
                         <div className="main__view-header">
-                            <div className="main__search-row">
-                                <span className="main__search-icon">
-                                    <Search size={16} />
-                                </span>
-                                <input
-                                    type="text"
-                                    className="main__input"
-                                    placeholder="Search banks..."
-                                    value={localSearch}
-                                    onChange={handleSearchChange}
-                                    onFocus={e => e.target.select()}
-                                />
-                            </div>
+                            <SearchInput
+                                value={localSearch}
+                                onChange={setLocalSearch}
+                                placeholder="Search banks..."
+                                loading={loading}
+                            />
                         </div>
 
                         {loading && (
@@ -406,28 +400,26 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                             <div className="form">
                                 <div>
                                     <div className="label">Bank Name</div>
-                                    <input 
-                                        className="control" 
+                                    <TextInput
                                         value={editForm.name}
-                                        onChange={(e) => setEditForm({ name: e.target.value })}
-                                        onFocus={e => e.target.select()}
+                                        onChange={(value) => setEditForm({ name: value })}
                                         disabled={isUpdating || isDeleting}
                                     />
                                 </div>
                                 <div>
                                     <div className="label">Created On</div>
-                                    <input 
-                                        className="control" 
-                                        value={formatDisplayDate(editingBank.create_date)} 
-                                        readOnly 
+                                    <TextInput
+                                        value={formatDisplayDate(editingBank.create_date)}
+                                        onChange={() => {}}
+                                        readOnly
                                     />
                                 </div>
                                 <div>
                                     <div className="label">Transactions</div>
-                                    <input 
-                                        className="control" 
-                                        value={editingBank.transaction_count.toLocaleString()} 
-                                        readOnly 
+                                    <TextInput
+                                        value={editingBank.transaction_count.toLocaleString()}
+                                        onChange={() => {}}
+                                        readOnly
                                     />
                                 </div>
                                 <div className="inline-actions">

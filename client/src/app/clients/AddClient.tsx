@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { UserPlus, X, Save, User, Mail, Phone, MapPin, ArrowLeft, CheckCircle2, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { TextInput, TextArea } from '@/components/FormInputs';
 import './AddClient.scss';
 import { getAvatarColorClass, getAvatarInitials } from '@/utils/helperFunctions';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
@@ -233,12 +234,9 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                                                 <User size={16} />
                                                 Full Name
                                             </label>
-                                            <input
-                                                type="text"
-                                                className="ac__input"
+                                            <TextInput
                                                 value={formData.fullName}
-                                                onChange={(e) => handleInputChange('fullName', e.target.value)}
-                                                onFocus={e => e.target.select()}
+                                                onChange={(value) => handleInputChange('fullName', value)}
                                                 placeholder="Enter client full name"
                                                 disabled={creating}
                                             />
@@ -250,12 +248,10 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                                                 <Mail size={16} />
                                                 Email
                                             </label>
-                                            <input
+                                            <TextInput
                                                 type="email"
-                                                className="ac__input"
                                                 value={formData.email}
-                                                onChange={(e) => handleInputChange('email', e.target.value)}
-                                                onFocus={e => e.target.select()}
+                                                onChange={(value) => handleInputChange('email', value)}
                                                 placeholder="client@example.com"
                                                 disabled={creating}
                                             />
@@ -266,12 +262,10 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                                                 <Phone size={16} />
                                                 Phone
                                             </label>
-                                            <input
+                                            <TextInput
                                                 type="tel"
-                                                className="ac__input"
                                                 value={formData.phone}
-                                                onChange={(e) => handleInputChange('phone', e.target.value)}
-                                                onFocus={e => e.target.select()}
+                                                onChange={(value) => handleInputChange('phone', value)}
                                                 placeholder="+91 98765 43210"
                                                 disabled={creating}
                                             />
@@ -282,11 +276,9 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                                                 <MapPin size={16} />
                                                 Address
                                             </label>
-                                            <textarea
-                                                className="ac__textarea"
+                                            <TextArea
                                                 value={formData.address}
-                                                onChange={(e) => handleInputChange('address', e.target.value)}
-                                                onFocus={e => e.target.select()}
+                                                onChange={(value) => handleInputChange('address', value)}
                                                 placeholder="Street address, city, state, pincode"
                                                 rows={4}
                                                 disabled={creating}

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { RefreshCcw, Save, Percent, Wallet, Play, RotateCcw, AlertTriangle, Home, Calculator, X, Edit2, Trash2 } from 'lucide-react';
+import { NumericInput, TextInput } from '@/components/FormInputs';
 import './SimpleCalculatorScreen.scss';
 import logger from '@/utils/logger';
 import { clampPercent, clampPositive, decimalToPercentage, formatAmountAsCurrency, percentageToDecimal } from '@/utils/helperFunctions';
@@ -91,13 +92,6 @@ const CalculatorScreenContent: React.FC = () => {
     const [bankRatePercentage, setBankRatePercentage] = useState(0);
     const [ourRatePercentage, setOurRatePercentage] = useState(0);
     const [platformRateAmt, setPlatformRateAmt] = useState(0);
-    
-    // Display string states for input fields (to handle typing decimals like "0.")
-    const [amountDisplay, setAmountDisplay] = useState('');
-    const [bankRateDisplay, setBankRateDisplay] = useState('');
-    const [ourRateDisplay, setOurRateDisplay] = useState('');
-    const [platformRateDisplay, setPlatformRateDisplay] = useState('');
-    const [presetPercentageDisplay, setPresetPercentageDisplay] = useState('');
     
     const [savedScenarios, setSavedScenarios] = useState<SavedScenario[]>([]);
     const [bankChargePresets, setBankChargePresets] = useState<BankChargePreset[]>([]);
@@ -206,13 +200,9 @@ const CalculatorScreenContent: React.FC = () => {
     const handleApplyScenario = (scenario: SavedScenario) => {
         try {
             setAmount(scenario.amount);
-            setAmountDisplay(scenario.amount.toString());
             setOurRatePercentage(scenario.our);
-            setOurRateDisplay(scenario.our.toString());
             setBankRatePercentage(scenario.bank);
-            setBankRateDisplay(scenario.bank.toString());
             setPlatformRateAmt(scenario.platform);
-            setPlatformRateDisplay(scenario.platform.toString());
             
             // Check if the bank rate matches any preset and set selection
             const matchingPreset = bankChargePresets.find(p => p.percentage === scenario.bank);
@@ -300,13 +290,9 @@ const CalculatorScreenContent: React.FC = () => {
     const handleReset = () => {
         try {
             setAmount(0);
-            setAmountDisplay('');
             setBankRatePercentage(0);
-            setBankRateDisplay('');
             setOurRatePercentage(0);
-            setOurRateDisplay('');
             setPlatformRateAmt(0);
-            setPlatformRateDisplay('');
             setSelectedPresetId('');
             
             toast.success('Calculator reset successfully!');
@@ -342,7 +328,6 @@ const CalculatorScreenContent: React.FC = () => {
             const preset = bankChargePresets.find(p => p.id === presetId);
             if (preset) {
                 setBankRatePercentage(preset.percentage);
-                setBankRateDisplay(preset.percentage.toString());
                 setSelectedPresetId(presetId);
                 toast.success(`Applied ${preset.name} (${preset.percentage}%)`);
                 logger.log('Applied bank charge preset:', preset);
@@ -376,7 +361,6 @@ const CalculatorScreenContent: React.FC = () => {
             setBankChargePresets(updatedPresets);
             setNewPresetName('');
             setNewPresetPercentage(0);
-            setPresetPercentageDisplay('');
             
             toast.success(`Added ${newPreset.name}`);
             logger.log('Bank charge preset added:', newPreset);
@@ -391,7 +375,6 @@ const CalculatorScreenContent: React.FC = () => {
         setEditingPreset(preset);
         setNewPresetName(preset.name);
         setNewPresetPercentage(preset.percentage);
-        setPresetPercentageDisplay(preset.percentage.toString());
     };
 
     const handleUpdatePreset = () => {
@@ -417,7 +400,6 @@ const CalculatorScreenContent: React.FC = () => {
             setEditingPreset(null);
             setNewPresetName('');
             setNewPresetPercentage(0);
-            setPresetPercentageDisplay('');
             
             toast.success('Preset updated successfully');
             logger.log('Bank charge preset updated');
@@ -432,7 +414,6 @@ const CalculatorScreenContent: React.FC = () => {
         setEditingPreset(null);
         setNewPresetName('');
         setNewPresetPercentage(0);
-        setPresetPercentageDisplay('');
     };
 
     const handleDeletePreset = (presetId: string) => {
@@ -503,36 +484,20 @@ const CalculatorScreenContent: React.FC = () => {
                                     <div className="preset-manager__form">
                                         <div className="input-field">
                                             <div className="label">Preset Name</div>
-                                            <input
-                                                className="control"
-                                                type="text"
+                                            <TextInput
                                                 value={newPresetName}
-                                                onChange={e => setNewPresetName(e.target.value)}
+                                                onChange={setNewPresetName}
                                                 placeholder="e.g., HDFC Bank"
                                             />
                                         </div>
                                         <div className="input-field">
                                             <div className="label">Percentage (%)</div>
-                                            <input
-                                                className="control"
-                                                type="text"
-                                                inputMode="decimal"
-                                                value={presetPercentageDisplay}
-                                                onChange={e => {
-                                                    const val = e.target.value;
-                                                    // Only allow positive numbers with decimals
-                                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                        setPresetPercentageDisplay(val);
-                                                        setNewPresetPercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
-                                                    }
-                                                }}
-                                                onBlur={() => {
-                                                    // Format on blur
-                                                    if (presetPercentageDisplay && newPresetPercentage > 0) {
-                                                        setPresetPercentageDisplay(newPresetPercentage.toString());
-                                                    }
-                                                }}
+                                            <NumericInput
+                                                value={newPresetPercentage}
+                                                onChange={setNewPresetPercentage}
                                                 placeholder="0 - 100"
+                                                min={0}
+                                                max={100}
                                             />
                                         </div>
                                         <div className="preset-manager__form-actions">
@@ -613,27 +578,11 @@ const CalculatorScreenContent: React.FC = () => {
                                 <div className="inputs-grid">
                                     <div className="input-field">
                                         <div className="label">Amount (₹)</div>
-                                        <input
-                                            className="control"
-                                            type="text"
-                                            inputMode="decimal"
-                                            value={amountDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                // Only allow positive numbers with decimals
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setAmountDisplay(val);
-                                                    setAmount(val === '' || val === '.' ? 0 : clampPositive(parseFloat(val) || 0));
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                // Format on blur
-                                                if (amountDisplay && amount > 0) {
-                                                    setAmountDisplay(amount.toString());
-                                                }
-                                            }}
+                                        <NumericInput
+                                            value={amount}
+                                            onChange={setAmount}
                                             placeholder="Enter amount"
+                                            min={0}
                                         />
                                     </div>
                                     <div className="input-field">
@@ -662,80 +611,37 @@ const CalculatorScreenContent: React.FC = () => {
                                                     </option>
                                                 ))}
                                             </select>
-                                            <input
-                                                className="control"
-                                                type="text"
-                                                inputMode="decimal"
-                                                value={bankRateDisplay}
-                                                onChange={e => {
-                                                    const val = e.target.value;
-                                                    // Only allow positive numbers with decimals
-                                                    if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                        setBankRateDisplay(val);
-                                                        setBankRatePercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
+                                            <div style={{ flex: '1', minWidth: '0' }}>
+                                                <NumericInput
+                                                    value={bankRatePercentage}
+                                                    onChange={(val) => {
+                                                        setBankRatePercentage(val);
                                                         setSelectedPresetId(''); // Clear selection when manually changed
-                                                    }
-                                                }}
-                                                onFocus={e => e.target.select()}
-                                                onBlur={() => {
-                                                    // Format on blur
-                                                    if (bankRateDisplay && bankRatePercentage > 0) {
-                                                        setBankRateDisplay(bankRatePercentage.toString());
-                                                    }
-                                                }}
-                                                placeholder="0 - 100"
-                                                style={{ flex: '1', minWidth: '0' }}
-                                            />
+                                                    }}
+                                                    placeholder="0 - 100"
+                                                    min={0}
+                                                    max={100}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="input-field">
                                         <div className="label">Our Charge (%)</div>
-                                        <input
-                                            className="control"
-                                            type="text"
-                                            inputMode="decimal"
-                                            value={ourRateDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                // Only allow positive numbers with decimals
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setOurRateDisplay(val);
-                                                    setOurRatePercentage(val === '' || val === '.' ? 0 : clampPercent(parseFloat(val) || 0));
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                // Format on blur
-                                                if (ourRateDisplay && ourRatePercentage > 0) {
-                                                    setOurRateDisplay(ourRatePercentage.toString());
-                                                }
-                                            }}
+                                        <NumericInput
+                                            value={ourRatePercentage}
+                                            onChange={setOurRatePercentage}
                                             placeholder="0 - 100"
+                                            min={0}
+                                            max={100}
                                         />
                                     </div>
                                     <div className="input-field">
                                         <div className="label">Platform Charge (₹)</div>
-                                        <input
-                                            className="control"
-                                            type="text"
-                                            inputMode="decimal"
-                                            value={platformRateDisplay}
-                                            onChange={e => {
-                                                const val = e.target.value;
-                                                // Only allow positive numbers with decimals
-                                                if (val === '' || /^\d*\.?\d*$/.test(val)) {
-                                                    setPlatformRateDisplay(val);
-                                                    setPlatformRateAmt(val === '' || val === '.' ? 0 : clampPositive(parseFloat(val) || 0));
-                                                }
-                                            }}
-                                            onFocus={e => e.target.select()}
-                                            onBlur={() => {
-                                                // Format on blur
-                                                if (platformRateDisplay && platformRateAmt > 0) {
-                                                    setPlatformRateDisplay(platformRateAmt.toString());
-                                                }
-                                            }}
+                                        <NumericInput
+                                            value={platformRateAmt}
+                                            onChange={setPlatformRateAmt}
                                             placeholder="Enter platform charge"
+                                            min={0}
                                         />
                                     </div>
                                 </div>

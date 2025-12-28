@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import { CreditCard, X, Save, LayoutDashboard, StickyNote, ArrowLeft, CheckCircle2, Loader, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { TextInput, TextArea } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { createCard } from '../../store/actions/cardActions';
 import { clearError } from '../../store/slices/cardSlice';
@@ -239,19 +240,14 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
                                     <CreditCard size={16} />
                                     Card Name *
                                 </label>
-                                <input
-                                    type="text"
-                                    className={`ac__input ${!isFormValid && creationAttempted ? 'ac__input--error' : ''}`}
+                                <TextInput
                                     value={formData.cardName}
-                                    onChange={(e) => handleInputChange('cardName', e.target.value)}
-                                    onFocus={e => e.target.select()}
+                                    onChange={(value) => handleInputChange('cardName', value)}
                                     placeholder="Enter card name"
                                     disabled={isDisabled}
+                                    error={!isFormValid && creationAttempted ? 'Card name is required' : undefined}
                                 />
                                 <span className="ac__hint">Example: Visa Credit Card, MasterCard Debit, etc.</span>
-                                {!isFormValid && creationAttempted && (
-                                    <span className="ac__error">Card name is required</span>
-                                )}
                             </div>
 
                             <div className="ac__field">
@@ -259,11 +255,9 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
                                     <StickyNote size={16} />
                                     Notes (Optional)
                                 </label>
-                                <textarea
-                                    className="ac__textarea"
+                                <TextArea
                                     value={formData.notes}
-                                    onChange={(e) => handleInputChange('notes', e.target.value)}
-                                    onFocus={e => e.target.select()}
+                                    onChange={(value) => handleInputChange('notes', value)}
                                     placeholder="Any additional notes about this card..."
                                     rows={4}
                                     disabled={isDisabled}
