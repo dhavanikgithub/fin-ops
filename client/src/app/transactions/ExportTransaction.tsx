@@ -4,7 +4,7 @@ import { Download, X, User } from 'lucide-react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
 import './ExportTransaction.scss';
 import ReactDatePicker from '../../components/DatePicker/ReactDatePicker';
-import { AutocompleteInput, AutocompleteOption, Button } from '@/components/FormInputs';
+import { AutocompleteInput, AutocompleteOption, Button, PillToggleGroup } from '@/components/FormInputs';
 import logger from '@/utils/logger';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import { fetchClientAutocomplete } from '../../store/actions/clientActions';
@@ -24,6 +24,55 @@ export interface ExportSettings {
     endDate: string;
     client: { label: string; value: number } | null;
 }
+
+interface RecentExport {
+    id: string;
+    timestamp: number;
+    settings: ExportSettings;
+    dateRangeOption: DateRangeOption;
+}
+
+type DateRangeOption = 'today' | 'this-week' | 'this-month' | 'date-range';
+
+const RECENT_EXPORTS_KEY = 'recent_transaction_exports';
+const MAX_RECENT_EXPORTS = 5;
+
+// Helper function to compute date ranges
+const computeDateRange = (option: DateRangeOption): { startDate: string; endDate: string } => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let startDate: Date;
+    let endDate: Date = new Date(today);
+
+    switch (option) {
+        case 'today':
+            startDate = new Date(today);
+            break;
+        
+        case 'this-week':
+            // Start of week (Monday)
+            const dayOfWeek = today.getDay();
+            const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // If Sunday, go back 6 days, else go back to Monday
+            startDate = new Date(today);
+            startDate.setDate(today.getDate() + diff);
+            break;
+        
+        case 'this-month':
+            // Start of month
+            startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+            break;
+        
+        default:
+            // For 'date-range', return empty strings
+            return { startDate: '', endDate: '' };
+    }
+
+    return {
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0]
+    };
+};
 
 // Error Fallback Component
 const ExportErrorFallback: React.FC<{
@@ -98,6 +147,8 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
         client: null,
     };
     const [exportSettings, setExportSettings] = useState<ExportSettings>(initialSettings);
+    const [selectedDateRange, setSelectedDateRange] = useState<DateRangeOption>('today');
+    const [recentExports, setRecentExports] = useState<RecentExport[]>([]);
 
     const [dateValidationError, setDateValidationError] = useState<string>('');
 
@@ -115,6 +166,28 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
         }
     }, [dispatch]);
 
+    // Initialize dates with 'today' on component mount
+    useEffect(() => {
+        const { startDate, endDate } = computeDateRange('today');
+        setExportSettings(prev => ({
+            ...prev,
+            startDate,
+            endDate
+        }));
+
+        // Load recent exports from localStorage
+        try {
+            const savedRecents = localStorage.getItem(RECENT_EXPORTS_KEY);
+            if (savedRecents) {
+                const parsed = JSON.parse(savedRecents) as RecentExport[];
+                setRecentExports(parsed);
+                logger.log('Loaded recent exports:', parsed);
+            }
+        } catch (error) {
+            logger.error('Failed to load recent exports:', error);
+        }
+    }, []);
+
     // Cleanup when modal closes
     useEffect(() => {
         if (!isOpen) {
@@ -122,6 +195,33 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
         }
     }, [isOpen, dispatch]);
 
+    // Handle date range option change
+    const handleDateRangeOptionChange = (option: string | number | (string | number)[]) => {
+        // Since we're using radio mode, we'll only receive a single value
+        const selectedOption = option as DateRangeOption;
+        setSelectedDateRange(selectedOption);
+        
+        // Clear any existing validation errors
+        setFormErrors(prev => ({ ...prev, dateValidation: undefined }));
+        
+        if (selectedOption !== 'date-range') {
+            // Auto-compute dates for preset options
+            const { startDate, endDate } = computeDateRange(selectedOption);
+            setExportSettings(prev => ({
+                ...prev,
+                startDate,
+                endDate
+            }));
+            logger.log(`Auto-computed dates for ${selectedOption}:`, { startDate, endDate });
+        } else {
+            // Clear dates when switching to custom date range
+            setExportSettings(prev => ({
+                ...prev,
+                startDate: '',
+                endDate: ''
+            }));
+        }
+    };
 
     // Client change handler - converts between AutocompleteOption and ExportSettings format
     const handleClientChange = (client: AutocompleteOption | null) => {
@@ -129,6 +229,79 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
             ...prev,
             client: client ? { label: client.name, value: client.id } : null
         }));
+    };
+
+    // Save recent export to localStorage
+    const saveRecentExport = (settings: ExportSettings, dateRangeOption: DateRangeOption) => {
+        try {
+            // Check if an export with the same settings already exists
+            const existingIndex = recentExports.findIndex(recent => 
+                recent.settings.startDate === settings.startDate &&
+                recent.settings.endDate === settings.endDate &&
+                recent.settings.client?.value === settings.client?.value &&
+                recent.dateRangeOption === dateRangeOption
+            );
+
+            let updatedRecents: RecentExport[];
+
+            if (existingIndex !== -1) {
+                // Update existing export's timestamp and move to top
+                const existingExport = recentExports[existingIndex];
+                const updatedExport: RecentExport = {
+                    ...existingExport,
+                    timestamp: Date.now()
+                };
+                
+                // Remove the old entry and add updated one at the beginning
+                updatedRecents = [
+                    updatedExport,
+                    ...recentExports.filter((_, index) => index !== existingIndex)
+                ];
+                
+                logger.log('Updated existing recent export:', updatedExport);
+            } else {
+                // Create new export entry
+                const newRecent: RecentExport = {
+                    id: Date.now().toString(),
+                    timestamp: Date.now(),
+                    settings: { ...settings },
+                    dateRangeOption
+                };
+
+                updatedRecents = [newRecent, ...recentExports]
+                    .slice(0, MAX_RECENT_EXPORTS);
+                
+                logger.log('Saved new recent export:', newRecent);
+            }
+
+            setRecentExports(updatedRecents);
+            localStorage.setItem(RECENT_EXPORTS_KEY, JSON.stringify(updatedRecents));
+        } catch (error) {
+            logger.error('Failed to save recent export:', error);
+        }
+    };
+
+    // Apply recent export settings
+    const applyRecentExport = (recent: RecentExport) => {
+        setExportSettings(recent.settings);
+        setSelectedDateRange(recent.dateRangeOption);
+        toast.success('Applied recent export settings');
+        logger.log('Applied recent export:', recent);
+    };
+
+    // Delete a recent export
+    const deleteRecentExport = (id: string, event: React.MouseEvent) => {
+        event.stopPropagation(); // Prevent triggering applyRecentExport
+        try {
+            const updatedRecents = recentExports.filter(item => item.id !== id);
+            setRecentExports(updatedRecents);
+            localStorage.setItem(RECENT_EXPORTS_KEY, JSON.stringify(updatedRecents));
+            toast.success('Removed from recent exports');
+            logger.log('Deleted recent export:', id);
+        } catch (error) {
+            logger.error('Failed to delete recent export:', error);
+            toast.error('Failed to remove recent export');
+        }
     };
 
     const handleDateChange = (field: 'startDate' | 'endDate') => (date: Date | null) => {
@@ -230,6 +403,9 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                     // Success feedback
                     toast.success('Report generated and downloaded successfully');
 
+                    // Save to recent exports
+                    saveRecentExport(exportSettings, selectedDateRange);
+
                     // Call the parent onExport callback for any additional handling
                     onExport(exportSettings);
                     onClose();
@@ -256,7 +432,9 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
         // Reset all error states when closing
         setFormErrors({});
         setDateValidationError('');
-        setExportSettings(initialSettings);
+        const { startDate, endDate } = computeDateRange('today');
+        setExportSettings({ ...initialSettings, startDate, endDate });
+        setSelectedDateRange('today');
         onClose();
     };
 
@@ -296,57 +474,137 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                     <>
                         <div className="export-modal__body">
                             <div className="export-modal__form">
-                                <div className="export-modal__field">
-                                    <label className="export-modal__label">Date range</label>
-                                    <div className="export-modal__date-row">
-                                        <ReactDatePicker
-                                            value={exportSettings.startDate}
-                                            onChange={(date) => handleDateChange('startDate')(date as Date | null)}
-                                            placeholder="Start date"
-                                            className="export-modal__input"
-                                            maxDateToday={true}
-                                            options={{
-                                                mode: 'single',
-                                                format: 'd-m-Y',
-                                                showIcon: true,
-                                                iconPosition: 'right',
-                                                closeOnSelect: true,
-                                                allowInput: false,
-                                                blockFutureDates: true,
-                                                enableMonthDropdown: true,
-                                                enableYearDropdown: true,
-                                                iconClickOpens: true,
-                                                maxDate: new Date(),
-                                                onSelect: (date) => {
-                                                    logger.log('Start date selected:', date);
-                                                }
-                                            }}
-                                        />
-                                        <ReactDatePicker
-                                            value={exportSettings.endDate}
-                                            onChange={(date) => handleDateChange('endDate')(date as Date | null)}
-                                            placeholder="End date"
-                                            className="export-modal__input"
-                                            maxDateToday={true}
-                                            options={{
-                                                mode: 'single',
-                                                format: 'd-m-Y',
-                                                showIcon: true,
-                                                iconPosition: 'right',
-                                                closeOnSelect: true,
-                                                allowInput: false,
-                                                blockFutureDates: true,
-                                                enableMonthDropdown: true,
-                                                enableYearDropdown: true,
-                                                iconClickOpens: true,
-                                                maxDate: new Date(),
-                                                onSelect: (date) => {
-                                                    logger.log('End date selected:', date);
-                                                }
-                                            }}
-                                        />
+                                {recentExports.length > 0 && (
+                                    <div className="export-modal__field export-modal__field--full">
+                                        <label className="export-modal__label">Recent Exports</label>
+                                        <div className="export-modal__recents">
+                                            {recentExports.map((recent) => {
+                                                const isToday = recent.settings.startDate === recent.settings.endDate;
+                                                const dateLabel = isToday
+                                                    ? new Date(recent.settings.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })
+                                                    : `${new Date(recent.settings.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} - ${new Date(recent.settings.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })}`;
+                                                
+                                                return (
+                                                    <div
+                                                        key={recent.id}
+                                                        className="export-modal__recent-item"
+                                                        onClick={() => applyRecentExport(recent)}
+                                                    >
+                                                        <div className="export-modal__recent-info">
+                                                            <span className="export-modal__recent-date">{dateLabel}</span>
+                                                            {recent.settings.client && (
+                                                                <span className="export-modal__recent-client">
+                                                                    <User size={12} />
+                                                                    {recent.settings.client.label}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <div className="export-modal__recent-actions">
+                                                            <span className="export-modal__recent-time">
+                                                                {new Date(recent.timestamp).toLocaleDateString('en-GB', { 
+                                                                    day: 'numeric', 
+                                                                    month: 'short',
+                                                                    hour: '2-digit',
+                                                                    minute: '2-digit'
+                                                                })}
+                                                            </span>
+                                                            <button
+                                                                className="export-modal__recent-delete"
+                                                                onClick={(e) => deleteRecentExport(recent.id, e)}
+                                                                type="button"
+                                                                title="Remove from recent exports"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
+                                )}
+                                
+                                <div className="export-modal__field">
+                                    <label className="export-modal__label">Time Period</label>
+                                    <PillToggleGroup
+                                        type="radio"
+                                        value={selectedDateRange}
+                                        onChange={handleDateRangeOptionChange}
+                                        options={[
+                                            { label: 'Today', value: 'today' },
+                                            { label: 'This Week', value: 'this-week' },
+                                            { label: 'This Month', value: 'this-month' },
+                                            { label: 'Date Range', value: 'date-range' }
+                                        ]}
+                                    />
+                                    {selectedDateRange !== 'date-range' && exportSettings.startDate && exportSettings.endDate && (
+                                        <div className="export-modal__date-info">
+                                            <span className="export-modal__date-badge">
+                                                {new Date(exportSettings.startDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                {exportSettings.startDate !== exportSettings.endDate && (
+                                                    <>
+                                                        {' '}- {new Date(exportSettings.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                    </>
+                                                )}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
+                                
+                                {selectedDateRange === 'date-range' && (
+                                    <div className="export-modal__field">
+                                        <label className="export-modal__label">Date range</label>
+                                        <div className="export-modal__date-row">
+                                            <ReactDatePicker
+                                                value={exportSettings.startDate}
+                                                onChange={(date) => handleDateChange('startDate')(date as Date | null)}
+                                                placeholder="Start date"
+                                                className="export-modal__input"
+                                                maxDateToday={true}
+                                                options={{
+                                                    mode: 'single',
+                                                    format: 'd-m-Y',
+                                                    showIcon: true,
+                                                    iconPosition: 'right',
+                                                    closeOnSelect: true,
+                                                    allowInput: false,
+                                                    blockFutureDates: true,
+                                                    enableMonthDropdown: true,
+                                                    enableYearDropdown: true,
+                                                    iconClickOpens: true,
+                                                    maxDate: new Date(),
+                                                    onSelect: (date) => {
+                                                        logger.log('Start date selected:', date);
+                                                    }
+                                                }}
+                                            />
+                                            <ReactDatePicker
+                                                value={exportSettings.endDate}
+                                                onChange={(date) => handleDateChange('endDate')(date as Date | null)}
+                                                placeholder="End date"
+                                                className="export-modal__input"
+                                                maxDateToday={true}
+                                                options={{
+                                                    mode: 'single',
+                                                    format: 'd-m-Y',
+                                                    showIcon: true,
+                                                    iconPosition: 'right',
+                                                    closeOnSelect: true,
+                                                    allowInput: false,
+                                                    blockFutureDates: true,
+                                                    enableMonthDropdown: true,
+                                                    enableYearDropdown: true,
+                                                    iconClickOpens: true,
+                                                    maxDate: new Date(),
+                                                    onSelect: (date) => {
+                                                        logger.log('End date selected:', date);
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                                
                                 <div className="export-modal__field">
                                     <label className="export-modal__label">Client</label>
                                     <AutocompleteInput

@@ -97,6 +97,112 @@
         font-weight: 500;
     }
 
+    &__date-info {
+        margin-top: 8px;
+        padding: 8px 12px;
+        background: var(--secondary);
+        border-radius: var(--radius-md);
+        border: 1px solid var(--border);
+    }
+
+    &__date-badge {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--foreground);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__recents {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+
+    &__recent-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        background: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: var(--font-family-body);
+        text-align: left;
+
+        &:hover {
+            background: var(--accent);
+            border-color: var(--primary);
+
+            .export-modal__recent-date,
+            .export-modal__recent-client,
+            .export-modal__recent-time,
+            .export-modal__recent-delete {
+                color: white;
+            }
+        }
+    }
+
+    &__recent-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        flex: 1;
+    }
+
+    &__recent-date {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+
+    &__recent-client {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    &__recent-time {
+        font-size: 11px;
+        color: var(--muted-foreground);
+        white-space: nowrap;
+    }
+
+    &__recent-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__recent-delete {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px;
+        background: transparent;
+        border: none;
+        border-radius: var(--radius-sm);
+        color: var(--muted-foreground);
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover {
+            background: var(--destructive);
+            color: var(--destructive-foreground);
+        }
+
+        &:active {
+            transform: scale(0.95);
+        }
+    }
+
     &__input,
     &__select {
         background: var(--input);

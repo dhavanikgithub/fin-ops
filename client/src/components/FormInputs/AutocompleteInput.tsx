@@ -127,7 +127,12 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     }, [searchTerm, showDropdown, onSearch]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(e.target.value);
+        const newValue = e.target.value;
+        setSearchTerm(newValue);
+        // Ensure dropdown is open when user types
+        if (!showDropdown) {
+            setShowDropdown(true);
+        }
     };
 
     const handleInputFocus = () => {
@@ -157,6 +162,11 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     const handleRemove = () => {
         onChange(null);
         setSearchTerm('');
+        setShowDropdown(true);
+        // Focus the input field after removing the selection
+        setTimeout(() => {
+            inputRef.current?.focus();
+        }, 0);
     };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
