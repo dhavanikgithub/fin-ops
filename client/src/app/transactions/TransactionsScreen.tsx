@@ -76,6 +76,22 @@ const TransactionScreenContent: React.FC = () => {
     const [currentView, setCurrentView] = useState<ViewState>('list');
     const { showBoundary } = useErrorBoundary();
 
+    // Check URL params on mount to handle navigation from ClientList
+    React.useEffect(() => {
+        try {
+            const urlParams = new URLSearchParams(window.location.search);
+            const view = urlParams.get('view');
+            
+            if (view === 'deposit' || view === 'withdraw') {
+                setCurrentView(view as ViewState);
+                // Clear URL params after reading
+                window.history.replaceState({}, '', '/transactions');
+            }
+        } catch (error) {
+            logger.error('Error checking URL params:', error);
+        }
+    }, []);
+
     const handleShowDeposit = () => {
         try {
             logger.info('Navigating to deposit view');

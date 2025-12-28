@@ -106,6 +106,31 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
     // Debounced client search timer
     const clientSearchDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
+    // Load preselected client from session storage on mount
+    useEffect(() => {
+        try {
+            const preselectedClientData = sessionStorage.getItem('preselected_client');
+            if (preselectedClientData) {
+                const clientData = JSON.parse(preselectedClientData);
+                // Set the client in form data
+                setFormData(prev => ({
+                    ...prev,
+                    client: {
+                        id: clientData.id,
+                        name: clientData.name
+                    }
+                }));
+                // Clear session storage after reading
+                sessionStorage.removeItem('preselected_client');
+                logger.log('Loaded preselected client:', clientData);
+                toast.success(`Client "${clientData.name}" pre-selected`);
+            }
+        } catch (error) {
+            logger.error('Error loading preselected client:', error);
+            // Don't show error toast as this is optional functionality
+        }
+    }, []);
+
     // Debounced client search with error handling
     const handleClientSearch = useCallback((searchTerm: string) => {
         if (clientSearchDebounceTimer.current) {

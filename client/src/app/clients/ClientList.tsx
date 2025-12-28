@@ -403,16 +403,44 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                                 <Button 
                                     variant="outline"
                                     icon={<ArrowDownLeft size={16} />}
+                                    onClick={() => {
+                                        try {
+                                            // Save selected client to session storage
+                                            sessionStorage.setItem('preselected_client', JSON.stringify({
+                                                id: selectedClient.id,
+                                                name: selectedClient.name
+                                            }));
+                                            // Navigate to transactions page (deposit view)
+                                            window.location.href = '/transactions?view=deposit';
+                                        } catch (error) {
+                                            logger.error('Error navigating to deposit:', error);
+                                            toast.error('Failed to open deposit form');
+                                        }
+                                    }}
                                     className="quick-btn quick-btn--outlined deposit"
                                 >
-                                    Deposit
+                                    Add Deposit
                                 </Button>
                                 <Button 
                                     variant="outline"
                                     icon={<ArrowUpRight size={16} />}
+                                    onClick={() => {
+                                        try {
+                                            // Save selected client to session storage
+                                            sessionStorage.setItem('preselected_client', JSON.stringify({
+                                                id: selectedClient.id,
+                                                name: selectedClient.name
+                                            }));
+                                            // Navigate to transactions page (withdraw view)
+                                            window.location.href = '/transactions?view=withdraw';
+                                        } catch (error) {
+                                            logger.error('Error navigating to withdraw:', error);
+                                            toast.error('Failed to open withdraw form');
+                                        }
+                                    }}
                                     className="quick-btn quick-btn--outlined withdraw"
                                 >
-                                    Withdraw
+                                    Add Withdraw
                                 </Button>
                             </div>
                             <div className="detail__divider" />
