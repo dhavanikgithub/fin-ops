@@ -223,7 +223,7 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                 try {
                     // Download the PDF (Potential unexpected error)
                     const pdfContent = result.payload.data.pdfContent;
-                    const filename = `transaction-report-${exportSettings.startDate}-to-${exportSettings.endDate}.pdf`;
+                    const filename = result.payload.data.filename;
 
                     transactionService.downloadPDF(pdfContent, filename);
 

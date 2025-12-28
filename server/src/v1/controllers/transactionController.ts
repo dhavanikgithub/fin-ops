@@ -643,8 +643,34 @@ export class TransactionController {
             // Create PDF generator instance
             const reportGenerator = new TransactionReportPDF();
 
-            // Generate temporary file path
-            const tempFileName = `transaction_report_${Date.now()}.pdf`;
+            // Format dates for filename
+            const formattedStartDate = startDate.split('-').reverse().join(''); // Convert YYYY-MM-DD to DDMMYYYY
+            const formattedEndDate = endDate.split('-').reverse().join(''); // Convert YYYY-MM-DD to DDMMYYYY
+            
+            // Get current date time in Indian timezone (IST - UTC+5:30)
+            const now = new Date();
+            const istOffset = 5.5 * 60 * 60 * 1000; // IST is UTC+5:30
+            const istTime = new Date(now.getTime() + istOffset);
+            const day = String(istTime.getUTCDate()).padStart(2, '0');
+            const month = String(istTime.getUTCMonth() + 1).padStart(2, '0');
+            const year = istTime.getUTCFullYear();
+            const hours = String(istTime.getUTCHours()).padStart(2, '0');
+            const minutes = String(istTime.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(istTime.getUTCSeconds()).padStart(2, '0');
+            const createdDateTime = `${day}${month}${year}_${hours}-${minutes}-${seconds}`;
+
+            // Generate temporary file path with client name if client-specific
+            let tempFileName: string;
+            if (isClientSpecific && transactions && transactions.length > 0) {
+                // Get client name and sanitize it for file system
+                const clientName = transactions[0]!!.client_name
+                    .replace(/[^a-zA-Z0-9\s-]/g, '') // Remove special characters
+                    .replace(/\s+/g, '_') // Replace spaces with underscores
+                    .trim();
+                tempFileName = `${clientName}_transaction_report_${formattedStartDate}_to_${formattedEndDate}_${createdDateTime}.pdf`;
+            } else {
+                tempFileName = `transaction_report_${formattedStartDate}_to_${formattedEndDate}_${createdDateTime}.pdf`;
+            }
             const tempDir = path.join(process.cwd(), 'temp');
             const tempFilePath = path.join(tempDir, tempFileName);
 
@@ -667,7 +693,10 @@ export class TransactionController {
 
             // Return success response with PDF content
             const response = createSuccessResponse(
-                { pdfContent: bodyBufferBase64 },
+                { 
+                    pdfContent: bodyBufferBase64,
+                    filename: tempFileName
+                },
                 200,
                 SUCCESS_CODES.REPORT_GENERATED_SUCCESS,
                 'Transaction report generated successfully'

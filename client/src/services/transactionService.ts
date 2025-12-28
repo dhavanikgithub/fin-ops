@@ -121,6 +121,7 @@ export interface TransactionReportResponse {
     success: boolean;
     data: {
         pdfContent: string;
+        filename: string;
     };
     code: string;
     message: string;
