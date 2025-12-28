@@ -1,44 +1,56 @@
 import { TRANSACTION_TYPES } from "../v1/types/transaction.js";
+import {logger} from "./logger.js";
 
-export function formatDate(dateString: string): string {
+
+// Format date from API response
+export const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
+};
 
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
+// Format time
+export const formatTime = (timeString: string): string => {
+    // Handle different time string formats
+    if (!timeString) return '';
 
-    return `${day}-${month}-${year}`;
-}
+    // If timeString is already in HH:MM:SS format
+    if (timeString.includes(':')) {
+        const parts = timeString.split(':');
+        if (parts.length >= 2) {
+            const hours = parseInt(parts[0]!!, 10);
+            const minutes = parseInt(parts[1]!!, 10);
+            const seconds = parts[2] ? parseInt(parts[2], 10) : 0;
 
+            // Convert to 12-hour format with AM/PM
+            const period = hours >= 12 ? 'PM' : 'AM';
+            const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
 
-export function formatTime(dateString: string): string {
-    // Extract the time portion (HH:mm:ss.sss) from the input string
-    const timeParts = dateString.split('+')[0]; // Ignore the timezone part for now
-
-    if (!timeParts) {
-        return '12:00 AM'; // Default fallback
+            return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
+        }
     }
 
-    const timeComponents = timeParts.split(':');
-    const hours = timeComponents[0] || '0';
-    const minutes = timeComponents[1] || '0';
-    const seconds = timeComponents[2] || '0';
+    // If timeString is a timestamp or ISO string, extract time
+    try {
+        const date = new Date(timeString);
+        if (!isNaN(date.getTime())) {
+            return date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit',
+                hour12: true
+            });
+        }
+    } catch (error) {
+        logger.warn('Failed to parse time string:', timeString);
+    }
 
-    // Create a new Date object with today's date and the extracted time
-    const now = new Date();
-    now.setHours(parseInt(hours, 10));
-    now.setMinutes(parseInt(minutes, 10));
-    const secondsPart = (seconds || '0').split('.')[0] || '0';
-    now.setSeconds(parseInt(secondsPart, 10));
+    // Fallback: return original string
+    return timeString;
+};
 
-    // Format the time in 12-hour format
-    const formattedHours = now.getHours() % 12 || 12;  // Convert to 12-hour format
-    const formattedMinutes = String(now.getMinutes()).padStart(2, '0');
-    const isAM = now.getHours() < 12;
-    const formattedTime = `${formattedHours}:${formattedMinutes} ${isAM ? 'AM' : 'PM'}`;
-
-    return formattedTime;
-}
 
 // Function to format the amount with commas and restrict decimal points to two digits
 const formatAmount = (input: string): string => {
