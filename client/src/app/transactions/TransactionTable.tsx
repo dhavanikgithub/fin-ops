@@ -561,7 +561,6 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                         <Button
                                                             variant="ghost"
                                                             size="small"
-                                                            icon={<Eye size={12} />}
                                                             onClick={(e) => handleNotesView(e, transaction.remark)}
                                                             className="table__notes-viewmore"
                                                         >

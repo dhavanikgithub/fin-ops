@@ -322,13 +322,16 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                 displayedClients.map((client, idx) => (
                                     <tr
                                         key={client.id}
-                                        className={selectedClient?.id === client.id ? 'table__row--selected' : ''}
+                                        className={`${selectedClient?.id === client.id ? 'table__row--selected' : ''}`}
+                                        
                                     >
                                         <td>
-                                            <div className="table__client">
+                                            <div className="table__client" >
                                                 <div
                                                     className="table__client-avatar"
-                                                    style={{ backgroundColor: getAvatarColor(client.name) }}
+                                                    style={{ backgroundColor: getAvatarColor(client.name), cursor:'pointer' }}
+                                                    onMouseUp={() => onClientSelect && onClientSelect(client)}
+                                                    onTouchEnd={() => onClientSelect && onClientSelect(client)}
                                                 >
                                                     {getAvatarInitials(client.name)}
 
@@ -358,8 +361,11 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="table__client-meta">
-                                                    <div className="table__client-name">{client.name}</div>
+                                                <div className="table__client-meta" >
+                                                    <div className="table__client-name" 
+                                                    style={{cursor:'pointer'}}
+                                                    onMouseUp={() => onClientSelect && onClientSelect(client)}
+                                                    onTouchEnd={() => onClientSelect && onClientSelect(client)}>{client.name}</div>
                                                     <div className="table__client-email">{client.email}</div>
                                                 </div>
                                             </div>
@@ -374,35 +380,6 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                         <td>
                                             {formatDateToReadable(client.create_date)}{' '}
                                             <span className="client-table__time">• {formatTime(client.create_time)}</span>
-                                        </td>
-                                        <td>
-                                            <div style={{ display: 'flex', gap: '8px' }}>
-                                                {/* {!selectedClient &&
-                                                    (
-                                                        <>
-                                                            <button className="table__row-actions__deposit">
-                                                                <ArrowDownLeft size={16} />
-                                                            </button>
-                                                            <button className="table__row-actions__withdraw">
-                                                                <ArrowUpRight size={16} />
-                                                            </button>
-                                                        </>
-                                                    )
-                                                }
-                                                <button className="table__row-actions">
-                                                    <Wallet size={16} />
-                                                    {client.transaction_count || 0} T
-                                                </button> */}
-                                                <Button
-                                                    variant="ghost"
-                                                    size="small"
-                                                    icon={<MoreHorizontal size={16} />}
-                                                    onClick={() => onClientSelect && onClientSelect(client)}
-                                                    className="row-actions"
-                                                >
-                                                    Manage
-                                                </Button>
-                                            </div>
                                         </td>
                                     </tr>
                                 ))

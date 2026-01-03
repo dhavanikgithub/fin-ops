@@ -65,6 +65,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+    const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
     // Calculate dropdown position
     const updateDropdownPosition = () => {
@@ -81,7 +83,31 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     // Reset highlighted index when options change
     useEffect(() => {
         setHighlightedIndex(0);
+        // Reset option refs array when options change
+        optionRefs.current = optionRefs.current.slice(0, options.length);
     }, [options]);
+
+    // Scroll highlighted item into view
+    useEffect(() => {
+        if (showDropdown && optionRefs.current[highlightedIndex]) {
+            const highlightedElement = optionRefs.current[highlightedIndex];
+            const dropdown = dropdownRef.current;
+            
+            if (highlightedElement && dropdown) {
+                const dropdownRect = dropdown.getBoundingClientRect();
+                const elementRect = highlightedElement.getBoundingClientRect();
+                
+                // Check if element is below visible area
+                if (elementRect.bottom > dropdownRect.bottom) {
+                    highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+                // Check if element is above visible area
+                else if (elementRect.top < dropdownRect.top) {
+                    highlightedElement.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                }
+            }
+        }
+    }, [highlightedIndex, showDropdown]);
 
     // Update dropdown position when it's shown or on scroll/resize
     useEffect(() => {
@@ -199,6 +225,10 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
     const defaultRenderOption = (option: AutocompleteOption, isHighlighted: boolean) => (
         <div
+            ref={(el) => {
+                const index = options.indexOf(option);
+                optionRefs.current[index] = el;
+            }}
             className={`autocomplete-input__option ${isHighlighted ? 'autocomplete-input__option--highlighted' : ''}`}
             onClick={() => handleSelect(option)}
             onMouseEnter={() => setHighlightedIndex(options.indexOf(option))}
@@ -250,7 +280,8 @@ export const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
                         />
                         {showDropdown && searchTerm && (
                             <div 
-                                className="autocomplete-input__dropdown"
+                                ref={dropdownRef}
+                                className="autocomplete-input__dropdown scrollbar-overlay"
                                 style={{
                                     top: `${dropdownPosition.top}px`,
                                     left: `${dropdownPosition.left}px`,

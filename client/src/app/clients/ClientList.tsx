@@ -255,6 +255,10 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
 
     const handleClientSelect = (client: Client) => {
         try {
+            if(selectedClientRef.current === client){
+                setSelectedClientWithRef(null);
+                return; // No change
+            }
             setSelectedClientWithRef(client);
         } catch (error) {
             logger.error('Error selecting client:', error);
@@ -371,6 +375,17 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
 
                     {selectedClient && (
                         <div className="detail">
+                            {/* Close button */}
+                            <button 
+                                className="detail__close-button"
+                                onMouseUp={handleDeselectClient}
+                                onTouchEnd={handleDeselectClient}
+                                disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
+                                aria-label="Close detail panel"
+                            >
+                                <X size={20} />
+                            </button>
+
                             {/* Processing overlay */}
                             {isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds) && (
                                 <div className="detail__processing-overlay">
@@ -513,15 +528,6 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                                             className="main__icon-button"
                                         >
                                             {selectedClient && deletingClientIds.includes(selectedClient.id) ? 'Deleting...' : 'Delete'}
-                                        </Button>
-                                        <Button 
-                                            variant="secondary"
-                                            icon={<X size={16} />}
-                                            onClick={handleDeselectClient}
-                                            disabled={isSelectedClientBeingProcessed(selectedClient, savingClientIds, deletingClientIds)}
-                                            className="main__secondary-button"
-                                        >
-                                            Cancel
                                         </Button>
                                     </div>
                                 </div>
