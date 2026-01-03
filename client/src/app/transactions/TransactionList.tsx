@@ -555,6 +555,16 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
 
                     {selectedTransaction && (
                         <div className="detail">
+                            {/* Close button */}
+                            <button 
+                                className="detail__close-button"
+                                onClick={handleDeselectTransaction}
+                                disabled={isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds)}
+                                aria-label="Close detail panel"
+                            >
+                                <X size={20} />
+                            </button>
+
                             {/* Processing Overlay */}
                             {isSelectedTransactionBeingProcessed(selectedTransaction, editingTransactionIds, deletingTransactionIds) && (
                                 <div className="detail__processing-overlay">

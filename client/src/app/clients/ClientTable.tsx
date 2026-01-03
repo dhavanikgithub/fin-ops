@@ -308,7 +308,6 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                         <SortIcon field="create_date" />
                                     </div>
                                 </th>
-                                <th></th>
                             </tr>
                         </thead>
                         <tbody>

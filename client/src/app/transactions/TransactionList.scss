@@ -582,6 +582,42 @@
     position: relative;
     height: 100%;
     overflow: hidden;
+
+    &__close-button {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: transparent;
+        color: var(--muted-foreground);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        z-index: 10;
+
+        &:hover:not(:disabled) {
+            background: var(--accent);
+            color: var(--accent-foreground);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    }
+    &__name {
+        font-size: 16px;
+        font-weight: 600;
+        word-wrap: break-word;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        max-width: 100%;
+    }
 }
 
 // Better centering for smaller screens
