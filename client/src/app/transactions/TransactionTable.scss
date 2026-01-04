@@ -1,5 +1,14 @@
 @use '../../styles/Table.scss';
 
+// Search term highlight styling
+.txn-table__highlight {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
 // Disable hover effects for non-sortable columns
 .table__sort-header--disabled {
     cursor: default !important;

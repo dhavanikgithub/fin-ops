@@ -79,7 +79,8 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         pagination,
         error,
         editingTransactionIds,
-        deletingTransactionIds
+        deletingTransactionIds,
+        searchQuery
     } = useAppSelector((state) => state.transactions);
 
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
@@ -103,6 +104,33 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
     const observerRef = useRef<HTMLDivElement>(null);
+
+
+    // Function to highlight search terms in text
+    const highlightText = (text: string, search: string): React.ReactNode => {
+        if (!search || !search.trim() || !text) return text;
+
+        const searchTerm = search.trim();
+        // Normalize search term by removing trailing zeros after decimal
+        const normalizedSearch = searchTerm.replace(/\.?0+$/, '');
+        
+        // Create regex for both exact and normalized versions
+        const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedNormalized = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedSearch}|${escapedNormalized})`, 'gi');
+
+        const parts = text.toString().split(regex);
+        
+        return parts.map((part, index) => {
+            const isMatch = part.toLowerCase() === searchTerm.toLowerCase() || 
+                           part.toLowerCase() === normalizedSearch.toLowerCase();
+            return isMatch ? (
+                <mark key={index} className="txn-table__highlight">{part}</mark>
+            ) : (
+                part
+            );
+        });
+    };
 
     // Update local sort state when Redux state changes
     useEffect(() => {
@@ -356,38 +384,38 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
             <ChevronDown size={16} className="txn-table__sort-icon txn-table__sort-icon--active" />;
     };
 
-    const renderBankAndCard = (bankName: string | null, cardName: string | null) => {
+    const renderBankAndCard = (bankName: string | null, cardName: string | null, search: string) => {
         if (bankName && cardName) {
             return (
                 <div className="txn-table__method-bank">
-                    {bankName} • {cardName}
+                    {highlightText(bankName, search)} • {highlightText(cardName, search)}
                 </div>
             )
         }
         else if (bankName) {
             return (
                 <div className="txn-table__method-bank">
-                    {bankName}
+                    {highlightText(bankName, search)}
                 </div>
             )
         }
         else if (cardName) {
             return (
                 <div className="txn-table__method-bank">
-                    {cardName}
+                    {highlightText(cardName, search)}
                 </div>
             )
         }
         else return <div className="txn-table__method-bank">-</div>;
     }
 
-    const renderWithdrawCharges = (transaction: Transaction | null) => {
+    const renderWithdrawCharges = (transaction: Transaction | null, search: string) => {
         if (transaction && transaction.widthdraw_charges !== null && transaction.widthdraw_charges !== 0) {
             return (
                 <div className="txn-table__charges">
-                    <span className="txn-table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
+                    <span className="txn-table__charges-value">{highlightText(transaction.widthdraw_charges.toFixed(2), search)}%</span>
                     <div className="txn-table__charges-amount">
-                        ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/-
+                        ₹ {highlightText((transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), search)}/-
                     </div>
                 </div>
             )
@@ -524,7 +552,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                         </div>
                                                     )}
                                                 </div>
-                                                <span className="txn-table__client-name">{transaction.client_name}</span>
+                                                <span className="txn-table__client-name">{highlightText(transaction.client_name, searchQuery)}</span>
                                             </div>
                                         </td>
                                         <td>
@@ -535,16 +563,16 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                     <ArrowUpRight size={16} className="txn-table__amount-icon" />
                                                 )}
                                                 <span className="txn-table__amount-value">
-                                                    {formatAmountWithSymbol(transaction.transaction_amount)}/-
+                                                    {highlightText(formatAmountWithSymbol(transaction.transaction_amount), searchQuery)}/-
                                                 </span>
                                             </div>
 
                                         </td>
                                         <td>
-                                            {renderBankAndCard(transaction.bank_name, transaction.card_name)}
+                                            {renderBankAndCard(transaction.bank_name, transaction.card_name, searchQuery)}
                                         </td>
                                         <td>
-                                            {renderWithdrawCharges(transaction)}
+                                            {renderWithdrawCharges(transaction, searchQuery)}
                                         </td>
                                         <td>
                                             {formatDateToReadable(transaction.create_date)} <span className="txn-table__time">• {formatTime(transaction.create_time)}</span>
@@ -553,7 +581,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                             <div className="txn-table__notes">
                                                 {transaction.remark.length > 30 ? (
                                                     <span className="txn-table__notes-text">
-                                                        {transaction.remark.slice(0, 30)}
+                                                        {highlightText(transaction.remark.slice(0, 30), searchQuery)}
                                                         <Button
                                                             variant="ghost"
                                                             size="small"
@@ -565,7 +593,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                     </span>
                                                 ) : (
                                                     <span className="txn-table__notes-text">
-                                                        {transaction.remark && transaction.remark.trim() !== '' ? transaction.remark : '-'}
+                                                        {transaction.remark && transaction.remark.trim() !== '' ? highlightText(transaction.remark, searchQuery) : '-'}
                                                     </span>
                                                 )}
                                             </div>
