@@ -715,7 +715,6 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                                             variant="secondary"
                                             icon={<X size={16} />}
                                             onClick={handleDeselectTransaction}
-                                            className="main__secondary-button"
                                         >
                                             Close
                                         </Button>

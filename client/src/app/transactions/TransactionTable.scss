@@ -11,9 +11,9 @@
 }
 
 // Notes column styling
-.table__notes {
+.txn-table__notes {
     max-width: 220px;
-    .table__notes-text {
+    .txn-table__notes-text {
         font-size: 13px;
         color: var(--foreground);
         line-height: 1.3;
@@ -22,7 +22,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
-    .table__notes-viewmore {
+    .txn-table__notes-viewmore {
         background: none;
         border: none;
         color: var(--primary);
@@ -74,16 +74,16 @@
 }
 
 // Charges column styling
-.table__charges {
+.txn-table__charges {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     line-height: 1.2;
-    .table__charges-value {
+    .txn-table__charges-value {
         font-weight: 600;
         font-size: 15px;
     }
-    .table__charges-amount {
+    .txn-table__charges-amount {
         font-size: 11px;
         color: var(--muted-foreground);
         margin-top: 2px;
@@ -92,7 +92,7 @@
 }
 
 
-.table__info {
+.txn-table__info {
     padding: 16px 20px 8px;
     font-size: 14px;
     color: var(--muted-foreground);
@@ -104,8 +104,8 @@
 }
 
 
-.table__method-bank {
-    .table__pill {
+.txn-table__method-bank {
+    .txn-table__pill {
         display: inline-flex;
         align-items: center;
         padding: 6px 12px;
@@ -125,7 +125,7 @@
     }
 }
 
-.table__amount {
+.txn-table__amount {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -135,7 +135,7 @@
     &--deposit {
         color: var(--success);
         
-        .table__amount-icon {
+        .txn-table__amount-icon {
             color: var(--success);
             background: var(--success-foreground);
             border-radius: 50%;
@@ -149,7 +149,7 @@
     &--withdraw {
         color: var(--destructive);
         
-        .table__amount-icon {
+        .txn-table__amount-icon {
             color: var(--destructive);
             background: var(--destructive-foreground);
             border-radius: 50%;
@@ -161,18 +161,18 @@
     }
 }
 
-.table__amount-value {
+.txn-table__amount-value {
     font-variant-numeric: tabular-nums;
     font-family: var(--font-family-body);
 }
 
-.table__time {
+.txn-table__time {
     color: var(--muted-foreground);
     font-weight: 400;
     font-family: var(--font-family-body);
 }
 
-.table__end-message {
+.txn-table__end-message {
     text-align: center;
     padding: 24px 20px;
     color: var(--muted-foreground);
@@ -186,12 +186,12 @@
 
 // Responsive design
 @media (max-width: 768px) {
-    .table__info {
+    .txn-table__info {
         padding: 12px 16px 6px;
         font-size: 13px;
     }
 
-    .table__method-bank .table__pill {
+    .txn-table__method-bank .txn-table__pill {
         padding: 4px 8px;
         font-size: 12px;
         border-radius: var(--radius-lg);
@@ -206,7 +206,7 @@
         font-size: 13px;
     }
 
-    .table__end-message {
+    .txn-table__end-message {
         padding: 20px 16px;
         font-size: 13px;
     }
@@ -215,7 +215,7 @@
 
 
 // Selected row styling
-.table__row--selected {
+.txn-table__row--selected {
     background-color: var(--primary-light, rgba(59, 130, 246, 0.1)) !important;
     border-left: 3px solid var(--primary, #3b82f6);
     
@@ -225,7 +225,7 @@
 }
 
 // Row removal animation
-.table__row--removing {
+.txn-table__row--removing {
     opacity: 0;
     transform: translateY(-100%);
     max-height: 0;
@@ -238,7 +238,7 @@
 }
 
 // Row insertion animation
-.table__row--inserting {
+.txn-table__row--inserting {
     opacity: 0;
     transform: translateY(-20px);
     animation: slideInRow 0.5s ease-out forwards;
@@ -250,7 +250,7 @@
 }
 
 // When a row is being removed, shift subsequent rows up
-.table__row--removing ~ tr {
+.txn-table__row--removing ~ tr {
     transform: translateY(-100%);
     transition: transform 0.4s ease;
 }
@@ -293,7 +293,7 @@
 }
 
 // Avatar overlay styles
-.table__client-avatar {
+.txn-table__client-avatar {
     position: relative;
     overflow: visible;
     display: flex;
@@ -307,7 +307,7 @@
     text-align: center;
 }
 
-.table__avatar-overlay {
+.txn-table__avatar-overlay {
     position: absolute;
     top: 0;
     left: 0;
@@ -321,7 +321,7 @@
     pointer-events: none;
 }
 
-.table__avatar-spinner {
+.txn-table__avatar-spinner {
     position: absolute;
     top: 0;
     left: 0;
@@ -332,13 +332,13 @@
     justify-content: center;
 }
 
-.table__spinner-ring {
+.txn-table__spinner-ring {
     width: 45px;
     height: 45px;
     border: 3px solid rgba(0, 0, 0, 0.1);
     border-top: 3px solid var(--primary);
     border-radius: 50%;
-    animation: table-avatar-spin 1s linear infinite;
+    animation: txn-table-avatar-spin 1s linear infinite;
     position: absolute;
     
     &--delete {
@@ -346,7 +346,7 @@
     }
 }
 
-.table__avatar-status {
+.txn-table__avatar-status {
     position: absolute;
     top: 0;
     left: 0;
@@ -356,7 +356,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: table-avatar-pulse 0.3s ease-in-out;
+    animation: txn-table-avatar-pulse 0.3s ease-in-out;
     z-index: 20;
     
     svg {
@@ -375,7 +375,7 @@
     }
 }
 
-.row-actions {
+.txn-table__row-actions {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -401,12 +401,12 @@
     }
 }
 
-@keyframes table-avatar-spin {
+@keyframes txn-table-avatar-spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
-@keyframes table-avatar-pulse {
+@keyframes txn-table-avatar-pulse {
     0% { transform: scale(0.8); opacity: 0; }
     50% { transform: scale(1.1); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
@@ -419,23 +419,23 @@
         border: 1px solid var(--border);
     }
     
-    .table__row-actions {
+    .txn-table__row-actions {
         display: none;
     }
     
     .table__load-trigger,
-    .table__end-message {
+    .txn-table__end-message {
         display: none;
     }
     
-    .table__row--selected {
+    .txn-table__row--selected {
         background-color: transparent !important;
         border-left: none !important;
     }
 }
 
 // Error Boundary Styles
-.table__error-boundary {
+.txn-table__error-boundary {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -444,7 +444,7 @@
     background: var(--card);
 }
 
-.table__error-boundary-content {
+.txn-table__error-boundary-content {
     text-align: center;
     max-width: 500px;
     display: flex;
@@ -453,12 +453,12 @@
     gap: 16px;
 }
 
-.table__error-boundary-icon {
+.txn-table__error-boundary-icon {
     color: var(--destructive);
     margin-bottom: 8px;
 }
 
-.table__error-boundary-title {
+.txn-table__error-boundary-title {
     font-size: 20px;
     font-weight: 600;
     color: var(--foreground);
@@ -466,14 +466,14 @@
     line-height: 1.3;
 }
 
-.table__error-boundary-message {
+.txn-table__error-boundary-message {
     font-size: 16px;
     color: var(--muted-foreground);
     margin: 0;
     line-height: 1.5;
 }
 
-.table__error-boundary-details {
+.txn-table__error-boundary-details {
     margin-top: 16px;
     text-align: left;
     width: 100%;
@@ -491,7 +491,7 @@
     }
 }
 
-.table__error-boundary-stack {
+.txn-table__error-boundary-stack {
     background: var(--muted);
     color: var(--muted-foreground);
     padding: 12px;
@@ -504,13 +504,13 @@
     margin: 0;
 }
 
-.table__error-boundary-actions {
+.txn-table__error-boundary-actions {
     display: flex;
     gap: 12px;
     margin-top: 8px;
 }
 
-.table__error-boundary-retry {
+.txn-table__error-boundary-retry {
     background: var(--primary);
     color: var(--primary-foreground);
     border: none;
@@ -533,7 +533,7 @@
     }
 }
 
-.table__error-boundary-refresh {
+.txn-table__error-boundary-refresh {
     background: var(--secondary);
     color: var(--secondary-foreground);
     border: none;

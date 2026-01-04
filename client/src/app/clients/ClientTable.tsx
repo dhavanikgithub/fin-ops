@@ -24,7 +24,7 @@ const ClientTableErrorFallback: React.FC<{
     onClientSelect?: (client: Client) => void;
 }> = ({ error, resetErrorBoundary, onClientSelect }) => {
     return (
-        <div className="table-wrap">
+        <div className="ct-table-wrap">
             <div className="ct__error-boundary">
                 <div className="ct__error-boundary-content">
                     <AlertTriangle size={48} className="ct__error-boundary-icon" />
@@ -254,24 +254,24 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
         }
 
         return sortConfig.sort_order === 'asc' ?
-            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" style={{ transform: 'rotate(180deg)' }} /> :
-            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" />;
+            <ChevronDown size={16} className="ct-table__sort-icon ct-table__sort-icon--active" style={{ transform: 'rotate(180deg)' }} /> :
+            <ChevronDown size={16} className="ct-table__sort-icon ct-table__sort-icon--active" />;
     };
 
     const renderClientAddress = (address: string) => {
         if (!address) return '-';
         return (
             <div style={{ display: 'flex', alignItems: 'center' }}>
-                <MapPin size={16} className="table__address-icon" />
-                <span className="table__address-pill" title={address}>{address}</span>
+                <MapPin size={16} className="ct-table__address-icon" />
+                <span className="ct-table__address-pill" title={address}>{address}</span>
             </div>
         );
     }
 
     try {
         return (
-            <div className="table-wrap">
-                <div className="table__container" ref={tableContainerRef}>
+            <div className="ct-table-wrap">
+                <div className="ct-table__container" ref={tableContainerRef}>
                     <table className="table">
                         <thead
                             ref={tableHeaderRef}
@@ -279,31 +279,31 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                         >
                             <tr>
                                 <th>
-                                    <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('name')}>
+                                    <div className="ct-table__sort-header ct-table__sort-header--sortable" onClick={() => handleSort('name')}>
                                         Client
                                         <SortIcon field="name" />
                                     </div>
                                 </th>
                                 <th>
-                                    <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('contact')}>
+                                    <div className="ct-table__sort-header ct-table__sort-header--sortable" onClick={() => handleSort('contact')}>
                                         Contact Number
                                         <SortIcon field="contact" />
                                     </div>
                                 </th>
                                 <th>
-                                    <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('address')}>
+                                    <div className="ct-table__sort-header ct-table__sort-header--sortable" onClick={() => handleSort('address')}>
                                         Address
                                         <SortIcon field="address" />
                                     </div>
                                 </th>
                                 <th>
-                                    <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('transaction_count')}>
+                                    <div className="ct-table__sort-header ct-table__sort-header--sortable" onClick={() => handleSort('transaction_count')}>
                                         Transactions
                                         <SortIcon field="transaction_count" />
                                     </div>
                                 </th>
                                 <th>
-                                    <div className="table__sort-header table__sort-header--sortable" onClick={() => handleSort('create_date')}>
+                                    <div className="ct-table__sort-header ct-table__sort-header--sortable" onClick={() => handleSort('create_date')}>
                                         Date Created
                                         <SortIcon field="create_date" />
                                     </div>
@@ -313,7 +313,7 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                         <tbody>
                             {displayedClients.length === 0 ? (
                                 <tr>
-                                    <td colSpan={6} className="table__no-results">
+                                    <td colSpan={6} className="ct-table__no-results">
                                         {loading ? 'Loading clients...' : 'No clients found.'}
                                     </td>
                                 </tr>
@@ -321,13 +321,13 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                 displayedClients.map((client, idx) => (
                                     <tr
                                         key={client.id}
-                                        className={`${selectedClient?.id === client.id ? 'table__row--selected' : ''}`}
+                                        className={`${selectedClient?.id === client.id ? 'ct-table__row--selected' : ''}`}
                                         
                                     >
                                         <td>
-                                            <div className="table__client" >
+                                            <div className="ct-table__client" >
                                                 <div
-                                                    className="table__client-avatar"
+                                                    className="ct-table__client-avatar"
                                                     style={{ backgroundColor: getAvatarColor(client.name), cursor:'pointer' }}
                                                     onMouseUp={() => onClientSelect && onClientSelect(client)}
                                                     onTouchEnd={() => onClientSelect && onClientSelect(client)}
@@ -336,36 +336,36 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
 
                                                      {/* Loading/Status Overlay */}
                                                     {(savingClientIds.includes(client.id) || deletingClientIds.includes(client.id) || completedOperations[client.id]) && (
-                                                        <div className="table__avatar-overlay">
+                                                        <div className="ct-table__avatar-overlay">
                                                             {savingClientIds.includes(client.id) && (
-                                                                <div className="table__avatar-spinner">
-                                                                    <div className="table__spinner-ring"></div>
+                                                                <div className="ct-table__avatar-spinner">
+                                                                    <div className="ct-table__spinner-ring"></div>
                                                                 </div>
                                                             )}
                                                             {deletingClientIds.includes(client.id) && (
-                                                                <div className="table__avatar-spinner">
-                                                                    <div className="table__spinner-ring table__spinner-ring--delete"></div>
+                                                                <div className="ct-table__avatar-spinner">
+                                                                    <div className="ct-table__spinner-ring ct-table__spinner-ring--delete"></div>
                                                                 </div>
                                                             )}
                                                             {completedOperations[client.id] === 'saved' && (
-                                                                <div className="table__avatar-status table__avatar-status--success">
+                                                                <div className="ct-table__avatar-status ct-table__avatar-status--success">
                                                                     <Check size={16} />
                                                                 </div>
                                                             )}
                                                             {completedOperations[client.id] === 'deleted' && (
-                                                                <div className="table__avatar-status table__avatar-status--error">
+                                                                <div className="ct-table__avatar-status ct-table__avatar-status--error">
                                                                     <X size={16} />
                                                                 </div>
                                                             )}
                                                         </div>
                                                     )}
                                                 </div>
-                                                <div className="table__client-meta" >
-                                                    <div className="table__client-name" 
+                                                <div className="ct-table__client-meta" >
+                                                    <div className="ct-table__client-name" 
                                                     style={{cursor:'pointer'}}
                                                     onMouseUp={() => onClientSelect && onClientSelect(client)}
                                                     onTouchEnd={() => onClientSelect && onClientSelect(client)}>{client.name}</div>
-                                                    <div className="table__client-email">{client.email}</div>
+                                                    <div className="ct-table__client-email">{client.email}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -378,7 +378,7 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                         </td>
                                         <td>
                                             {formatDateToReadable(client.create_date)}{' '}
-                                            <span className="client-table__time">• {formatTime(client.create_time)}</span>
+                                            <span className="ct-table__time">• {formatTime(client.create_time)}</span>
                                         </td>
                                     </tr>
                                 ))
@@ -386,10 +386,10 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                         </tbody>
                     </table>
                     {hasMore && (
-                        <div ref={observerRef} className="table__load-trigger">
+                        <div ref={observerRef} className="ct-table__load-trigger">
                             {loadingMore && (
-                                <div className="table__loading">
-                                    <div className="table__spinner"></div>
+                                <div className="ct-table__loading">
+                                    <div className="ct-table__spinner"></div>
                                     Loading more clients...
                                 </div>
                             )}

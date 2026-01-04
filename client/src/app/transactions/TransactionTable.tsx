@@ -23,31 +23,31 @@ const TransactionTableErrorFallback: React.FC<{
     resetErrorBoundary: () => void;
 }> = ({ error, resetErrorBoundary }) => {
     return (
-        <div className="table-wrap">
-            <div className="table__container">
-                <div className="table__error-boundary">
-                    <div className="table__error-boundary-content">
-                        <AlertTriangle size={48} className="table__error-boundary-icon" />
-                        <h3 className="table__error-boundary-title">Something went wrong with the transaction table</h3>
-                        <p className="table__error-boundary-message">
+        <div className="txn-table-wrap">
+            <div className="txn-table__container">
+                <div className="txn-table__error-boundary">
+                    <div className="txn-table__error-boundary-content">
+                        <AlertTriangle size={48} className="txn-table__error-boundary-icon" />
+                        <h3 className="txn-table__error-boundary-title">Something went wrong with the transaction table</h3>
+                        <p className="txn-table__error-boundary-message">
                             We encountered an unexpected error while displaying the transactions. 
                             Don't worry, your data is safe.
                         </p>
                         {process.env.NODE_ENV === 'development' && (
-                            <details className="table__error-boundary-details">
+                            <details className="txn-table__error-boundary-details">
                                 <summary>Technical Details (Development)</summary>
-                                <pre className="table__error-boundary-stack">
+                                <pre className="txn-table__error-boundary-stack">
                                     {error.message}
                                     {error.stack && `\n${error.stack}`}
                                 </pre>
                             </details>
                         )}
-                        <div className="table__error-boundary-actions">
+                        <div className="txn-table__error-boundary-actions">
                             <Button
                                 variant="primary"
                                 icon={<RotateCcw size={16} />}
                                 onClick={resetErrorBoundary}
-                                className="table__error-boundary-retry"
+                                className="txn-table__error-boundary-retry"
                             >
                                 Try Again
                             </Button>
@@ -55,7 +55,7 @@ const TransactionTableErrorFallback: React.FC<{
                                 variant="secondary"
                                 icon={<RefreshCw size={16} />}
                                 onClick={() => window.location.reload()}
-                                className="table__error-boundary-refresh"
+                                className="txn-table__error-boundary-refresh"
                             >
                                 Refresh Page
                             </Button>
@@ -352,15 +352,15 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         }
 
         return sortDirection === 'asc' ?
-            <ChevronUp size={16} className="table__sort-icon table__sort-icon--active" /> :
-            <ChevronDown size={16} className="table__sort-icon table__sort-icon--active" />;
+            <ChevronUp size={16} className="txn-table__sort-icon txn-table__sort-icon--active" /> :
+            <ChevronDown size={16} className="txn-table__sort-icon txn-table__sort-icon--active" />;
     };
 
     const renderBankAndCard = (bankName: string | null, cardName: string | null) => {
         if (bankName && cardName) {
             return (
-                <div className="table__method-bank">
-                    <div className="table__pill">
+                <div className="txn-table__method-bank">
+                    <div className="txn-table__pill">
                         {bankName} • {cardName}
                     </div>
                 </div>
@@ -368,8 +368,8 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         }
         else if (bankName) {
             return (
-                <div className="table__method-bank">
-                    <div className="table__pill">
+                <div className="txn-table__method-bank">
+                    <div className="txn-table__pill">
                         {bankName}
                     </div>
                 </div>
@@ -377,22 +377,22 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         }
         else if (cardName) {
             return (
-                <div className="table__method-bank">
-                    <div className="table__pill">
+                <div className="txn-table__method-bank">
+                    <div className="txn-table__pill">
                         {cardName}
                     </div>
                 </div>
             )
         }
-        else return <div className="table__method-bank">N/A</div>;
+        else return <div className="txn-table__method-bank">N/A</div>;
     }
 
     const renderWithdrawCharges = (transaction: Transaction | null) => {
         if (transaction && transaction.widthdraw_charges !== null && transaction.widthdraw_charges !== 0) {
             return (
-                <div className="table__charges">
-                    <span className="table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
-                    <div className="table__charges-amount">
+                <div className="txn-table__charges">
+                    <span className="txn-table__charges-value">{transaction.widthdraw_charges.toFixed(2)}%</span>
+                    <div className="txn-table__charges-amount">
                         ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                 </div>
@@ -400,15 +400,15 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         }
         else{
             return (
-                <div className="table__charges">-</div>
+                <div className="txn-table__charges">-</div>
             )
         }
     }
 
     return (
-        <div className="table-wrap">
+        <div className="txn-table-wrap">
             {/* Scrollable container */}
-            <div className="table__container" ref={tableContainerRef}>
+            <div className="txn-table__container" ref={tableContainerRef}>
                 <table className="table">
                     <thead
                         ref={tableHeaderRef}
@@ -417,7 +417,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                         <tr>
                             <th>
                                 <div
-                                    className="table__sort-header"
+                                    className="txn-table__sort-header"
                                     onClick={() => handleSort('client_name')}
                                 >
                                     Client
@@ -425,13 +425,13 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header table__sort-header--disabled">
+                                <div className="txn-table__sort-header table__sort-header--disabled">
                                     Bank • Card
                                 </div>
                             </th>
                             <th>
                                 <div
-                                    className="table__sort-header"
+                                    className="txn-table__sort-header"
                                     onClick={() => handleSort('transaction_amount')}
                                 >
                                     Amount
@@ -439,14 +439,14 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header table__sort-header--disabled">
+                                <div className="txn-table__sort-header table__sort-header--disabled">
                                     Charges
                                 </div>
                             </th>
 
                             <th>
                                 <div
-                                    className="table__sort-header"
+                                    className="txn-table__sort-header"
                                     onClick={() => handleSort('create_date')}
                                 >
                                     Date & Time
@@ -454,7 +454,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                 </div>
                             </th>
                             <th>
-                                <div className="table__sort-header table__sort-header--disabled">
+                                <div className="txn-table__sort-header table__sort-header--disabled">
                                     Notes
                                 </div>
                             </th>
@@ -464,16 +464,16 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                     <tbody>
                         {loading && transactions.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="table__no-results">
-                                    <div className="table__loading">
-                                        <div className="table__spinner"></div>
+                                <td colSpan={7} className="txn-table__no-results">
+                                    <div className="txn-table__loading">
+                                        <div className="txn-table__spinner"></div>
                                         Loading transactions...
                                     </div>
                                 </td>
                             </tr>
                         ) : transactions.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="table__no-results">
+                                <td colSpan={7} className="txn-table__no-results">
                                     No transactions found.
                                 </td>
                             </tr>
@@ -489,59 +489,59 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                     <tr
                                         key={`${transaction.id}-${index}`}
                                         className={`
-                                            ${selectedTransaction?.id === transaction.id ? 'table__row--selected' : ''}
-                                            ${isRemoving ? 'table__row--removing' : ''}
-                                            ${isNew ? 'table__row--inserting' : ''}
+                                            ${selectedTransaction?.id === transaction.id ? 'txn-table__row--selected' : ''}
+                                            ${isRemoving ? 'txn-table__row--removing' : ''}
+                                            ${isNew ? 'txn-table__row--inserting' : ''}
                                         `.trim()}
                                     >
                                         <td>
-                                            <div className="table__client">
+                                            <div className="txn-table__client">
                                                 <div
-                                                    className="table__client-avatar"
+                                                    className="txn-table__client-avatar"
                                                     style={{ backgroundColor: getAvatarColor(transaction.client_name) }}
                                                 >
                                                     {getAvatarInitials(transaction.client_name)}
 
                                                     {/* Loading/Status Overlay */}
                                                     {(isSaving || isDeleting || completedStatus) && (
-                                                        <div className="table__avatar-overlay">
+                                                        <div className="txn-table__avatar-overlay">
                                                             {isSaving && (
-                                                                <div className="table__avatar-spinner">
-                                                                    <div className="table__spinner-ring"></div>
+                                                                <div className="txn-table__avatar-spinner">
+                                                                    <div className="txn-table__spinner-ring"></div>
                                                                 </div>
                                                             )}
                                                             {isDeleting && (
-                                                                <div className="table__avatar-spinner">
-                                                                    <div className="table__spinner-ring table__spinner-ring--delete"></div>
+                                                                <div className="txn-table__avatar-spinner">
+                                                                    <div className="txn-table__spinner-ring txn-table__spinner-ring--delete"></div>
                                                                 </div>
                                                             )}
                                                             {completedStatus === 'saved' && (
-                                                                <div className="table__avatar-status table__avatar-status--success">
+                                                                <div className="txn-table__avatar-status txn-table__avatar-status--success">
                                                                     <Check size={16} />
                                                                 </div>
                                                             )}
                                                             {completedStatus === 'deleted' && (
-                                                                <div className="table__avatar-status table__avatar-status--error">
+                                                                <div className="txn-table__avatar-status txn-table__avatar-status--error">
                                                                     <X size={16} />
                                                                 </div>
                                                             )}
                                                         </div>
                                                     )}
                                                 </div>
-                                                <span className="table__client-name">{transaction.client_name}</span>
+                                                <span className="txn-table__client-name">{transaction.client_name}</span>
                                             </div>
                                         </td>
                                         <td>
                                             {renderBankAndCard(transaction.bank_name, transaction.card_name)}
                                         </td>
                                         <td>
-                                            <div className={`table__amount table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
+                                            <div className={`txn-table__amount txn-table__amount--${getTransactionTypeLabel(transaction.transaction_type)}`}>
                                                 {isDeposit(transaction.transaction_type) ? (
-                                                    <ArrowDownLeft size={16} className="table__amount-icon" />
+                                                    <ArrowDownLeft size={16} className="txn-table__amount-icon" />
                                                 ) : (
-                                                    <ArrowUpRight size={16} className="table__amount-icon" />
+                                                    <ArrowUpRight size={16} className="txn-table__amount-icon" />
                                                 )}
-                                                <span className="table__amount-value">
+                                                <span className="txn-table__amount-value">
                                                     {formatAmountWithSymbol(transaction.transaction_amount)}
                                                 </span>
                                             </div>
@@ -551,24 +551,24 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                             {renderWithdrawCharges(transaction)}
                                         </td>
                                         <td>
-                                            {formatDateToReadable(transaction.create_date)} <span className="table__time">• {formatTime(transaction.create_time)}</span>
+                                            {formatDateToReadable(transaction.create_date)} <span className="txn-table__time">• {formatTime(transaction.create_time)}</span>
                                         </td>
                                         <td>
-                                            <div className="table__notes">
+                                            <div className="txn-table__notes">
                                                 {transaction.remark.length > 30 ? (
-                                                    <span className="table__notes-text">
+                                                    <span className="txn-table__notes-text">
                                                         {transaction.remark.slice(0, 30)}
                                                         <Button
                                                             variant="ghost"
                                                             size="small"
                                                             onClick={(e) => handleNotesView(e, transaction.remark)}
-                                                            className="table__notes-viewmore"
+                                                            className="txn-table__notes-viewmore"
                                                         >
                                                             ...
                                                         </Button>
                                                     </span>
                                                 ) : (
-                                                    <span className="table__notes-text">
+                                                    <span className="txn-table__notes-text">
                                                         {transaction.remark && transaction.remark.trim() !== '' ? transaction.remark : 'N/A'}
                                                     </span>
                                                 )}
@@ -582,7 +582,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                                                 size="small"
                                                 icon={<MoreHorizontal size={16} />}
                                                 onClick={() => handleTransactionSelect(transaction)}
-                                                className="row-actions"
+                                                className="txn-table__row-actions"
                                             >
                                                 Manage
                                             </Button>
@@ -596,10 +596,10 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
 
                 {/* Infinite scroll trigger */}
                 {hasMore && !loading && (
-                    <div ref={observerRef} className="table__load-trigger">
+                    <div ref={observerRef} className="txn-table__load-trigger">
                         {loadingMore && (
-                            <div className="table__loading">
-                                <div className="table__spinner"></div>
+                            <div className="txn-table__loading">
+                                <div className="txn-table__spinner"></div>
                                 Loading more transactions...
                             </div>
                         )}

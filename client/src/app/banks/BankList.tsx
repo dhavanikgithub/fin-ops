@@ -353,28 +353,28 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                             </div>
                         )}
 
-                        <div className="banks-grid">
+                        <div className="bnk-banks-grid">
                             {banks.map(bank => (
                                 <div 
-                                    className={`bank-card ${editingBank?.id === bank.id ? 'bank-card--selected' : ''}`}
+                                    className={`bnk-bank-card ${editingBank?.id === bank.id ? 'bnk-bank-card--selected' : ''}`}
                                     key={bank.id}
                                 >
-                                    <div className="bank-left">
+                                    <div className="bnk-bnk-bank-left">
                                         {deleting.includes(bank.id) && (
-                                            <div className="bank-card__overlay">
+                                            <div className="bnk-bank-card__overlay">
                                                 <Loader className="spinner" size={20} />
                                             </div>
                                         )}
                                         <Building2 size={22} />
                                         <div>
-                                            <div className="bank-title">{bank.name}</div>
-                                            <div className="bank-sub">Created: {formatDisplayDate(bank.create_date)}</div>
+                                            <div className="bnk-bank-title">{bank.name}</div>
+                                            <div className="bnk-bank-sub">Created: {formatDisplayDate(bank.create_date)}</div>
                                         </div>
                                     </div>
-                                    <div className="bank-meta">
-                                        <div className="meta-block">
-                                            <div className="meta-label">Transactions</div>
-                                            <div className="meta-value">{bank.transaction_count.toLocaleString()}</div>
+                                    <div className="bnk-bank-meta">
+                                        <div className="bnk-meta-block">
+                                            <div className="bnk-meta-label">Transactions</div>
+                                            <div className="bnk-meta-value">{bank.transaction_count.toLocaleString()}</div>
                                         </div>
                                         <Button 
                                             variant="ghost"
@@ -382,7 +382,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                             icon={<MoreHorizontal size={16} />}
                                             onClick={() => handleEditBank(bank)}
                                             disabled={deleting.includes(bank.id)}
-                                            className="row-actions"
+                                            className="bnk-row-actions"
                                         >
                                             Manage
                                         </Button>
@@ -390,7 +390,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                 </div>
                             ))}
                             {!loading && banks.length === 0 && (
-                                <div className="bank-card bank-card--empty">
+                                <div className="bnk-bank-card bnk-bank-card--empty">
                                     {searchQuery ? 'No banks found matching your search.' : 'No banks found.'}
                                 </div>
                             )}
@@ -398,22 +398,22 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                     </div>
 
                     {showEditForm && editingBank && (
-                        <div className="detail">
+                        <div className="bnk-detail">
                             {isUpdating && (
-                                <div className="detail__overlay">
+                                <div className="bnk-detail__overlay">
                                     <Loader className="spinner" size={24} />
                                 </div>
                             )}
-                            <div className="detail__header">
+                            <div className="bnk-detail__header">
                                 <Building2 size={28} />
                                 <div>
-                                    <div className="detail__name">Edit Bank</div>
-                                    <div className="label">Update bank details or delete</div>
+                                    <div className="bnk-detail__name">Edit Bank</div>
+                                    <div className="bnk-label">Update bank details or delete</div>
                                 </div>
                             </div>
-                            <div className="form">
+                            <div className="bnk-form">
                                 <div>
-                                    <div className="label">Bank Name</div>
+                                    <div className="bnk-label">Bank Name</div>
                                     <TextInput
                                         value={editForm.name}
                                         onChange={(value) => setEditForm({ name: value })}
@@ -421,7 +421,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                     />
                                 </div>
                                 <div>
-                                    <div className="label">Created On</div>
+                                    <div className="bnk-label">Created On</div>
                                     <TextInput
                                         value={formatDisplayDate(editingBank.create_date)}
                                         onChange={() => {}}
@@ -429,14 +429,14 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                                     />
                                 </div>
                                 <div>
-                                    <div className="label">Transactions</div>
+                                    <div className="bnk-label">Transactions</div>
                                     <TextInput
                                         value={editingBank.transaction_count.toLocaleString()}
                                         onChange={() => {}}
                                         readOnly
                                     />
                                 </div>
-                                <div className="inline-actions">
+                                <div className="bnk-inline-actions">
                                     <Button 
                                         variant="primary"
                                         icon={isUpdating ? undefined : <Edit size={16} />}

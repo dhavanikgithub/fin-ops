@@ -363,30 +363,6 @@
     margin-top: 8px;
 }
 
-.main__secondary-button {
-    background: var(--secondary);
-    color: var(--secondary-foreground);
-    padding: 10px 14px;
-    border: none;
-    border-radius: var(--radius-xl);
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-family-body);
-
-    &:hover {
-        opacity: 0.8;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-}
 
 .client-edit {
     display: flex;

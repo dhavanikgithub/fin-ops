@@ -131,14 +131,14 @@
 }
 
 
-.banks-grid {
+.bnk-banks-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 12px;
     margin-top: 16px;
 }
 
-.bank-card {
+.bnk-bank-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -160,45 +160,45 @@
     }
 }
 
-.bank-left {
+.bnk-bank-left {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.bank-title {
+.bnk-bank-title {
     font-size: 15px;
     font-weight: 600;
 }
 
-.bank-sub {
+.bnk-bank-sub {
     font-size: 13px;
     color: var(--muted-foreground);
 }
 
-.bank-meta {
+.bnk-bank-meta {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.meta-block {
+.bnk-meta-block {
     display: flex;
     flex-direction: column;
     gap: 2px;
 }
 
-.meta-label {
+.bnk-meta-label {
     font-size: 12px;
     color: var(--muted-foreground);
 }
 
-.meta-value {
+.bnk-meta-value {
     font-size: 14px;
     font-weight: 600;
 }
 
-.row-actions {
+.bnk-row-actions {
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -224,7 +224,7 @@
     }
 }
 
-.detail {
+.bnk-detail {
     width: 360px;
     background: var(--card);
     border: 1px solid var(--border);
@@ -249,18 +249,18 @@
     }
 }
 
-.form {
+.bnk-form {
     display: flex;
     flex-direction: column;
     gap: 12px;
 }
 
-.label {
+.bnk-label {
     font-size: 13px;
     color: var(--muted-foreground);
 }
 
-.control {
+.bnk-control {
     background: var(--input);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
@@ -283,43 +283,19 @@
 }
 
 // spacing between label and the input control
-.label + .control {
+.bnk-label + .bnk-control {
     margin-top: 4px;
 }
 
-.inline-actions {
+.bnk-inline-actions {
     display: inline-flex;
     gap: 8px;
 }
 
-.main__secondary-button {
-    background: var(--secondary);
-    color: var(--secondary-foreground);
-    padding: 10px 14px;
-    border: none;
-    border-radius: var(--radius-xl);
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-family: var(--font-family-body);
-
-    &:hover {
-        opacity: 0.8;
-    }
-
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-}
 
 // Responsive design
 @media (max-width: 1024px) {
-    .banks-grid {
+    .bnk-banks-grid {
         grid-template-columns: 1fr;
     }
 
@@ -327,36 +303,36 @@
         flex-direction: column;
     }
 
-    .detail {
+    .bnk-detail {
         width: 100%;
         order: -1;
     }
 }
 
 @media (max-width: 768px) {
-    .bank-card {
+    .bnk-bank-card {
         flex-direction: column;
         align-items: flex-start;
         gap: 12px;
     }
 
-    .bank-meta {
+    .bnk-bank-meta {
         width: 100%;
         justify-content: space-between;
     }
 
-    .banks-grid {
+    .bnk-banks-grid {
         gap: 8px;
         margin-top: 12px;
     }
 
-    .detail {
+    .bnk-detail {
         padding: 12px;
     }
 }
 
 // Loading states
-.bank-card {
+.bnk-bank-card {
     position: relative;
     
     &__overlay {
@@ -378,7 +354,7 @@
     }
 }
 
-.detail {
+.bnk-detail {
     position: relative;
     
     &__overlay {

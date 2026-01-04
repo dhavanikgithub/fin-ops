@@ -1,5 +1,7 @@
 
-.table__address-pill {
+.table__address-pill,
+.txn-table__address-pill,
+.ct-table__address-pill {
     display: inline-block;
     background: var(--secondary);
     color: var(--secondary-foreground);
@@ -16,7 +18,9 @@
 }
 // Table.scss - Common table styles for TransactionTable and ClientTable
 
-.table-wrap{
+.table-wrap,
+.txn-table-wrap,
+.ct-table-wrap {
     width: 100%;
     background: var(--card);
     border-radius: var(--radius-lg);
@@ -31,7 +35,9 @@
     font-family: var(--font-family-body);
 }
 
-.table__container{
+.table__container,
+.txn-table__container,
+.ct-table__container {
     flex: 1;
     overflow: auto;
     position: relative;
@@ -41,7 +47,9 @@
     background: var(--background);
 }
 
-.table{
+.table,
+.txn-table,
+.ct-table {
     width: 100%;
     border-collapse: collapse;
     font-size: 14px;
@@ -121,7 +129,9 @@
     }
 }
 
-.table__sort-header{
+.table__sort-header,
+.txn-table__sort-header,
+.ct-table__sort-header {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -133,26 +143,34 @@
     &:hover {
         color: var(--primary);
 
-        .table__sort-icon{
+        .table__sort-icon,
+        .txn-table__sort-icon,
+        .ct-table__sort-icon {
             opacity: 1;
             color: var(--primary);
         }
     }
 }
 
-.table__sort-icon {
+.table__sort-icon,
+.txn-table__sort-icon,
+.ct-table__sort-icon {
     opacity: 0.5;
     transition: opacity 0.15s ease, color 0.15s ease;
     color: var(--muted-foreground);
 }
 
-.table__client{
+.table__client,
+.txn-table__client,
+.ct-table__client {
     display: flex;
     align-items: center;
     gap: 12px;
 }
 
-.table__client-avatar{
+.table__client-avatar,
+.txn-table__client-avatar-shared,
+.ct-table__client-avatar-shared {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -169,19 +187,25 @@
     margin-right: 2px;
 }
 
-.table__client-name{
+.table__client-name,
+.txn-table__client-name,
+.ct-table__client-name {
     font-weight: 600;
     color: var(--foreground);
     font-family: var(--font-family-body);
 }
 
-.table__client-email{
+.table__client-email,
+.txn-table__client-email,
+.ct-table__client-email {
     font-size: 12px;
     color: var(--muted-foreground);
     font-family: var(--font-family-body);
 }
 
-.table__row-actions{
+.table__row-actions,
+.txn-table__row-actions-shared,
+.ct-table__row-actions-shared {
     display: flex;
     align-items: center;
     gap: 6px;
@@ -216,7 +240,9 @@
     }
 }
 
-.table__no-results{
+.table__no-results,
+.txn-table__no-results,
+.ct-table__no-results {
     text-align: center;
     padding: 48px 20px;
     color: var(--muted-foreground);
@@ -225,7 +251,9 @@
     background: var(--card);
 }
 
-.table__load-trigger{
+.table__load-trigger,
+.txn-table__load-trigger,
+.ct-table__load-trigger {
     padding: 20px;
     text-align: center;
     min-height: 60px;
@@ -236,7 +264,9 @@
     border-top: 1px solid var(--border);
 }
 
-.table__loading{
+.table__loading,
+.txn-table__loading,
+.ct-table__loading {
     display: flex;
     align-items: center;
     gap: 12px;
@@ -246,7 +276,9 @@
     font-family: var(--font-family-body);
 }
 
-.table__spinner{
+.table__spinner,
+.txn-table__spinner,
+.ct-table__spinner {
     width: 20px;
     height: 20px;
     border: 2px solid var(--border);
@@ -266,12 +298,16 @@
 
 // Responsive design
 @media (max-width: 768px) {
-    .table__container{
+    .table__container,
+    .txn-table__container,
+    .ct-table__container {
         height: calc(100vh - var(--table-offset, 180px));
         max-height: calc(100vh - var(--table-offset, 180px));
     }
 
-    .table{
+    .table,
+    .txn-table,
+    .ct-table {
         font-size: 13px;
 
         thead th {
@@ -283,17 +319,23 @@
         }
     }
 
-    .table__client{
+    .table__client,
+    .txn-table__client,
+    .ct-table__client {
         gap: 8px;
     }
 
-    .table__client-avatar{
+    .table__client-avatar,
+    .txn-table__client-avatar-shared,
+    .ct-table__client-avatar-shared {
         width: 28px;
         height: 28px;
         font-size: 13px;
     }
 
-    .table__client-name{
+    .table__client-name,
+    .txn-table__client-name,
+    .ct-table__client-name {
         font-size: 13px;
     }
 }
