@@ -492,7 +492,7 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
                 <div className="txn-table__charges">
                     <span className="txn-table__charges-value">{highlightText(transaction.widthdraw_charges.toFixed(2), search)}%</span>
                     <div className="txn-table__charges-amount">
-                        ₹ {highlightText((transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), search)}/-
+                        ₹ {(transaction.transaction_amount * transaction.widthdraw_charges / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/-
                     </div>
                 </div>
             )
