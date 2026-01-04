@@ -77,7 +77,8 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
         sortConfig,
         pagination,
         savingClientIds,
-        deletingClientIds
+        deletingClientIds,
+        searchQuery
     } = useAppSelector((state) => state.clients);
 
     const [showHeaderShadow, setShowHeaderShadow] = useState(false);
@@ -94,6 +95,26 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
     const tableContainerRef = useRef<HTMLDivElement>(null);
     const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
     const observerRef = useRef<HTMLDivElement>(null);
+
+    // Function to highlight search terms in text
+    const highlightText = (text: string | null | undefined, search: string): React.ReactNode => {
+        if (!search || !search.trim() || !text) return text || '-';
+
+        const searchTerm = search.trim();
+        const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escapedSearch})`, 'gi');
+
+        const parts = text.toString().split(regex);
+        
+        return parts.map((part, index) => {
+            const isMatch = part.toLowerCase() === searchTerm.toLowerCase();
+            return isMatch ? (
+                <mark key={index} className="ct-table__highlight">{part}</mark>
+            ) : (
+                part
+            );
+        });
+    };
 
     // Handle completed operations status display
     useEffect(() => {
@@ -258,12 +279,12 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
             <ChevronDown size={16} className="ct-table__sort-icon ct-table__sort-icon--active" />;
     };
 
-    const renderClientAddress = (address: string) => {
+    const renderClientAddress = (address: string, search: string) => {
         if (!address) return '-';
         return (
             <div style={{ display: 'flex', alignItems: 'center' }}>
                 <MapPin size={16} className="ct-table__address-icon" />
-                <span className="ct-table__address-pill" title={address}>{address}</span>
+                <span className="ct-table__address-pill" title={address}>{highlightText(address, search)}</span>
             </div>
         );
     }
@@ -364,14 +385,14 @@ const ClientTableContent: React.FC<ClientTableProps> = ({ selectedClient, onClie
                                                     <div className="ct-table__client-name" 
                                                     style={{cursor:'pointer'}}
                                                     onMouseUp={() => onClientSelect && onClientSelect(client)}
-                                                    onTouchEnd={() => onClientSelect && onClientSelect(client)}>{client.name}</div>
-                                                    <div className="ct-table__client-email">{client.email}</div>
+                                                    onTouchEnd={() => onClientSelect && onClientSelect(client)}>{highlightText(client.name, searchQuery)}</div>
+                                                    <div className="ct-table__client-email">{highlightText(client.email, searchQuery)}</div>
                                                 </div>
                                             </div>
                                         </td>
-                                        <td>{client.contact ? client.contact : '-'}</td>
+                                        <td>{highlightText(client.contact, searchQuery)}</td>
                                         <td>
-                                            {renderClientAddress(client.address)}
+                                            {renderClientAddress(client.address, searchQuery)}
                                         </td>
                                         <td>
                                             {client.transaction_count || 0}

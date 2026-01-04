@@ -1,5 +1,14 @@
 @use '../../styles/Table.scss';
 
+// Search term highlight styling
+.ct-table__highlight {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-weight: 500;
+}
+
 
 .ct-table__client-meta {
     display: flex;
