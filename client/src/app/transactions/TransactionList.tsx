@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ErrorBoundary, useErrorBoundary } from 'react-error-boundary';
-import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User, AlertTriangle, RotateCcw, Home } from 'lucide-react';
+import { Download, ArrowDownLeft, ArrowUpRight, SlidersHorizontal, Search, Edit, Trash, X, Check, Banknote, CreditCard, User, AlertTriangle, RotateCcw, Home, Funnel } from 'lucide-react';
 import { AutocompleteInput, AutocompleteOption, SearchInput, NumericInput, TextArea, PillToggleGroup, Button } from '@/components/FormInputs';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import {
@@ -447,8 +447,8 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
             type: getTransactionTypeLabel(selectedTransaction.transaction_type),
             amount: selectedTransaction.transaction_amount,
             charges: selectedTransaction.widthdraw_charges,
-            bank: selectedTransaction.bank_name || 'N/A',
-            card: selectedTransaction.card_name || 'N/A',
+            bank: selectedTransaction.bank_name || '-',
+            card: selectedTransaction.card_name || '-',
             notes: selectedTransaction.remark
         };
     };
@@ -532,7 +532,7 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                             <div className="main__actions">
                                 <Button
                                     variant="secondary"
-                                    icon={<SlidersHorizontal size={16} />}
+                                    icon={<Funnel size={16} />}
                                     onClick={handleOpenFilterModal}
                                     badge={filterCount > 0 ? filterCount : undefined}
                                     className={`main__icon-button ${filterCount > 0 ? 'main__icon-button--active' : ''}`}
@@ -710,13 +710,6 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                                             className="main__icon-button"
                                         >
                                             {selectedTransaction && isTransactionBeingDeleted(selectedTransaction.id, deletingTransactionIds) ? 'Deleting...' : 'Delete'}
-                                        </Button>
-                                        <Button
-                                            variant="secondary"
-                                            icon={<X size={16} />}
-                                            onClick={handleDeselectTransaction}
-                                        >
-                                            Close
                                         </Button>
                                     </div>
                                 </div>

@@ -188,7 +188,7 @@ const DeleteTransactionConfirmModalContent: React.FC<DeleteTransactionConfirmMod
                                     </div> : null}
                                 </div>
                             </div>
-                            {isWithdrawLabel(transaction.type) && transaction.bank && transaction.card && transaction.bank.toUpperCase() !== 'N/A' && transaction.card.toUpperCase() !== 'N/A' ? (
+                            {isWithdrawLabel(transaction.type) && transaction.bank && transaction.card && transaction.bank.toUpperCase() !== '-' && transaction.card.toUpperCase() !== '-' ? (
                                 <div className="delete-modal__summary-right">
                                     <div className="delete-modal__badge">Bank: {transaction.bank}</div>
                                     <div className="delete-modal__badge">Card: {transaction.card}</div>

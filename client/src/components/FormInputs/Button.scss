@@ -111,7 +111,8 @@
         color: var(--foreground);
 
         &:hover:not(:disabled) {
-            background: var(--muted);
+            background: var(--primary);
+            color: var(--primary-foreground);
         }
 
         &:disabled {

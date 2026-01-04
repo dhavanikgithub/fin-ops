@@ -106,11 +106,10 @@ const ExportErrorFallback: React.FC<{
                         Export Error
                     </h2>
                     <Button
-                        variant="ghost"
+                        variant="primary"
                         size="small"
                         icon={<X size={16} />}
                         onClick={handleClose}
-                        className="export-modal__close"
                     />
                 </div>
                 <div className="export-modal__body">
@@ -455,11 +454,10 @@ const ExportTransactionModalContent: React.FC<ExportModalProps> = ({ isOpen, onC
                         Export Transactions
                     </h2>
                     <Button 
-                        variant="ghost"
+                        variant="secondary"
                         size="small"
                         icon={<X size={16} />}
                         onClick={handleCancel}
-                        className="export-modal__close"
                     />
                 </div>
 

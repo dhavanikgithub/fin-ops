@@ -7,7 +7,10 @@ import ToastWrapper from "@/components/ToastWrapper";
 import { ThemeProvider } from "@/context/ThemeContext";
 
 export const metadata: Metadata = {
-  title: "FinOps",
+  title: {
+    template: "FinOps - %s",
+    default: "FinOps",
+  },
   description: "",
 };
 

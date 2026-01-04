@@ -187,9 +187,7 @@
     margin-right: 2px;
 }
 
-.table__client-name,
-.txn-table__client-name,
-.ct-table__client-name {
+.table__client-name {
     font-weight: 600;
     color: var(--foreground);
     font-family: var(--font-family-body);

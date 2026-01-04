@@ -303,8 +303,8 @@
     height: 40px;
     border-radius: 50%;
     font-size: 14px;
-    font-weight: 600;
     text-align: center;
+    color: var(--primary-foreground);
 }
 
 .txn-table__avatar-overlay {
@@ -554,4 +554,9 @@
         outline: 2px solid var(--ring);
         outline-offset: 2px;
     }
+}
+
+.txn-table__client-name{
+    color: var(--foreground);
+    font-family: var(--font-family-body);
 }

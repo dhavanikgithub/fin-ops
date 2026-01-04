@@ -136,14 +136,12 @@
         text-align: left;
 
         &:hover {
-            background: var(--accent);
             border-color: var(--primary);
 
             .export-modal__recent-date,
             .export-modal__recent-client,
-            .export-modal__recent-time,
-            .export-modal__recent-delete {
-                color: white;
+            .export-modal__recent-time {
+                color: var(--primary);
             }
         }
     }
@@ -194,8 +192,8 @@
         transition: all 0.2s ease;
 
         &:hover {
-            background: var(--destructive);
-            color: var(--destructive-foreground);
+            background: var(--destructive-foreground);
+            color: var(--destructive);
         }
 
         &:active {

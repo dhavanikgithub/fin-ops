@@ -4,7 +4,10 @@ import { navItemsObject } from "@/components/NavbarItems";
 import finkedaSettingsService, { FinkedaSettings } from "@/services/finkedaSettingsService";
 import logger from "@/utils/logger";
 import toast from "react-hot-toast";
-
+import { Metadata } from "next";
+export const metadata: Metadata = {
+  title: "Finkeda Special", // Will display as "FinOps - Finkeda Special"
+};
 async function getInitialSettings(): Promise<FinkedaSettings | null> {
   try {
     return await finkedaSettingsService.getLatestSettings();
