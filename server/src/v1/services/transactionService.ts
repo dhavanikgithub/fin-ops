@@ -115,13 +115,17 @@ export class TransactionService {
                 // Priority search: exact match first, then wildcard match
                 whereConditions.push(`(
                     (c.name ILIKE $${paramIndex} OR 
-                     COALESCE(bk.name, '') ILIKE $${paramIndex} OR 
-                     COALESCE(ct.name, '') ILIKE $${paramIndex} OR 
-                     COALESCE(tr.remark, '') ILIKE $${paramIndex}) OR
+                    COALESCE(bk.name, '') ILIKE $${paramIndex} OR 
+                    COALESCE(ct.name, '') ILIKE $${paramIndex} OR 
+                    COALESCE(tr.remark, '') ILIKE $${paramIndex} OR
+                    CAST(tr.transaction_amount AS TEXT) ILIKE $${paramIndex} OR
+                    CAST(tr.widthdraw_charges AS TEXT) ILIKE $${paramIndex}) OR
                     (c.name ILIKE $${paramIndex + 1} OR 
-                     COALESCE(bk.name, '') ILIKE $${paramIndex + 1} OR 
-                     COALESCE(ct.name, '') ILIKE $${paramIndex + 1} OR 
-                     COALESCE(tr.remark, '') ILIKE $${paramIndex + 1})
+                    COALESCE(bk.name, '') ILIKE $${paramIndex + 1} OR 
+                    COALESCE(ct.name, '') ILIKE $${paramIndex + 1} OR 
+                    COALESCE(tr.remark, '') ILIKE $${paramIndex + 1} OR
+                    CAST(tr.transaction_amount AS TEXT) ILIKE $${paramIndex + 1} OR
+                    CAST(tr.widthdraw_charges AS TEXT) ILIKE $${paramIndex + 1})
                 )`);
                 queryParams.push(searchTermExact, searchTermWildcard);
                 paramIndex += 2;
