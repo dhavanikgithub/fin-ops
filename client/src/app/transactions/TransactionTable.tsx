@@ -114,6 +114,83 @@ const TransactionTableContent: React.FC<TableProps> = ({ selectedTransaction, on
         // Normalize search term by removing trailing zeros after decimal
         const normalizedSearch = searchTerm.replace(/\.?0+$/, '');
         
+        // For numeric matching, also try without commas
+        const searchWithoutComma = searchTerm.replace(/,/g, '');
+        const textWithoutComma = text.toString().replace(/,/g, '');
+        
+        // Check if the search term (without commas) exists in text (without commas)
+        if (searchWithoutComma && textWithoutComma.toLowerCase().includes(searchWithoutComma.toLowerCase())) {
+            // Split text by commas to handle comma-separated numbers
+            const parts: React.ReactNode[] = [];
+            let remainingText = text.toString();
+            let key = 0;
+            
+            // Find all occurrences considering commas
+            const regex = new RegExp(
+                searchWithoutComma.split('').join(',?'),
+                'gi'
+            );
+            
+            const matches = remainingText.match(regex);
+            if (matches) {
+                let lastIndex = 0;
+                let searchIndex = 0;
+                
+                while (searchIndex < remainingText.length) {
+                    const textSegment = remainingText.slice(searchIndex).replace(/,/g, '');
+                    const matchIndex = textSegment.toLowerCase().indexOf(searchWithoutComma.toLowerCase());
+                    
+                    if (matchIndex !== -1) {
+                        // Calculate actual position in original text (with commas)
+                        let actualIndex = searchIndex;
+                        let segmentIndex = 0;
+                        
+                        for (let i = searchIndex; i < remainingText.length && segmentIndex < matchIndex; i++) {
+                            if (remainingText[i] !== ',') {
+                                segmentIndex++;
+                            }
+                            actualIndex = i + 1;
+                        }
+                        
+                        // Add text before match
+                        if (actualIndex > lastIndex) {
+                            parts.push(remainingText.slice(lastIndex, actualIndex));
+                        }
+                        
+                        // Calculate match length in original text (including commas)
+                        let matchLength = 0;
+                        let matchedChars = 0;
+                        for (let i = actualIndex; i < remainingText.length && matchedChars < searchWithoutComma.length; i++) {
+                            matchLength++;
+                            if (remainingText[i] !== ',') {
+                                matchedChars++;
+                            }
+                        }
+                        
+                        // Add highlighted match
+                        parts.push(
+                            <mark key={`highlight-${key++}`} className="txn-table__highlight">
+                                {remainingText.slice(actualIndex, actualIndex + matchLength)}
+                            </mark>
+                        );
+                        
+                        lastIndex = actualIndex + matchLength;
+                        searchIndex = lastIndex;
+                    } else {
+                        break;
+                    }
+                }
+                
+                // Add remaining text
+                if (lastIndex < remainingText.length) {
+                    parts.push(remainingText.slice(lastIndex));
+                }
+                
+                return parts.length > 0 ? parts : text;
+            }
+        }
+        
+        // Fallback to original logic for non-numeric or simple matches
         // Create regex for both exact and normalized versions
         const escapedSearch = searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const escapedNormalized = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
