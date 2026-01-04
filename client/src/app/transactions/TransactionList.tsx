@@ -200,9 +200,7 @@ const TransactionListContent: React.FC<TransactionListProps> = ({ onDeposit, onW
                 logger.log('Loaded filters from localStorage:', parsed);
                 return parsed;
             }
-        } catch (error) {
-            logger.error('Failed to load filters from localStorage:', error);
-        }
+        } catch (error) {/** empty */}
         return {
             types: [],
             minAmount: '',

@@ -22,46 +22,55 @@ export const useTheme = () => {
 
 interface ThemeProviderProps {
     children: React.ReactNode;
+    initialTheme?: 'light' | 'dark';
 }
 
-export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-    const [theme, setTheme] = useState<Theme>('light');
+export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children, initialTheme = 'light' }) => {
+    const [theme, setTheme] = useState<Theme>(initialTheme);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
         const initializeTheme = () => {
-            let initialTheme: Theme = 'light';
+            let finalTheme: Theme = initialTheme;
 
             try {
-                // Check localStorage first
-                const savedTheme = localStorage.getItem('theme') as Theme;
+                // Check cookie first
+                const cookies = document.cookie.split('; ');
+                const themeCookie = cookies.find(row => row.startsWith('theme='));
+                const savedTheme = themeCookie?.split('=')[1] as Theme;
+                
                 if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
-                    initialTheme = savedTheme;
-                } else {
-                    // Check system preference
-                    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                    initialTheme = systemPrefersDark ? 'dark' : 'light';
+                    finalTheme = savedTheme;
+                }
+
+                // Clean up old localStorage value if it exists
+                if (localStorage.getItem('theme')) {
+                    localStorage.removeItem('theme');
                 }
             } catch (error) {
-                logger.warn('Error accessing localStorage or matchMedia:', error);
+                logger.warn('Error accessing cookies:', error);
             }
 
-            setTheme(initialTheme);
+            setTheme(finalTheme);
             setMounted(true);
 
             // Apply theme immediately
-            document.documentElement.setAttribute('data-theme', initialTheme);
-            document.body.className = initialTheme;
+            document.documentElement.setAttribute('data-theme', finalTheme);
+            document.body.className = finalTheme;
         };
 
         initializeTheme();
-    }, []);
+    }, [initialTheme]);
 
     useEffect(() => {
         if (!mounted) return;
 
         try {
-            localStorage.setItem('theme', theme);
+            // Save theme to cookie (expires in 1 year)
+            const expiryDate = new Date();
+            expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+            document.cookie = `theme=${theme}; expires=${expiryDate.toUTCString()}; path=/; SameSite=Lax`;
+            
             document.documentElement.setAttribute('data-theme', theme);
             document.body.className = theme;
         } catch (error) {
