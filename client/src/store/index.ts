@@ -7,6 +7,15 @@ import clientReducer from './slices/clientSlice';
 import bankReducer from './slices/bankSlice';
 import cardReducer from './slices/cardSlice';
 
+// Profiler reducers
+import profilerClientReducer from './slices/profilerClientSlice';
+import profilerClientAutocompleteReducer from './slices/profilerClientAutocompleteSlice';
+import profilerBankReducer from './slices/profilerBankSlice';
+import profilerBankAutocompleteReducer from './slices/profilerBankAutocompleteSlice';
+import profilerProfileReducer from './slices/profilerProfileSlice';
+import profilerProfileAutocompleteReducer from './slices/profilerProfileAutocompleteSlice';
+import profilerTransactionReducer from './slices/profilerTransactionSlice';
+
 export const store = configureStore({
     reducer: {
         transactions: transactionReducer,
@@ -16,6 +25,14 @@ export const store = configureStore({
         clients: clientReducer,
         banks: bankReducer,
         cards: cardReducer,
+        // Profiler reducers
+        profilerClients: profilerClientReducer,
+        profilerClientAutocomplete: profilerClientAutocompleteReducer,
+        profilerBanks: profilerBankReducer,
+        profilerBankAutocomplete: profilerBankAutocompleteReducer,
+        profilerProfiles: profilerProfileReducer,
+        profilerProfileAutocomplete: profilerProfileAutocompleteReducer,
+        profilerTransactions: profilerTransactionReducer,
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({

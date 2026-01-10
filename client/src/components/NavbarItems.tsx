@@ -21,6 +21,7 @@ interface NavItemsObject {
     Banks: NavItemObject;
     Cards: NavItemObject;
     SpecialCalculators: NavItemObject;
+    Profiler: NavItemObject;
 }
 
 export const navItemsObject: NavItemsObject = {
@@ -34,6 +35,17 @@ export const navItemsObject: NavItemsObject = {
         subItems: {
             Simple: { icon: <Percent size={20} />, label: 'Simple', href: '/special-calculators/simple-calculator' },
             Finkeda: { icon: <Finkeda size={20} />, label: 'Finkeda Special', href: '/special-calculators/finkeda-special' },
+        }
+    },
+    Profiler: {
+        icon: <Users size={20} />,
+        label: 'Profiler',
+        subItems: {
+            Dashboard: { icon: <Wallet size={20} />, label: 'Dashboard', href: '/profiler' },
+            Profiles: { icon: <Wallet size={20} />, label: 'Profiles', href: '/profiler/profiles' },
+            Clients: { icon: <Users size={20} />, label: 'Clients', href: '/profiler/clients' },
+            Banks: { icon: <Building2 size={20} />, label: 'Banks', href: '/profiler/banks' },
+            Transactions: { icon: <Wallet size={20} />, label: 'Transactions', href: '/profiler/transactions' },
         }
     }
 }

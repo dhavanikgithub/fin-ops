@@ -61,6 +61,8 @@ export const SelectInput: React.FC<SelectInputProps> = ({
                     value={value}
                     onChange={handleChange}
                     disabled={disabled}
+                    title={label || placeholder} // Added title attribute for accessibility
+                    aria-label={label || placeholder} // Added aria-label for screen readers
                 >
                     {placeholder && (
                         <option value="" disabled>

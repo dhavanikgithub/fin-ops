@@ -1,0 +1,351 @@
+'use client'
+import React, { useState, useEffect } from 'react';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { createProfilerProfile } from '@/store/actions/profilerProfileActions';
+import { fetchProfilerClientAutocomplete } from '@/store/slices/profilerClientAutocompleteSlice';
+import { fetchProfilerBankAutocomplete } from '@/store/slices/profilerBankAutocompleteSlice';
+import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { TextInput, NumericInput, Button, TextArea, SelectInput } from '@/components/FormInputs';
+import './AddProfilerProfile.scss';
+import toast from 'react-hot-toast';
+import logger from '@/utils/logger';
+
+interface AddProfilerProfileProps {
+    onBack: () => void;
+}
+
+interface FormData {
+    profiler_client_id: string;
+    profiler_bank_id: string;
+    credit_card_number: string;
+    opening_balance: number;
+    carry_forward_balance: number;
+    carry_forward: boolean;
+    remarks: string;
+}
+
+interface FormErrors {
+    profiler_client_id?: string;
+    profiler_bank_id?: string;
+    credit_card_number?: string;
+    opening_balance?: string;
+    carry_forward_balance?: string;
+}
+
+const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
+    const dispatch = useAppDispatch();
+    const { creating } = useAppSelector((state) => state.profilerProfiles);
+    const { items: clients, loading: clientsLoading } = useAppSelector((state) => state.profilerClientAutocomplete);
+    const { items: banks, loading: banksLoading } = useAppSelector((state) => state.profilerBankAutocomplete);
+
+    const [formData, setFormData] = useState<FormData>({
+        profiler_client_id: '',
+        profiler_bank_id: '',
+        credit_card_number: '',
+        opening_balance: 0,
+        carry_forward_balance: 0,
+        carry_forward: false,
+        remarks: ''
+    });
+
+    const [errors, setErrors] = useState<FormErrors>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+    useEffect(() => {
+        dispatch(fetchProfilerClientAutocomplete({}));
+        dispatch(fetchProfilerBankAutocomplete({}));
+    }, [dispatch]);
+
+    const validateField = (name: keyof FormData, value: string | boolean | number): string | undefined => {
+        switch (name) {
+            case 'profiler_client_id':
+                if (!value) {
+                    return 'Client is required';
+                }
+                break;
+
+            case 'profiler_bank_id':
+                if (!value) {
+                    return 'Bank is required';
+                }
+                break;
+
+            case 'credit_card_number':
+                if (!value || (typeof value === 'string' && value.trim() === '')) {
+                    return 'Credit card number is required';
+                }
+                break;
+
+            case 'opening_balance':
+                if (typeof value === 'number' && value <= 0) {
+                    return 'Opening balance is required';
+                }
+                break;
+
+            case 'carry_forward_balance':
+                if (formData.carry_forward && typeof value === 'number' && value <= 0) {
+                    return 'Carry forward balance is required when carry forward is enabled';
+                }
+                break;
+        }
+        return undefined;
+    };
+
+    const validateForm = (): boolean => {
+        const newErrors: FormErrors = {};
+        
+        (['profiler_client_id', 'profiler_bank_id', 'credit_card_number', 'opening_balance', 'carry_forward_balance'] as (keyof FormData)[]).forEach((key) => {
+            const error = validateField(key, formData[key]);
+            if (error) {
+                newErrors[key as keyof FormErrors] = error;
+            }
+        });
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const handleChange = (name: string, value: string | number | boolean) => {
+        setFormData((prev) => ({ 
+            ...prev, 
+            [name]: value 
+        }));
+
+        if (errors[name as keyof FormErrors]) {
+            setErrors((prev) => ({ ...prev, [name]: undefined }));
+        }
+    };
+
+    const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const { name, checked } = e.target;
+        handleChange(name, checked);
+    };
+
+    const handleBlur = (name: string) => {
+        setTouched((prev) => ({ ...prev, [name]: true }));
+
+        const error = validateField(name as keyof FormData, formData[name as keyof FormData]);
+        if (error) {
+            setErrors((prev) => ({ ...prev, [name]: error }));
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const allTouched = Object.keys(formData).reduce((acc, key) => {
+            acc[key] = true;
+            return acc;
+        }, {} as Record<string, boolean>);
+        setTouched(allTouched);
+
+        if (!validateForm()) {
+            toast.error('Please fix all validation errors');
+            return;
+        }
+
+        try {
+            await dispatch(createProfilerProfile({
+                client_id: parseInt(formData.profiler_client_id),
+                bank_id: parseInt(formData.profiler_bank_id),
+                credit_card_number: formData.credit_card_number.trim(),
+                pre_planned_deposit_amount: formData.opening_balance,
+                carry_forward_enabled: formData.carry_forward,
+                notes: formData.remarks.trim() || null
+            })).unwrap();
+
+            toast.success('Profiler profile created successfully');
+            logger.log('Profiler profile created');
+            onBack();
+        } catch (error: any) {
+            logger.error('Error creating profiler profile:', error);
+            toast.error(error || 'Failed to create profile');
+        }
+    };
+
+    const handleReset = () => {
+        setFormData({
+            profiler_client_id: '',
+            profiler_bank_id: '',
+            credit_card_number: '',
+            opening_balance: 0,
+            carry_forward_balance: 0,
+            carry_forward: false,
+            remarks: ''
+        });
+        setErrors({});
+        setTouched({});
+    };
+
+    const clientOptions = clients.map((client: any) => ({
+        value: client.id.toString(),
+        label: client.name
+    }));
+
+    const bankOptions = banks.map((bank: any) => ({
+        value: bank.id.toString(),
+        label: bank.bank_name
+    }));
+
+    return (
+        <div className="add-profiler-profile">
+            <div className="add-profiler-profile__header">
+                <Button
+                    variant="ghost"
+                    icon={<ArrowLeft size={18} />}
+                    onClick={onBack}
+                    className="add-profiler-profile__back-button"
+                >
+                    Back to Profiles
+                </Button>
+                
+                <div className="add-profiler-profile__title-section">
+                    <h1 className="add-profiler-profile__title">Add New Profiler Profile</h1>
+                    <p className="add-profiler-profile__subtitle">
+                        Create a new financial profile for a client
+                    </p>
+                </div>
+            </div>
+
+            <form onSubmit={handleSubmit} className="add-profiler-profile__form">
+                <div className="add-profiler-profile__card">
+                    <div className="add-profiler-profile__section">
+                        <h2 className="add-profiler-profile__section-title">Profile Information</h2>
+                        
+                        <div className="add-profiler-profile__form-grid">
+                            <div className="add-profiler-profile__form-group">
+                                <label htmlFor="profiler_client_id" className="add-profiler-profile__label">
+                                    Client <span className="add-profiler-profile__required">*</span>
+                                </label>
+                                <SelectInput
+                                    value={formData.profiler_client_id}
+                                    onChange={(value) => handleChange('profiler_client_id', value)}
+                                    options={[{ value: '', label: 'Select client' }, ...clientOptions]}
+                                    error={touched.profiler_client_id ? errors.profiler_client_id : undefined}
+                                    disabled={creating || clientsLoading}
+                                />
+                            </div>
+
+                            <div className="add-profiler-profile__form-group">
+                                <label htmlFor="profiler_bank_id" className="add-profiler-profile__label">
+                                    Bank <span className="add-profiler-profile__required">*</span>
+                                </label>
+                                <SelectInput
+                                    value={formData.profiler_bank_id}
+                                    onChange={(value) => handleChange('profiler_bank_id', value)}
+                                    options={[{ value: '', label: 'Select bank' }, ...bankOptions]}
+                                    error={touched.profiler_bank_id ? errors.profiler_bank_id : undefined}
+                                    disabled={creating || banksLoading}
+                                />
+                            </div>
+
+                            <div className="add-profiler-profile__form-group">
+                                <label htmlFor="credit_card_number" className="add-profiler-profile__label">
+                                    Credit Card Number <span className="add-profiler-profile__required">*</span>
+                                </label>
+                                <TextInput
+                                    value={formData.credit_card_number}
+                                    onChange={(value) => handleChange('credit_card_number', value)}
+                                    onBlur={() => handleBlur('credit_card_number')}
+                                    placeholder="Enter credit card number"
+                                    error={touched.credit_card_number ? errors.credit_card_number : undefined}
+                                    disabled={creating}
+                                />
+                            </div>
+
+                            <div className="add-profiler-profile__form-group">
+                                <label htmlFor="opening_balance" className="add-profiler-profile__label">
+                                    Opening Balance <span className="add-profiler-profile__required">*</span>
+                                </label>
+                                <NumericInput
+                                    value={formData.opening_balance}
+                                    onChange={(value) => handleChange('opening_balance', value)}
+                                    onBlur={() => handleBlur('opening_balance')}
+                                    placeholder="0.00"
+                                    error={touched.opening_balance ? errors.opening_balance : undefined}
+                                    disabled={creating}
+                                />
+                            </div>
+
+                            <div className="add-profiler-profile__form-group">
+                                <label className="add-profiler-profile__checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        name="carry_forward"
+                                        checked={formData.carry_forward}
+                                        onChange={handleCheckboxChange}
+                                        disabled={creating}
+                                        className="add-profiler-profile__checkbox"
+                                    />
+                                    <span>Enable Carry Forward</span>
+                                </label>
+                            </div>
+
+                            {formData.carry_forward && (
+                                <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
+                                    <label htmlFor="carry_forward_balance" className="add-profiler-profile__label">
+                                        Carry Forward Balance <span className="add-profiler-profile__required">*</span>
+                                    </label>
+                                    <NumericInput
+                                        value={formData.carry_forward_balance}
+                                        onChange={(value) => handleChange('carry_forward_balance', value)}
+                                        onBlur={() => handleBlur('carry_forward_balance')}
+                                        placeholder="0.00"
+                                        error={touched.carry_forward_balance ? errors.carry_forward_balance : undefined}
+                                        disabled={creating}
+                                    />
+                                </div>
+                            )}
+
+                            <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
+                                <label htmlFor="remarks" className="add-profiler-profile__label">
+                                    Remarks
+                                </label>
+                                <TextArea
+                                    value={formData.remarks}
+                                    onChange={(value) => handleChange('remarks', value)}
+                                    placeholder="Additional remarks or notes..."
+                                    rows={4}
+                                    disabled={creating}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="add-profiler-profile__actions">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleReset}
+                        disabled={creating}
+                    >
+                        Reset Form
+                    </Button>
+                    
+                    <div className="add-profiler-profile__actions-right">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={onBack}
+                            disabled={creating}
+                        >
+                            Cancel
+                        </Button>
+                        
+                        <Button
+                            type="submit"
+                            variant="primary"
+                            icon={creating ? <Loader2 size={18} className="add-profiler-profile__spinner" /> : <Save size={18} />}
+                            disabled={creating}
+                        >
+                            {creating ? 'Creating...' : 'Create Profile'}
+                        </Button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    );
+};
+
+export default AddProfilerProfile;
