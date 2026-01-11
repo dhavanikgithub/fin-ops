@@ -36,21 +36,21 @@ const ProfilerClientsScreenErrorFallback: React.FC<{
                                 </details>
                             )}
                             <div className="profiler-clients-screen__error-boundary-actions">
-                                <Button 
+                                <Button
                                     variant="primary"
                                     icon={<RotateCcw size={16} />}
                                     onClick={resetErrorBoundary}
                                 >
                                     Try Again
                                 </Button>
-                                <Button 
+                                <Button
                                     variant="secondary"
                                     icon={<Users size={16} />}
                                     onClick={() => window.location.href = '/profiler/clients'}
                                 >
                                     Reload Clients
                                 </Button>
-                                <Button 
+                                <Button
                                     variant="secondary"
                                     icon={<Home size={16} />}
                                     onClick={() => window.location.href = '/profiler'}
@@ -113,26 +113,24 @@ const ProfilerClientsScreenContent: React.FC = () => {
         }
     };
 
-    return renderCurrentView();
+    return <div className="main">{renderCurrentView()}</div>;
 };
 
 const ProfilerClientsScreen: React.FC = () => {
     return (
-        <div className="profiler-clients-screen">
-            <ErrorBoundary 
-                FallbackComponent={ProfilerClientsScreenErrorFallback}
-                onError={(error, errorInfo) => {
-                    logger.error('Profiler clients screen error boundary triggered:', {
-                        error: error.message,
-                        stack: error.stack,
-                        errorInfo,
-                        timestamp: new Date().toISOString()
-                    });
-                }}
-            >
-                <ProfilerClientsScreenContent />
-            </ErrorBoundary>
-        </div>
+        <ErrorBoundary
+            FallbackComponent={ProfilerClientsScreenErrorFallback}
+            onError={(error, errorInfo) => {
+                logger.error('Profiler clients screen error boundary triggered:', {
+                    error: error.message,
+                    stack: error.stack,
+                    errorInfo,
+                    timestamp: new Date().toISOString()
+                });
+            }}
+        >
+            <ProfilerClientsScreenContent />
+        </ErrorBoundary>
     );
 };
 

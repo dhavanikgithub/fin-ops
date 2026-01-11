@@ -145,7 +145,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <ArrowUpCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--destructive" size={20} />
@@ -264,7 +264,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
                     </form>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

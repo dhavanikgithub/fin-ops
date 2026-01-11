@@ -162,7 +162,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     {formData.transaction_type === 'deposit' ? (
@@ -387,7 +387,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

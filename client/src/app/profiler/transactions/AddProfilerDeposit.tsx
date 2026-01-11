@@ -127,7 +127,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <ArrowDownCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--success" size={20} />
@@ -216,7 +216,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
                     </form>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

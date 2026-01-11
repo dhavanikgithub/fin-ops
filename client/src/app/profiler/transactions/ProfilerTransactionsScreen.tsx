@@ -110,7 +110,7 @@ const ProfilerTransactionsScreenContent: React.FC = () => {
         }
     };
 
-    return <div className="profiler-transactions-screen">{renderCurrentView()}</div>;
+    return <div className="main">{renderCurrentView()}</div>;
 };
 
 const ProfilerTransactionsScreen: React.FC = () => {

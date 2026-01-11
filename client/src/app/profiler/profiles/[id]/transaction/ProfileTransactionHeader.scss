@@ -1,13 +1,9 @@
-@use '../../../../../styles/Main.scss';
 
 .profile-transaction-header {
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-
-    &__back {
+    &__info-wrapper {
         display: flex;
-        align-items: center;
+        flex-direction: column;
+        gap: 20px;
     }
 
     &__profile-card {

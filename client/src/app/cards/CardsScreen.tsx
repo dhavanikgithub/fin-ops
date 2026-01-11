@@ -126,7 +126,7 @@ const CardsScreenContent: React.FC = () => {
         }
     };
 
-    return renderCurrentView();
+    return <div className='main'>{renderCurrentView()}</div>;
 };
 
 const CardsScreen: React.FC = () => {

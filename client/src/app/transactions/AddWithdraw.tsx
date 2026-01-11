@@ -27,7 +27,7 @@ const AddWithdrawErrorFallback: React.FC<{
     onCancel: () => void;
 }> = ({ error, resetErrorBoundary, onCancel }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} className="main__header-icon--error" />
@@ -84,7 +84,7 @@ const AddWithdrawErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -340,7 +340,7 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <ArrowUpCircle size={16} className="main__header-icon--destructive" />
@@ -505,7 +505,7 @@ const AddWithdrawScreenContent: React.FC<AddWithdrawScreenProps> = ({ onCancel, 
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

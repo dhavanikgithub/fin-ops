@@ -94,7 +94,7 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
 
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
-        
+
         Object.keys(formData).forEach((key) => {
             const error = validateField(key as keyof FormData, formData[key as keyof FormData]);
             if (error) {
@@ -108,7 +108,7 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        
+
         // Special handling for Aadhaar card number
         if (name === 'aadhaar_card_number') {
             const unformatted = unformatAadhaar(value);
@@ -182,7 +182,7 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <h1>New Client</h1>
@@ -220,117 +220,117 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
                         </p>
                     </div>
 
-            <form onSubmit={handleSubmit} className="add-profiler-client__form">
-                <div className="add-profiler-client__card">
-                    <div className="add-profiler-client__section">
-                        <h2 className="add-profiler-client__section-title">Basic Information</h2>
-                        
-                        <div className="add-profiler-client__form-grid">
-                            <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
-                                <label htmlFor="name" className="add-profiler-client__label">
-                                    Client Name <span className="add-profiler-client__required">*</span>
-                                </label>
-                                <TextInput
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(value) => handleChange({ target: { name: 'name', value } } as React.ChangeEvent<HTMLInputElement>)}
-                                    onBlur={handleBlur}
-                                    placeholder="Enter client full name"
-                                    error={touched.name ? errors.name : undefined}
-                                    disabled={creating}
-                                />
+                    <form onSubmit={handleSubmit} className="add-profiler-client__form">
+                        <div className="add-profiler-client__card">
+                            <div className="add-profiler-client__section">
+                                <h2 className="add-profiler-client__section-title">Basic Information</h2>
+
+                                <div className="add-profiler-client__form-grid">
+                                    <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
+                                        <label htmlFor="name" className="add-profiler-client__label">
+                                            Client Name <span className="add-profiler-client__required">*</span>
+                                        </label>
+                                        <TextInput
+                                            type="text"
+                                            value={formData.name}
+                                            onChange={(value) => handleChange({ target: { name: 'name', value } } as React.ChangeEvent<HTMLInputElement>)}
+                                            onBlur={handleBlur}
+                                            placeholder="Enter client full name"
+                                            error={touched.name ? errors.name : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
+
+                                    <div className="add-profiler-client__form-group">
+                                        <label htmlFor="email" className="add-profiler-client__label">
+                                            Email Address
+                                        </label>
+                                        <TextInput
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(value) => handleChange({ target: { name: 'email', value } } as React.ChangeEvent<HTMLInputElement>)}
+                                            onBlur={handleBlur}
+                                            placeholder="client@example.com"
+                                            error={touched.email ? errors.email : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
+
+                                    <div className="add-profiler-client__form-group">
+                                        <label htmlFor="mobile_number" className="add-profiler-client__label">
+                                            Mobile Number
+                                        </label>
+                                        <TextInput
+                                            type="text"
+                                            value={formData.mobile_number}
+                                            onChange={(value) => handleChange({ target: { name: 'mobile_number', value } } as React.ChangeEvent<HTMLInputElement>)}
+                                            onBlur={handleBlur}
+                                            placeholder="10-digit mobile number"
+                                            maxLength={10}
+                                            error={touched.mobile_number ? errors.mobile_number : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
+
+                                    <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
+                                        <label htmlFor="aadhaar_card_number" className="add-profiler-client__label">
+                                            Aadhaar Card Number
+                                        </label>
+                                        <TextInput
+                                            type="text"
+                                            value={formatAadhaar(formData.aadhaar_card_number)}
+                                            onChange={(value) => handleChange({ target: { name: 'aadhaar_card_number', value } } as React.ChangeEvent<HTMLInputElement>)}
+                                            onBlur={handleBlur}
+                                            placeholder="1234 • 5678 • 9012"
+                                            maxLength={18}
+                                            error={touched.aadhaar_card_number ? errors.aadhaar_card_number : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
+
+                                    <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
+                                        <label htmlFor="notes" className="add-profiler-client__label">
+                                            Notes
+                                        </label>
+                                        <TextArea
+                                            value={formData.notes}
+                                            onChange={(value) => handleChange({ target: { name: 'notes', value } } as React.ChangeEvent<HTMLTextAreaElement>)}
+                                            placeholder="Additional notes about the client..."
+                                            rows={4}
+                                            disabled={creating}
+                                        />
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="add-profiler-client__form-group">
-                                <label htmlFor="email" className="add-profiler-client__label">
-                                    Email Address
-                                </label>
-                                <TextInput
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(value) => handleChange({ target: { name: 'email', value } } as React.ChangeEvent<HTMLInputElement>)}
-                                    onBlur={handleBlur}
-                                    placeholder="client@example.com"
-                                    error={touched.email ? errors.email : undefined}
+                            <div className="main__footer-actions">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
+                                    onClick={handleReset}
                                     disabled={creating}
-                                />
-                            </div>
+                                    className="main__icon-button"
+                                >
+                                    Reset Form
+                                </Button>
 
-                            <div className="add-profiler-client__form-group">
-                                <label htmlFor="mobile_number" className="add-profiler-client__label">
-                                    Mobile Number
-                                </label>
-                                <TextInput
-                                    type="text"
-                                    value={formData.mobile_number}
-                                    onChange={(value) => handleChange({ target: { name: 'mobile_number', value } } as React.ChangeEvent<HTMLInputElement>)}
-                                    onBlur={handleBlur}
-                                    placeholder="10-digit mobile number"
-                                    maxLength={10}
-                                    error={touched.mobile_number ? errors.mobile_number : undefined}
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
                                     disabled={creating}
-                                />
-                            </div>
-
-                            <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
-                                <label htmlFor="aadhaar_card_number" className="add-profiler-client__label">
-                                    Aadhaar Card Number
-                                </label>
-                                <TextInput
-                                    type="text"
-                                    value={formatAadhaar(formData.aadhaar_card_number)}
-                                    onChange={(value) => handleChange({ target: { name: 'aadhaar_card_number', value } } as React.ChangeEvent<HTMLInputElement>)}
-                                    onBlur={handleBlur}
-                                    placeholder="1234 • 5678 • 9012"
-                                    maxLength={18}
-                                    error={touched.aadhaar_card_number ? errors.aadhaar_card_number : undefined}
-                                    disabled={creating}
-                                />
-                            </div>
-
-                            <div className="add-profiler-client__form-group add-profiler-client__form-group--full">
-                                <label htmlFor="notes" className="add-profiler-client__label">
-                                    Notes
-                                </label>
-                                <TextArea
-                                    value={formData.notes}
-                                    onChange={(value) => handleChange({ target: { name: 'notes', value } } as React.ChangeEvent<HTMLTextAreaElement>)}
-                                    placeholder="Additional notes about the client..."
-                                    rows={4}
-                                    disabled={creating}
-                                />
+                                    className="main__button"
+                                >
+                                    {creating ? 'Creating...' : 'Confirm & Add Client'}
+                                </Button>
                             </div>
                         </div>
-                    </div>
+                    </form>
 
-                    <div className="main__footer-actions">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            icon={<ArrowLeft size={16} />}
-                            onClick={handleReset}
-                            disabled={creating}
-                            className="main__icon-button"
-                        >
-                            Reset Form
-                        </Button>
-                        
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
-                            disabled={creating}
-                            className="main__button"
-                        >
-                            {creating ? 'Creating...' : 'Confirm & Add Client'}
-                        </Button>
-                    </div>
-                    </div>
-                </form>
-
+                </div>
             </div>
-        </div>
-    </div>
+        </>
     );
 };
 

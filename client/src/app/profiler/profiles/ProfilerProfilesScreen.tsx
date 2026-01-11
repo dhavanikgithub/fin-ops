@@ -92,7 +92,7 @@ const ProfilerProfilesScreenContent: React.FC = () => {
         }
     };
 
-    return <div className="profiler-profiles-screen">{renderCurrentView()}</div>;
+    return <div className="main">{renderCurrentView()}</div>;
 };
 
 const ProfilerProfilesScreen: React.FC = () => {

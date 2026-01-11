@@ -30,7 +30,7 @@ const AddClientErrorFallback: React.FC<{
     onBackToClients: () => void;
 }> = ({ error, resetErrorBoundary, onCancel, onBackToClients }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -97,7 +97,7 @@ const AddClientErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -197,7 +197,7 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
 
     try {
         return (
-            <div className="main">
+            <>
                 <header className="main__header">
                     <div className="main__header-left">
                         <UserPlus size={16} />
@@ -358,7 +358,7 @@ const AddClientScreenContent: React.FC<AddClientScreenProps> = ({ onCancel, onBa
                             <div className="ac__divider"></div>
                         </div>
                 </div>
-            </div>
+            </>
         );
     } catch (error) {
         logger.error('Error rendering add client form:', error);

@@ -92,7 +92,7 @@ const ProfilerBanksScreenContent: React.FC = () => {
         }
     };
 
-    return <div className="profiler-banks-screen">{renderCurrentView()}</div>;
+    return <div className="main">{renderCurrentView()}</div>;
 };
 
 const ProfilerBanksScreen: React.FC = () => {

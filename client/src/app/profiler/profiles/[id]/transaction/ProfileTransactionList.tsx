@@ -96,23 +96,27 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
     }
 
     return (
-        <div className="profile-transaction-list">
+        <>
             <ProfileTransactionHeader
                 profile={selectedProfile}
                 onAddTransaction={onAddTransaction}
                 onRefresh={handleRefresh}
             />
 
-            <ProfileTransactionTable
-                transactions={transactions}
-                loading={transactionsLoading}
-                pagination={pagination}
-                sortConfig={{ sort_by: sortBy, sort_order: sortOrder }}
-                onPageChange={handlePageChange}
-                onSort={handleSort}
-                onRefresh={handleRefresh}
-            />
-        </div>
+            <div className="main__content">
+                <div className="main__view">
+                    <ProfileTransactionTable
+                        transactions={transactions}
+                        loading={transactionsLoading}
+                        pagination={pagination}
+                        sortConfig={{ sort_by: sortBy, sort_order: sortOrder }}
+                        onPageChange={handlePageChange}
+                        onSort={handleSort}
+                        onRefresh={handleRefresh}
+                    />
+                </div>
+            </div>
+        </>
     );
 };
 

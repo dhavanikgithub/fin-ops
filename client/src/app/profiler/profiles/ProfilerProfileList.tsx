@@ -95,7 +95,7 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
     }, [dispatch]);
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <div className="main__title-row">
@@ -176,7 +176,7 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

@@ -34,7 +34,7 @@ const BankListErrorFallback: React.FC<{
     onNewBank: () => void;
 }> = ({ error, resetErrorBoundary, onNewBank }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -97,7 +97,7 @@ const BankListErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -306,7 +306,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
 
     try {
         return (
-            <div className="main">
+            <>
                 <header className="main__header">
                     <div className="main__header-left">
                         <h1>Banks</h1>
@@ -474,7 +474,7 @@ const BankListContent: React.FC<BankListProps> = ({ onNewBank }) => {
                     onDelete={handleDeleteConfirm}
                     bank={getModalBank(editingBank)}
                 />
-            </div>
+            </>
         );
     } catch (error) {
         logger.error('Error rendering bank list:', error);

@@ -30,7 +30,7 @@ const CardListErrorFallback: React.FC<{
     onNewCard: () => void;
 }> = ({ error, resetErrorBoundary, onNewCard }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -97,7 +97,7 @@ const CardListErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

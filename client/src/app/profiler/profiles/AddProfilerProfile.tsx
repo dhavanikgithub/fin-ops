@@ -115,7 +115,7 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
 
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
-        
+
         (['profiler_client_id', 'profiler_bank_id', 'credit_card_number', 'opening_balance', 'carry_forward_balance'] as (keyof FormData)[]).forEach((key) => {
             const error = validateField(key, formData[key]);
             if (error) {
@@ -133,15 +133,15 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
             const unformatted = unformatCreditCard(value);
             // Only allow digits and limit to 16 digits
             if (unformatted === '' || /^\d{0,16}$/.test(unformatted)) {
-                setFormData((prev) => ({ 
-                    ...prev, 
-                    [name]: unformatted 
+                setFormData((prev) => ({
+                    ...prev,
+                    [name]: unformatted
                 }));
             }
         } else {
-            setFormData((prev) => ({ 
-                ...prev, 
-                [name]: value 
+            setFormData((prev) => ({
+                ...prev,
+                [name]: value
             }));
         }
 
@@ -220,7 +220,7 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     }));
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <h1>New Profile</h1>
@@ -258,143 +258,143 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
                         </p>
                     </div>
 
-            <form onSubmit={handleSubmit} className="add-profiler-profile__form">
-                <div className="add-profiler-profile__card">
-                    <div className="add-profiler-profile__section">
-                        <h2 className="add-profiler-profile__section-title">Profile Information</h2>
-                        
-                        <div className="add-profiler-profile__form-grid">
-                            <div className="add-profiler-profile__form-group">
-                                <AutocompleteInput
-                                    label="Client"
-                                    value={formData.profiler_client_id}
-                                    onChange={(value) => handleChange('profiler_client_id', value)}
-                                    options={clientOptions}
-                                    loading={clientsLoading}
-                                    placeholder="Search for a client..."
-                                    icon={<Users size={16} />}
-                                    error={touched.profiler_client_id ? errors.profiler_client_id : undefined}
-                                    disabled={creating}
-                                    onBlur={() => handleBlur('profiler_client_id')}
-                                />
-                            </div>
+                    <form onSubmit={handleSubmit} className="add-profiler-profile__form">
+                        <div className="add-profiler-profile__card">
+                            <div className="add-profiler-profile__section">
+                                <h2 className="add-profiler-profile__section-title">Profile Information</h2>
 
-                            <div className="add-profiler-profile__form-group">
-                                <AutocompleteInput
-                                    label="Bank"
-                                    value={formData.profiler_bank_id}
-                                    onChange={(value) => handleChange('profiler_bank_id', value)}
-                                    options={bankOptions}
-                                    loading={banksLoading}
-                                    placeholder="Search for a bank..."
-                                    icon={<Building2 size={16} />}
-                                    error={touched.profiler_bank_id ? errors.profiler_bank_id : undefined}
-                                    disabled={creating}
-                                    onBlur={() => handleBlur('profiler_bank_id')}
-                                />
-                            </div>
+                                <div className="add-profiler-profile__form-grid">
+                                    <div className="add-profiler-profile__form-group">
+                                        <AutocompleteInput
+                                            label="Client"
+                                            value={formData.profiler_client_id}
+                                            onChange={(value) => handleChange('profiler_client_id', value)}
+                                            options={clientOptions}
+                                            loading={clientsLoading}
+                                            placeholder="Search for a client..."
+                                            icon={<Users size={16} />}
+                                            error={touched.profiler_client_id ? errors.profiler_client_id : undefined}
+                                            disabled={creating}
+                                            onBlur={() => handleBlur('profiler_client_id')}
+                                        />
+                                    </div>
 
-                            <div className="add-profiler-profile__form-group">
-                                <label htmlFor="credit_card_number" className="add-profiler-profile__label">
-                                    Credit Card Number <span className="add-profiler-profile__required">*</span>
-                                </label>
-                                <TextInput
-                                    value={formatCreditCard(formData.credit_card_number)}
-                                    onChange={(value) => handleChange('credit_card_number', value)}
-                                    onBlur={() => handleBlur('credit_card_number')}
-                                    placeholder="1234 • 5678 • 9012 • 3456"
-                                    error={touched.credit_card_number ? errors.credit_card_number : undefined}
-                                    disabled={creating}
-                                    maxLength={25}
-                                />
-                            </div>
+                                    <div className="add-profiler-profile__form-group">
+                                        <AutocompleteInput
+                                            label="Bank"
+                                            value={formData.profiler_bank_id}
+                                            onChange={(value) => handleChange('profiler_bank_id', value)}
+                                            options={bankOptions}
+                                            loading={banksLoading}
+                                            placeholder="Search for a bank..."
+                                            icon={<Building2 size={16} />}
+                                            error={touched.profiler_bank_id ? errors.profiler_bank_id : undefined}
+                                            disabled={creating}
+                                            onBlur={() => handleBlur('profiler_bank_id')}
+                                        />
+                                    </div>
 
-                            <div className="add-profiler-profile__form-group">
-                                <label htmlFor="opening_balance" className="add-profiler-profile__label">
-                                    Opening Balance <span className="add-profiler-profile__required">*</span>
-                                </label>
-                                <NumericInput
-                                    value={formData.opening_balance}
-                                    onChange={(value) => handleChange('opening_balance', value)}
-                                    onBlur={() => handleBlur('opening_balance')}
-                                    placeholder="0.00"
-                                    error={touched.opening_balance ? errors.opening_balance : undefined}
-                                    disabled={creating}
-                                />
-                            </div>
+                                    <div className="add-profiler-profile__form-group">
+                                        <label htmlFor="credit_card_number" className="add-profiler-profile__label">
+                                            Credit Card Number <span className="add-profiler-profile__required">*</span>
+                                        </label>
+                                        <TextInput
+                                            value={formatCreditCard(formData.credit_card_number)}
+                                            onChange={(value) => handleChange('credit_card_number', value)}
+                                            onBlur={() => handleBlur('credit_card_number')}
+                                            placeholder="1234 • 5678 • 9012 • 3456"
+                                            error={touched.credit_card_number ? errors.credit_card_number : undefined}
+                                            disabled={creating}
+                                            maxLength={25}
+                                        />
+                                    </div>
 
-                            <div className="add-profiler-profile__form-group">
-                                <label className="add-profiler-profile__checkbox-label">
-                                    <input
-                                        type="checkbox"
-                                        name="carry_forward"
-                                        checked={formData.carry_forward}
-                                        onChange={handleCheckboxChange}
-                                        disabled={creating}
-                                        className="add-profiler-profile__checkbox"
-                                    />
-                                    <span>Enable Carry Forward</span>
-                                </label>
-                            </div>
+                                    <div className="add-profiler-profile__form-group">
+                                        <label htmlFor="opening_balance" className="add-profiler-profile__label">
+                                            Opening Balance <span className="add-profiler-profile__required">*</span>
+                                        </label>
+                                        <NumericInput
+                                            value={formData.opening_balance}
+                                            onChange={(value) => handleChange('opening_balance', value)}
+                                            onBlur={() => handleBlur('opening_balance')}
+                                            placeholder="0.00"
+                                            error={touched.opening_balance ? errors.opening_balance : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
 
-                            {formData.carry_forward && (
-                                <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
-                                    <label htmlFor="carry_forward_balance" className="add-profiler-profile__label">
-                                        Carry Forward Balance <span className="add-profiler-profile__required">*</span>
-                                    </label>
-                                    <NumericInput
-                                        value={formData.carry_forward_balance}
-                                        onChange={(value) => handleChange('carry_forward_balance', value)}
-                                        onBlur={() => handleBlur('carry_forward_balance')}
-                                        placeholder="0.00"
-                                        error={touched.carry_forward_balance ? errors.carry_forward_balance : undefined}
-                                        disabled={creating}
-                                    />
+                                    <div className="add-profiler-profile__form-group">
+                                        <label className="add-profiler-profile__checkbox-label">
+                                            <input
+                                                type="checkbox"
+                                                name="carry_forward"
+                                                checked={formData.carry_forward}
+                                                onChange={handleCheckboxChange}
+                                                disabled={creating}
+                                                className="add-profiler-profile__checkbox"
+                                            />
+                                            <span>Enable Carry Forward</span>
+                                        </label>
+                                    </div>
+
+                                    {formData.carry_forward && (
+                                        <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
+                                            <label htmlFor="carry_forward_balance" className="add-profiler-profile__label">
+                                                Carry Forward Balance <span className="add-profiler-profile__required">*</span>
+                                            </label>
+                                            <NumericInput
+                                                value={formData.carry_forward_balance}
+                                                onChange={(value) => handleChange('carry_forward_balance', value)}
+                                                onBlur={() => handleBlur('carry_forward_balance')}
+                                                placeholder="0.00"
+                                                error={touched.carry_forward_balance ? errors.carry_forward_balance : undefined}
+                                                disabled={creating}
+                                            />
+                                        </div>
+                                    )}
+
+                                    <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
+                                        <label htmlFor="remarks" className="add-profiler-profile__label">
+                                            Remarks
+                                        </label>
+                                        <TextArea
+                                            value={formData.remarks}
+                                            onChange={(value) => handleChange('remarks', value)}
+                                            placeholder="Additional remarks or notes..."
+                                            rows={4}
+                                            disabled={creating}
+                                        />
+                                    </div>
                                 </div>
-                            )}
+                            </div>
 
-                            <div className="add-profiler-profile__form-group add-profiler-profile__form-group--full">
-                                <label htmlFor="remarks" className="add-profiler-profile__label">
-                                    Remarks
-                                </label>
-                                <TextArea
-                                    value={formData.remarks}
-                                    onChange={(value) => handleChange('remarks', value)}
-                                    placeholder="Additional remarks or notes..."
-                                    rows={4}
+                            <div className="main__footer-actions">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
+                                    onClick={handleReset}
                                     disabled={creating}
-                                />
+                                    className="main__icon-button"
+                                >
+                                    Reset Form
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                                    disabled={creating}
+                                    className="main__button"
+                                >
+                                    {creating ? 'Creating...' : 'Confirm & Add Profile'}
+                                </Button>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="main__footer-actions">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            icon={<ArrowLeft size={16} />}
-                            onClick={handleReset}
-                            disabled={creating}
-                            className="main__icon-button"
-                        >
-                            Reset Form
-                        </Button>
-                        
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
-                            disabled={creating}
-                            className="main__button"
-                        >
-                            {creating ? 'Creating...' : 'Confirm & Add Profile'}
-                        </Button>
-                    </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-    </div>
+        </>
     );
 };
 

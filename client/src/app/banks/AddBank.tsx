@@ -28,7 +28,7 @@ const AddBankErrorFallback: React.FC<{
     onBackToBanks: () => void;
 }> = ({ error, resetErrorBoundary, onCancel, onBackToBanks }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -91,7 +91,7 @@ const AddBankErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -203,7 +203,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
 
     try {
         return (
-            <div className="main">
+            <>
                 <header className="main__header">
                     <div className="main__header-left">
                         <Building2 size={16} />
@@ -300,7 +300,7 @@ const AddBankContent: React.FC<AddBankScreenProps> = ({ onCancel, onBackToBanks 
                         </div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     } catch (error) {
         logger.error('Error rendering add bank form:', error);

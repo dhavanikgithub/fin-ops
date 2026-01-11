@@ -28,7 +28,7 @@ const AddCardErrorFallback: React.FC<{
     onBackToCards: () => void;
 }> = ({ error, resetErrorBoundary, onCancel, onBackToCards }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -95,7 +95,7 @@ const AddCardErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -197,7 +197,7 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
 
     try {
         return (
-            <div className="main">
+            <>
                 <header className="main__header">
                     <div className="main__header-left">
                         <CreditCard size={16} />
@@ -319,7 +319,7 @@ const AddCardScreenContent: React.FC<AddCardScreenProps> = ({ onCancel, onBackTo
                         <div className="ac__note">You can edit the name later. Transaction count is system-managed.</div>
                     </div>
                 </div>
-            </div>
+            </>
         );
     } catch (error) {
         logger.error('Error rendering add card form:', error);

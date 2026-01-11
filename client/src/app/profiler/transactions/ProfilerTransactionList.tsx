@@ -96,7 +96,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
     }, [dispatch]);
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <div className="main__title-row">
@@ -194,7 +194,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

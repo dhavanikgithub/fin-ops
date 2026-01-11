@@ -45,7 +45,7 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
 
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
-        
+
         Object.keys(formData).forEach((key) => {
             const error = validateField(key as keyof FormData, formData[key as keyof FormData]);
             if (error) {
@@ -115,7 +115,7 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <h1>New Bank</h1>
@@ -153,56 +153,56 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
                         </p>
                     </div>
 
-            <form onSubmit={handleSubmit} className="add-profiler-bank__form">
-                <div className="add-profiler-bank__card">
-                    <div className="add-profiler-bank__section">
-                        <h2 className="add-profiler-bank__section-title">Bank Information</h2>
-                        
-                        <div className="add-profiler-bank__form-grid">
-                            <div className="add-profiler-bank__form-group add-profiler-bank__form-group--full">
-                                <label htmlFor="bank_name" className="add-profiler-bank__label">
-                                    Bank Name <span className="add-profiler-bank__required">*</span>
-                                </label>
-                                <TextInput
-                                    type="text"
-                                    value={formData.bank_name}
-                                    onChange={(value) => handleChange({ target: { name: 'bank_name', value } } as React.ChangeEvent<HTMLInputElement>)}
-                                    onBlur={handleBlur}
-                                    placeholder="Enter bank name (e.g., HDFC Bank, ICICI Bank)"
-                                    error={touched.bank_name ? errors.bank_name : undefined}
+                    <form onSubmit={handleSubmit} className="add-profiler-bank__form">
+                        <div className="add-profiler-bank__card">
+                            <div className="add-profiler-bank__section">
+                                <h2 className="add-profiler-bank__section-title">Bank Information</h2>
+
+                                <div className="add-profiler-bank__form-grid">
+                                    <div className="add-profiler-bank__form-group add-profiler-bank__form-group--full">
+                                        <label htmlFor="bank_name" className="add-profiler-bank__label">
+                                            Bank Name <span className="add-profiler-bank__required">*</span>
+                                        </label>
+                                        <TextInput
+                                            type="text"
+                                            value={formData.bank_name}
+                                            onChange={(value) => handleChange({ target: { name: 'bank_name', value } } as React.ChangeEvent<HTMLInputElement>)}
+                                            onBlur={handleBlur}
+                                            placeholder="Enter bank name (e.g., HDFC Bank, ICICI Bank)"
+                                            error={touched.bank_name ? errors.bank_name : undefined}
+                                            disabled={creating}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="main__footer-actions">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    icon={<ArrowLeft size={16} />}
+                                    onClick={handleReset}
                                     disabled={creating}
-                                />
+                                    className="main__icon-button"
+                                >
+                                    Reset Form
+                                </Button>
+
+                                <Button
+                                    type="submit"
+                                    variant="primary"
+                                    icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                                    disabled={creating}
+                                    className="main__button"
+                                >
+                                    {creating ? 'Creating...' : 'Confirm & Add Bank'}
+                                </Button>
                             </div>
                         </div>
-                    </div>
-
-                    <div className="main__footer-actions">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            icon={<ArrowLeft size={16} />}
-                            onClick={handleReset}
-                            disabled={creating}
-                            className="main__icon-button"
-                        >
-                            Reset Form
-                        </Button>
-                        
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
-                            disabled={creating}
-                            className="main__button"
-                        >
-                            {creating ? 'Creating...' : 'Confirm & Add Bank'}
-                        </Button>
-                    </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
-        </div>
-    </div>
+        </>
     );
 };
 

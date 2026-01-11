@@ -25,7 +25,7 @@ const ClientListErrorFallback: React.FC<{
     onNewClient: () => void;
 }> = ({ error, resetErrorBoundary, onNewClient }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -92,7 +92,7 @@ const ClientListErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -327,7 +327,7 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
 
     try {
         return (
-            <div className="main">
+            <>
                 <header className="main__header">
                     <div className="main__header-left">
                         <h1>Clients</h1>
@@ -543,7 +543,7 @@ const ClientListContent: React.FC<ClientListProps> = ({ onNewClient }) => {
                     onDelete={handleDeleteConfirm}
                     client={getModalClient()}
                 />
-            </div>
+            </>
         );
     } catch (error) {
         logger.error('Error rendering client list:', error);

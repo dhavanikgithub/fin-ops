@@ -23,7 +23,7 @@ const AddDepositErrorFallback: React.FC<{
     onCancel: () => void;
 }> = ({ error, resetErrorBoundary, onCancel }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} className="main__header-icon--error" />
@@ -80,7 +80,7 @@ const AddDepositErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
@@ -257,7 +257,7 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
     };
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <ArrowDownCircle size={16} className="main__header-icon--success" />
@@ -375,7 +375,7 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

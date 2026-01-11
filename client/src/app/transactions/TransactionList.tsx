@@ -99,7 +99,7 @@ const TransactionListErrorFallback: React.FC<{
     onWithdraw: () => void;
 }> = ({ error, resetErrorBoundary, onDeposit, onWithdraw }) => {
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <AlertTriangle size={16} />
@@ -164,7 +164,7 @@ const TransactionListErrorFallback: React.FC<{
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

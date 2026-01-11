@@ -101,7 +101,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
     }, [dispatch]);
 
     return (
-        <div className="main">
+        <>
             <header className="main__header">
                 <div className="main__header-left">
                     <div className="main__title-row">
@@ -182,7 +182,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                     )}
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 

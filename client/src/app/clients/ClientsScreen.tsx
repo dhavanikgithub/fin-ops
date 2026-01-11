@@ -119,7 +119,7 @@ const ClientsScreenContent: React.FC = () => {
         }
     };
 
-    return renderCurrentView();
+    return <div className="main">{renderCurrentView()}</div>;
 };
 
 const ClientsScreen: React.FC = () => {
