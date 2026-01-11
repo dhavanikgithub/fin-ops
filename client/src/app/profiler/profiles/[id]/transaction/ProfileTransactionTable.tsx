@@ -1,5 +1,5 @@
 'use client'
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteProfilerTransaction } from '@/store/actions/profilerTransactionActions';
 import { ProfilerTransaction } from '@/services/profilerTransactionService';
@@ -36,6 +36,9 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
     const dispatch = useAppDispatch();
     const { deletingTransactionIds } = useAppSelector((state) => state.profilerTransactions);
     const [deleteModalTransaction, setDeleteModalTransaction] = useState<ProfilerTransaction | null>(null);
+    const [showHeaderShadow, setShowHeaderShadow] = useState(false);
+    const tableContainerRef = useRef<HTMLDivElement>(null);
+    const tableHeaderRef = useRef<HTMLTableSectionElement>(null);
 
     const handleSortClick = (column: string) => {
         const newOrder = sortConfig.sort_by === column && sortConfig.sort_order === 'asc' ? 'desc' : 'asc';
@@ -87,12 +90,51 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
         }).format(amount);
     };
 
+    // Handle scroll events to show/hide header shadow
+    useEffect(() => {
+        const container = tableContainerRef.current;
+        if (!container) return;
+
+        const handleScroll = () => {
+            const scrollTop = container.scrollTop;
+            setShowHeaderShadow(scrollTop > 5);
+        };
+
+        container.addEventListener('scroll', handleScroll);
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Calculate table height offset
+    useEffect(() => {
+        const calculateTableHeight = () => {
+            const tableWrap = tableContainerRef.current?.parentElement;
+            if (!tableWrap) return;
+
+            const rect = tableWrap.getBoundingClientRect();
+            const topOffset = rect.top;
+            const bottomPadding = 60;
+            const totalOffset = topOffset + bottomPadding;
+
+            document.documentElement.style.setProperty('--table-offset', `${totalOffset}px`);
+        };
+
+        const timer = setTimeout(calculateTableHeight, 100);
+        window.addEventListener('resize', calculateTableHeight);
+
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('resize', calculateTableHeight);
+        };
+    }, []);
+
     if (loading) {
         return (
-            <div className="profile-transaction-table">
-                <div className="profile-transaction-table__loading">
-                    <Loader2 size={40} className="profile-transaction-table__spinner" />
-                    <p>Loading transactions...</p>
+            <div className="profile-transaction-table-wrap">
+                <div className="profile-transaction-table__container">
+                    <div className="profile-transaction-table__loading">
+                        <Loader2 size={40} className="profile-transaction-table__spinner" />
+                        <p>Loading transactions...</p>
+                    </div>
                 </div>
             </div>
         );
@@ -100,9 +142,11 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
 
     if (!transactions || transactions.length === 0) {
         return (
-            <div className="profile-transaction-table">
-                <div className="profile-transaction-table__empty">
-                    <p>No transactions found for this profile</p>
+            <div className="profile-transaction-table-wrap">
+                <div className="profile-transaction-table__container">
+                    <div className="profile-transaction-table__no-results">
+                        <p>No transactions found for this profile</p>
+                    </div>
                 </div>
             </div>
         );
@@ -110,18 +154,18 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
 
     return (
         <>
-            <div className="profile-transaction-table">
-                <div className="profile-transaction-table__wrapper">
-                    <table className="profile-transaction-table__table">
-                        <thead className="profile-transaction-table__thead">
+            <div className="profile-transaction-table-wrap">
+                <div className="profile-transaction-table__container" ref={tableContainerRef}>
+                    <table className="profile-transaction-table">
+                        <thead className={`profile-transaction-table__thead ${showHeaderShadow ? 'table__header--shadow' : ''}`} ref={tableHeaderRef}>
                             <tr>
-                                <th onClick={() => handleSortClick('transaction_type')} className="profile-transaction-table__th profile-transaction-table__th--sortable">
-                                    <div className="profile-transaction-table__th-content">
+                                <th className="profile-transaction-table__th">
+                                    <div className="profile-transaction-table__sort-header" onClick={() => handleSortClick('transaction_type')}>
                                         Type {getSortIcon('transaction_type')}
                                     </div>
                                 </th>
-                                <th onClick={() => handleSortClick('amount')} className="profile-transaction-table__th profile-transaction-table__th--sortable profile-transaction-table__th--right">
-                                    <div className="profile-transaction-table__th-content">
+                                <th className="profile-transaction-table__th profile-transaction-table__th--right">
+                                    <div className="profile-transaction-table__sort-header" onClick={() => handleSortClick('amount')}>
                                         Amount {getSortIcon('amount')}
                                     </div>
                                 </th>
@@ -129,8 +173,8 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
                                     Charges
                                 </th>
                                 <th className="profile-transaction-table__th">Notes</th>
-                                <th onClick={() => handleSortClick('created_at')} className="profile-transaction-table__th profile-transaction-table__th--sortable">
-                                    <div className="profile-transaction-table__th-content">
+                                <th className="profile-transaction-table__th">
+                                    <div className="profile-transaction-table__sort-header" onClick={() => handleSortClick('created_at')}>
                                         Date {getSortIcon('created_at')}
                                     </div>
                                 </th>
