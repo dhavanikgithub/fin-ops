@@ -20,6 +20,19 @@ interface ProfilerClientTableProps {
     onRefresh: () => void;
 }
 
+// Format Aadhaar number with bullet every 4 digits
+const formatAadhaar = (value: string): string => {
+    if (!value) return '';
+    const digits = value.replace(/[•\-\s]/g, '');
+    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+    return formatted;
+};
+
+// Remove bullets, hyphens and spaces from Aadhaar number
+const unformatAadhaar = (value: string): string => {
+    return value.replace(/[•\-\s]/g, '');
+};
+
 const ProfilerClientTable: React.FC<ProfilerClientTableProps> = ({
     clients,
     sortConfig,
@@ -222,18 +235,23 @@ const ProfilerClientTable: React.FC<ProfilerClientTableProps> = ({
                                             {isEditing ? (
                                                 <input
                                                     type="text"
-                                                    value={editFormData.aadhaar_card_number || ''}
-                                                    onChange={(e) => setEditFormData({ ...editFormData, aadhaar_card_number: e.target.value })}
+                                                    value={formatAadhaar(editFormData.aadhaar_card_number || '')}
+                                                    onChange={(e) => {
+                                                        const unformatted = unformatAadhaar(e.target.value);
+                                                        if (unformatted === '' || /^\d{0,12}$/.test(unformatted)) {
+                                                            setEditFormData({ ...editFormData, aadhaar_card_number: unformatted });
+                                                        }
+                                                    }}
                                                     className="profiler-client-table__input"
-                                                    placeholder="Aadhaar number"
-                                                    maxLength={12}
+                                                    placeholder="1234 • 5678 • 9012"
+                                                    maxLength={18}
                                                 />
                                             ) : (
                                                 <div className="profiler-client-table__aadhaar">
                                                     {client.aadhaar_card_number ? (
                                                         <>
                                                             <CreditCard size={14} />
-                                                            {client.aadhaar_card_number}
+                                                            {formatAadhaar(client.aadhaar_card_number)}
                                                         </>
                                                     ) : (
                                                         <span className="profiler-client-table__empty">—</span>

@@ -42,6 +42,18 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // Format Aadhaar number with bullet every 4 digits
+    const formatAadhaar = (value: string): string => {
+        const digits = value.replace(/[•\-\s]/g, '');
+        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+        return formatted;
+    };
+
+    // Remove bullets, hyphens and spaces from Aadhaar number
+    const unformatAadhaar = (value: string): string => {
+        return value.replace(/[•\-\s]/g, '');
+    };
+
     const validateField = (name: keyof FormData, value: string): string | undefined => {
         switch (name) {
             case 'name':
@@ -66,8 +78,14 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
                 break;
 
             case 'aadhaar_card_number':
-                if (value && !/^\d{12}$/.test(value)) {
-                    return 'Aadhaar number must be 12 digits';
+                if (value) {
+                    const digits = value.replace(/[•\-\s]/g, '');
+                    if (!/^\d*$/.test(digits)) {
+                        return 'Aadhaar number must contain only digits';
+                    }
+                    if (digits.length > 0 && digits.length !== 12) {
+                        return 'Aadhaar number must be 12 digits';
+                    }
                 }
                 break;
         }
@@ -90,7 +108,17 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        
+        // Special handling for Aadhaar card number
+        if (name === 'aadhaar_card_number') {
+            const unformatted = unformatAadhaar(value);
+            // Only allow digits and limit to 12 digits
+            if (unformatted === '' || /^\d{0,12}$/.test(unformatted)) {
+                setFormData((prev) => ({ ...prev, [name]: unformatted }));
+            }
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
 
         // Clear error when user starts typing
         if (errors[name as keyof FormErrors]) {
@@ -231,11 +259,11 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
                                 </label>
                                 <TextInput
                                     type="text"
-                                    value={formData.aadhaar_card_number}
+                                    value={formatAadhaar(formData.aadhaar_card_number)}
                                     onChange={(value) => handleChange({ target: { name: 'aadhaar_card_number', value } } as React.ChangeEvent<HTMLInputElement>)}
                                     onBlur={handleBlur}
-                                    placeholder="12-digit Aadhaar number"
-                                    maxLength={12}
+                                    placeholder="1234 • 5678 • 9012"
+                                    maxLength={18}
                                     error={touched.aadhaar_card_number ? errors.aadhaar_card_number : undefined}
                                     disabled={creating}
                                 />

@@ -52,6 +52,18 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
+    // Format credit card number with bullet every 4 digits
+    const formatCreditCard = (value: string): string => {
+        const digits = value.replace(/[•–\-\s]/g, '');
+        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+        return formatted;
+    };
+
+    // Remove bullets, en-dash and hyphens from credit card number
+    const unformatCreditCard = (value: string): string => {
+        return value.replace(/[•–\-\s]/g, '');
+    };
+
     useEffect(() => {
         dispatch(fetchProfilerClientAutocomplete({}));
         dispatch(fetchProfilerBankAutocomplete({}));
@@ -74,6 +86,15 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
             case 'credit_card_number':
                 if (!value || (typeof value === 'string' && value.trim() === '')) {
                     return 'Credit card number is required';
+                }
+                if (typeof value === 'string') {
+                    const digits = value.replace(/[•–\-\s]/g, '');
+                    if (!/^\d+$/.test(digits)) {
+                        return 'Credit card number must contain only digits';
+                    }
+                    if (digits.length < 15 || digits.length > 16) {
+                        return 'Credit card number must be 15-16 digits';
+                    }
                 }
                 break;
 
@@ -107,10 +128,22 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     };
 
     const handleChange = (name: string, value: string | number | boolean | AutocompleteOption | null) => {
-        setFormData((prev) => ({ 
-            ...prev, 
-            [name]: value 
-        }));
+        // Special handling for credit card number
+        if (name === 'credit_card_number' && typeof value === 'string') {
+            const unformatted = unformatCreditCard(value);
+            // Only allow digits and limit to 16 digits
+            if (unformatted === '' || /^\d{0,16}$/.test(unformatted)) {
+                setFormData((prev) => ({ 
+                    ...prev, 
+                    [name]: unformatted 
+                }));
+            }
+        } else {
+            setFormData((prev) => ({ 
+                ...prev, 
+                [name]: value 
+            }));
+        }
 
         if (errors[name as keyof FormErrors]) {
             setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -249,12 +282,13 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
                                     Credit Card Number <span className="add-profiler-profile__required">*</span>
                                 </label>
                                 <TextInput
-                                    value={formData.credit_card_number}
+                                    value={formatCreditCard(formData.credit_card_number)}
                                     onChange={(value) => handleChange('credit_card_number', value)}
                                     onBlur={() => handleBlur('credit_card_number')}
-                                    placeholder="Enter credit card number"
+                                    placeholder="1234 • 5678 • 9012 • 3456"
                                     error={touched.credit_card_number ? errors.credit_card_number : undefined}
                                     disabled={creating}
+                                    maxLength={25}
                                 />
                             </div>
 
