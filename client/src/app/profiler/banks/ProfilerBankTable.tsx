@@ -40,7 +40,7 @@ const ProfilerBankTable: React.FC<ProfilerBankTableProps> = ({
 
     const getSortIcon = (column: string) => {
         if (sortConfig.sort_by !== column) {
-            return <Minus size={14} className="profiler-bank-table__sort-icon" />;
+            return null;
         }
         return sortConfig.sort_order === 'asc' 
             ? <ChevronUp size={14} className="profiler-bank-table__sort-icon profiler-bank-table__sort-icon--active" />

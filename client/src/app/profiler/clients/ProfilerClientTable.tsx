@@ -40,7 +40,7 @@ const ProfilerClientTable: React.FC<ProfilerClientTableProps> = ({
 
     const getSortIcon = (column: string) => {
         if (sortConfig.sort_by !== column) {
-            return <Minus size={14} className="profiler-client-table__sort-icon" />;
+            return null;
         }
         return sortConfig.sort_order === 'asc' 
             ? <ChevronUp size={14} className="profiler-client-table__sort-icon profiler-client-table__sort-icon--active" />

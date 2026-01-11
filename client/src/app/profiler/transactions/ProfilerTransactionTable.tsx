@@ -37,7 +37,7 @@ const ProfilerTransactionTable: React.FC<ProfilerTransactionTableProps> = ({
 
     const getSortIcon = (column: string) => {
         if (sortConfig.sort_by !== column) {
-            return <Minus size={14} className="profiler-transaction-table__sort-icon" />;
+            return null;
         }
         return sortConfig.sort_order === 'asc' 
             ? <ChevronUp size={14} className="profiler-transaction-table__sort-icon profiler-transaction-table__sort-icon--active" />
