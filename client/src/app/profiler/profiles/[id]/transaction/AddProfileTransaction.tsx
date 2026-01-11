@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createDepositTransaction, createWithdrawTransaction } from '@/store/actions/profilerTransactionActions';
 import { ProfilerProfile } from '@/services/profilerProfileService';
-import { ArrowLeft, Save, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, TrendingUp, TrendingDown, User, Building2, CreditCard } from 'lucide-react';
 import { NumericInput, Button, TextArea } from '@/components/FormInputs';
 import './AddProfileTransaction.scss';
 import toast from 'react-hot-toast';
@@ -63,7 +63,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
 
     const validateForm = (): boolean => {
         const newErrors: FormErrors = {};
-        
+
         const amountError = validateField('amount', formData.amount);
         if (amountError) newErrors.amount = amountError;
 
@@ -154,6 +154,13 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
         }).format(amount);
     };
 
+    const formatCreditCard = (value: string): string => {
+        if (!value) return '';
+        const digits = value.replace(/[•\-\s]/g, '');
+        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+        return formatted;
+    };
+
     return (
         <div className="main">
             <header className="main__header">
@@ -188,152 +195,199 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
             </header>
 
             <div className="main__content">
-                <div className="main__view">
-                    <div className="main__view-header">
-                        <div className="main__title-row">
-                            <h2 className="main__title">Transaction Details</h2>
-                        </div>
-                        <p className="main__subtitle">
-                            Create a new deposit or withdraw transaction for {profile.client_name}
-                        </p>
-                    </div>
-
-                    <form onSubmit={handleSubmit} className="add-profile-transaction__form">
-                <div className="add-profile-transaction__card">
-                    <div className="add-profile-transaction__section">
-                        <h2 className="add-profile-transaction__section-title">Transaction Type</h2>
-                        
-                        <div className="add-profile-transaction__type-selector">
-                            <button
-                                type="button"
-                                className={`add-profile-transaction__type-button ${formData.transaction_type === 'deposit' ? 'add-profile-transaction__type-button--active add-profile-transaction__type-button--deposit' : ''}`}
-                                onClick={() => handleTransactionTypeChange('deposit')}
-                                disabled={creating}
-                            >
-                                <TrendingUp size={20} />
-                                <span>Deposit</span>
-                            </button>
-                            <button
-                                type="button"
-                                className={`add-profile-transaction__type-button ${formData.transaction_type === 'withdraw' ? 'add-profile-transaction__type-button--active add-profile-transaction__type-button--withdraw' : ''}`}
-                                onClick={() => handleTransactionTypeChange('withdraw')}
-                                disabled={creating}
-                            >
-                                <TrendingDown size={20} />
-                                <span>Withdraw</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="add-profile-transaction__section">
-                        <h2 className="add-profile-transaction__section-title">Transaction Details</h2>
-                        
-                        <div className="add-profile-transaction__form-grid">
-                            <div className="add-profile-transaction__form-group">
-                                <label htmlFor="amount" className="add-profile-transaction__label">
-                                    Amount <span className="add-profile-transaction__required">*</span>
-                                </label>
-                                <NumericInput
-                                    value={formData.amount}
-                                    onChange={(value) => handleChange('amount', value)}
-                                    onBlur={() => handleBlur('amount')}
-                                    placeholder="0.00"
-                                    error={touched.amount ? errors.amount : undefined}
-                                    disabled={creating}
-                                />
+                <div className="add-profile-transaction__container">
+                    <div className="add-profile-transaction__left">
+                        <div className="add-profile-transaction__profile-info">
+                            <div className="add-profile-transaction__profile-info-item">
+                                <User size={16} className="add-profile-transaction__profile-info-icon" />
+                                <div className="add-profile-transaction__profile-info-content">
+                                    <span className="add-profile-transaction__profile-info-label">Client</span>
+                                    <span className="add-profile-transaction__profile-info-value">{profile.client_name}</span>
+                                </div>
                             </div>
 
-                            {formData.transaction_type === 'withdraw' && (
-                                <div className="add-profile-transaction__form-group">
-                                    <label htmlFor="withdraw_charges_percentage" className="add-profile-transaction__label">
-                                        Charges Percentage
-                                    </label>
-                                    <NumericInput
-                                        value={formData.withdraw_charges_percentage}
-                                        onChange={(value) => handleChange('withdraw_charges_percentage', value)}
-                                        onBlur={() => handleBlur('withdraw_charges_percentage')}
-                                        placeholder="0.00"
-                                        error={touched.withdraw_charges_percentage ? errors.withdraw_charges_percentage : undefined}
-                                        disabled={creating}
-                                        max={100}
-                                    />
-                                    {formData.amount > 0 && formData.withdraw_charges_percentage > 0 && (
-                                        <p className="add-profile-transaction__helper-text">
-                                            Charges: {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
+                            <div className="add-profile-transaction__profile-info-item">
+                                <Building2 size={16} className="add-profile-transaction__profile-info-icon" />
+                                <div className="add-profile-transaction__profile-info-content">
+                                    <span className="add-profile-transaction__profile-info-label">Bank</span>
+                                    <span className="add-profile-transaction__profile-info-value">{profile.bank_name}</span>
+                                </div>
+                            </div>
+
+                            <div className="add-profile-transaction__profile-info-item">
+                                <CreditCard size={16} className="add-profile-transaction__profile-info-icon" />
+                                <div className="add-profile-transaction__profile-info-content">
+                                    <span className="add-profile-transaction__profile-info-label">Card</span>
+                                    <span className="add-profile-transaction__profile-info-value">{formatCreditCard(profile.credit_card_number)}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="add-profile-transaction__form">
+                            <div className="add-profile-transaction__card">
+                                <div className="add-profile-transaction__card-header">
+                                    <div>
+                                        <h2 className="add-profile-transaction__card-title">Transaction Details</h2>
+                                        <p className="add-profile-transaction__card-subtitle">
+                                            Create a new deposit or withdraw transaction for {profile.client_name}
                                         </p>
-                                    )}
+                                    </div>
                                 </div>
-                            )}
 
-                            <div className="add-profile-transaction__form-group add-profile-transaction__form-group--full">
-                                <label htmlFor="notes" className="add-profile-transaction__label">
-                                    Notes
-                                </label>
-                                <TextArea
-                                    value={formData.notes}
-                                    onChange={(value) => handleChange('notes', value)}
-                                    placeholder="Additional notes about this transaction..."
-                                    rows={4}
-                                    disabled={creating}
-                                />
+                                <div className="add-profile-transaction__section">
+                                    <h2 className="add-profile-transaction__section-title">Transaction Type</h2>
+
+                                    <div className="add-profile-transaction__type-selector">
+                                        <button
+                                            type="button"
+                                            className={`add-profile-transaction__type-button ${formData.transaction_type === 'deposit' ? 'add-profile-transaction__type-button--active add-profile-transaction__type-button--deposit' : ''}`}
+                                            onClick={() => handleTransactionTypeChange('deposit')}
+                                            disabled={creating}
+                                        >
+                                            <TrendingUp size={20} />
+                                            <span>Deposit</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className={`add-profile-transaction__type-button ${formData.transaction_type === 'withdraw' ? 'add-profile-transaction__type-button--active add-profile-transaction__type-button--withdraw' : ''}`}
+                                            onClick={() => handleTransactionTypeChange('withdraw')}
+                                            disabled={creating}
+                                        >
+                                            <TrendingDown size={20} />
+                                            <span>Withdraw</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="add-profile-transaction__section">
+                                    <h2 className="add-profile-transaction__section-title">Transaction Details</h2>
+
+                                    <div className="add-profile-transaction__form-grid">
+                                        <div className="add-profile-transaction__form-group">
+                                            <label htmlFor="amount" className="add-profile-transaction__label">
+                                                Amount <span className="add-profile-transaction__required">*</span>
+                                            </label>
+                                            <NumericInput
+                                                value={formData.amount}
+                                                onChange={(value) => handleChange('amount', value)}
+                                                onBlur={() => handleBlur('amount')}
+                                                placeholder="0.00"
+                                                error={touched.amount ? errors.amount : undefined}
+                                                disabled={creating}
+                                            />
+                                        </div>
+
+                                        {formData.transaction_type === 'withdraw' && (
+                                            <div className="add-profile-transaction__form-group">
+                                                <label htmlFor="withdraw_charges_percentage" className="add-profile-transaction__label">
+                                                    Charges Percentage
+                                                </label>
+                                                <NumericInput
+                                                    value={formData.withdraw_charges_percentage}
+                                                    onChange={(value) => handleChange('withdraw_charges_percentage', value)}
+                                                    onBlur={() => handleBlur('withdraw_charges_percentage')}
+                                                    placeholder="0.00"
+                                                    error={touched.withdraw_charges_percentage ? errors.withdraw_charges_percentage : undefined}
+                                                    disabled={creating}
+                                                    max={100}
+                                                />
+                                                {formData.amount > 0 && formData.withdraw_charges_percentage > 0 && (
+                                                    <p className="add-profile-transaction__helper-text">
+                                                        Charges: {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="add-profile-transaction__section">
+                                    <h2 className="add-profile-transaction__section-title">Notes</h2>
+                                    
+                                    <div className="add-profile-transaction__form-group">
+                                        <TextArea
+                                            value={formData.notes}
+                                            onChange={(value) => handleChange('notes', value)}
+                                            placeholder="Additional notes about this transaction..."
+                                            rows={3}
+                                            disabled={creating}
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+
+                            <div className="main__footer-actions">
+                                    <Button
+                                        type="button"
+                                        variant="secondary"
+                                        icon={<ArrowLeft size={16} />}
+                                        onClick={handleReset}
+                                        disabled={creating}
+                                        className="main__icon-button"
+                                    >
+                                        Reset Form
+                                    </Button>
+
+                                    <Button
+                                        type="submit"
+                                        variant="primary"
+                                        icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                                        disabled={creating}
+                                        className="main__button"
+                                    >
+                                        {creating ? 'Creating...' : `Confirm & Add ${formData.transaction_type === 'deposit' ? 'Deposit' : 'Withdraw'}`}
+                                    </Button>
+                                </div>
+                            
+                        </form>
                     </div>
 
-                    {formData.amount > 0 && (
-                        <div className="add-profile-transaction__summary">
-                            <div className="add-profile-transaction__summary-item">
-                                <span>Current Balance:</span>
-                                <span>{formatCurrency(profile.current_balance)}</span>
-                            </div>
-                            {formData.transaction_type === 'withdraw' && formData.withdraw_charges_percentage > 0 && (
-                                <div className="add-profile-transaction__summary-item">
-                                    <span>Charges ({formData.withdraw_charges_percentage}%):</span>
-                                    <span className="add-profile-transaction__summary-charges">
-                                        {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
-                                    </span>
-                                </div>
-                            )}
-                            <div className="add-profile-transaction__summary-item add-profile-transaction__summary-item--total">
-                                <span>New Balance:</span>
-                                <span className={formData.transaction_type === 'deposit' ? 'add-profile-transaction__summary-positive' : 'add-profile-transaction__summary-negative'}>
-                                    {formatCurrency(
-                                        formData.transaction_type === 'deposit'
-                                            ? profile.current_balance + formData.amount
-                                            : profile.current_balance - formData.amount - ((formData.amount * formData.withdraw_charges_percentage) / 100)
-                                    )}
+                    <div className="add-profile-transaction__right">
+                        <div className="add-profile-transaction__calculator">
+                            <div className="add-profile-transaction__calculator-header">
+                                <h3 className="add-profile-transaction__calculator-title">Transaction Summary</h3>
+                                <span className={`add-profile-transaction__calculator-badge ${formData.transaction_type === 'deposit' ? 'add-profile-transaction__calculator-badge--deposit' : 'add-profile-transaction__calculator-badge--withdraw'}`}>
+                                    {formData.transaction_type === 'deposit' ? 'Deposit' : 'Withdraw'}
                                 </span>
                             </div>
-                        </div>
-                    )}
-                    </div>
 
-                    <div className="main__footer-actions">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            icon={<ArrowLeft size={16} />}
-                            onClick={handleReset}
-                            disabled={creating}
-                            className="main__icon-button"
-                        >
-                            Reset Form
-                        </Button>
-                        
-                        <Button
-                            type="submit"
-                            variant="primary"
-                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
-                            disabled={creating}
-                            className="main__button"
-                        >
-                            {creating ? 'Creating...' : `Confirm & Add ${formData.transaction_type === 'deposit' ? 'Deposit' : 'Withdraw'}`}
-                        </Button>
+                            <div className="add-profile-transaction__calculator-body">
+                                <div className="add-profile-transaction__calculator-row">
+                                    <span className="add-profile-transaction__calculator-label">Current Balance:</span>
+                                    <span className="add-profile-transaction__calculator-value">
+                                        {formatCurrency(profile.current_balance)}
+                                    </span>
+                                </div>
+
+                                {formData.transaction_type === 'withdraw' && formData.withdraw_charges_percentage > 0 && (
+                                    <div className="add-profile-transaction__calculator-row">
+                                        <span className="add-profile-transaction__calculator-label">
+                                            Charges ({formData.withdraw_charges_percentage}%):
+                                        </span>
+                                        <span className="add-profile-transaction__calculator-value add-profile-transaction__calculator-value--charges">
+                                            {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
+                                        </span>
+                                    </div>
+                                )}
+
+                                <div className="add-profile-transaction__calculator-divider"></div>
+
+                                <div className="add-profile-transaction__calculator-result">
+                                    <span className="add-profile-transaction__calculator-result-label">New Balance:</span>
+                                    <span className={`add-profile-transaction__calculator-result-value ${formData.transaction_type === 'deposit' ? 'add-profile-transaction__calculator-result-value--positive' : 'add-profile-transaction__calculator-result-value--negative'}`}>
+                                        {formatCurrency(
+                                            formData.transaction_type === 'deposit'
+                                                ? profile.current_balance - formData.amount
+                                                : profile.current_balance
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
     );
 };
 
