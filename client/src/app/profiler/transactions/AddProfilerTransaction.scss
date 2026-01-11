@@ -2,6 +2,8 @@
 
 .add-profiler-transaction {
     &__title-icon {
+        flex-shrink: 0;
+        
         &--success {
             color: var(--success, #22c55e);
         }

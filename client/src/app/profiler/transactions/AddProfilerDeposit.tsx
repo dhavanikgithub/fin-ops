@@ -130,25 +130,29 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         <div className="main">
             <header className="main__header">
                 <div className="main__header-left">
-                    <Button
-                        variant="ghost"
-                        icon={<ArrowLeft size={18} />}
-                        onClick={onBack}
-                        className="main__icon-button"
-                    >
-                        Back to Transactions
-                    </Button>
+                    <ArrowDownCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--success" size={20} />
+                    <div>
+                        <h1>Add New Deposit</h1>
+                        <p className="main__subtitle">Record a deposit transaction for a profile</p>
+                    </div>
                 </div>
                 <div className="main__header-right">
-                    <div className="main__title-row">
-                        <h1 className="main__title">
-                            <ArrowDownCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--success" size={32} />
-                            Add New Deposit
-                        </h1>
-                        <p className="main__subtitle">
-                            Record a deposit transaction for a profile
-                        </p>
-                    </div>
+                    <Button
+                        variant="secondary"
+                        icon={<ArrowLeft size={16} />}
+                        onClick={onBack}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                        onClick={handleSubmit}
+                        disabled={creating}
+                    >
+                        {creating ? 'Creating...' : 'Create Deposit'}
+                    </Button>
                 </div>
             </header>
 
@@ -209,26 +213,6 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
                         </div>
                     </div>
                 </div>
-
-                        <div className="main__footer-actions">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={onBack}
-                                disabled={creating}
-                            >
-                                Cancel
-                            </Button>
-                            
-                            <Button
-                                type="submit"
-                                variant="primary"
-                                icon={creating ? <Loader2 size={18} className="add-profiler-transaction__spinner" /> : <Save size={18} />}
-                                disabled={creating}
-                            >
-                                {creating ? 'Creating...' : 'Create Deposit'}
-                            </Button>
-                        </div>
                     </form>
                 </div>
             </div>
