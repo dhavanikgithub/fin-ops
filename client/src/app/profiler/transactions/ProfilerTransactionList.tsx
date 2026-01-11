@@ -99,7 +99,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
         <div className="profiler-transaction-list">
             <div className="profiler-transaction-list__header">
                 <div className="profiler-transaction-list__title-section">
-                    <h1 className="profiler-transaction-list__title">Profiler Transactions</h1>
+                    <h1 className="profiler-transaction-list__title">Transactions</h1>
                     <p className="profiler-transaction-list__subtitle">
                         Track deposits and withdrawals for financial profiles
                     </p>

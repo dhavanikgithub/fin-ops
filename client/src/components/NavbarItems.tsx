@@ -1,4 +1,4 @@
-import { Users, CreditCard, Calculator, Wallet, Building2, Percent } from 'lucide-react';
+import { Users, CreditCard, Calculator, Wallet, Building2, Percent, LayoutDashboard } from 'lucide-react';
 import Finkeda from './Icons/Finkeda';
 
 interface NavItem {
@@ -25,6 +25,17 @@ interface NavItemsObject {
 }
 
 export const navItemsObject: NavItemsObject = {
+    Profiler: {
+        icon: <Users size={20} />,
+        label: 'Profiler',
+        subItems: {
+            Dashboard: { icon: <LayoutDashboard size={20} />, label: 'Dashboard', href: '/profiler' },
+            Profiles: { icon: <Wallet size={20} />, label: 'Profiles', href: '/profiler/profiles' },
+            Clients: { icon: <Users size={20} />, label: 'Clients', href: '/profiler/clients' },
+            Banks: { icon: <Building2 size={20} />, label: 'Banks', href: '/profiler/banks' },
+            Transactions: { icon: <Wallet size={20} />, label: 'Transactions', href: '/profiler/transactions' },
+        }
+    },
     Transactions: { icon: <Wallet size={20} />, label: 'Transactions', href: '/transactions' },
     Clients: { icon: <Users size={20} />, label: 'Clients', href: '/clients' },
     Banks: { icon: <Building2 size={20} />, label: 'Banks', href: '/banks' },
@@ -37,17 +48,7 @@ export const navItemsObject: NavItemsObject = {
             Finkeda: { icon: <Finkeda size={20} />, label: 'Finkeda Special', href: '/special-calculators/finkeda-special' },
         }
     },
-    Profiler: {
-        icon: <Users size={20} />,
-        label: 'Profiler',
-        subItems: {
-            Dashboard: { icon: <Wallet size={20} />, label: 'Dashboard', href: '/profiler' },
-            Profiles: { icon: <Wallet size={20} />, label: 'Profiles', href: '/profiler/profiles' },
-            Clients: { icon: <Users size={20} />, label: 'Clients', href: '/profiler/clients' },
-            Banks: { icon: <Building2 size={20} />, label: 'Banks', href: '/profiler/banks' },
-            Transactions: { icon: <Wallet size={20} />, label: 'Transactions', href: '/profiler/transactions' },
-        }
-    }
+    
 }
 
 function convertNavItemsObjectToArrayRecursive<T extends object>(obj: T): NavItem[] {

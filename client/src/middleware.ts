@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     // Check if the pathname is exactly "/"
     if (request.nextUrl.pathname === '/') {
         const url = request.nextUrl.clone();
-        url.pathname = '/transactions';
+        url.pathname = '/profiler';
         response = NextResponse.redirect(url)
     }
     if(!theme){

@@ -98,7 +98,7 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
         <div className="profiler-profile-list">
             <div className="profiler-profile-list__header">
                 <div className="profiler-profile-list__title-section">
-                    <h1 className="profiler-profile-list__title">Profiler Profiles</h1>
+                    <h1 className="profiler-profile-list__title">Profiles</h1>
                     <p className="profiler-profile-list__subtitle">
                         Manage financial profiles for clients
                     </p>

@@ -152,39 +152,39 @@ const ProfilerDashboard: React.FC = () => {
                         <div className="profiler-dashboard__actions">
                             <Button
                                 variant="outline"
+                                icon={<Users size={20} />}
+                                iconRight={<ChevronRight size={16} />}
                                 onClick={() => router.push('/profiler/clients')}
                                 className="profiler-dashboard__action-btn"
                             >
-                                <Users size={20} />
                                 Manage Clients
-                                <ChevronRight size={16} />
                             </Button>
                             <Button
                                 variant="outline"
+                                icon={<Building2 size={20} />}
+                                iconRight={<ChevronRight size={16} />}
                                 onClick={() => router.push('/profiler/banks')}
                                 className="profiler-dashboard__action-btn"
                             >
-                                <Building2 size={20} />
                                 Manage Banks
-                                <ChevronRight size={16} />
                             </Button>
                             <Button
                                 variant="outline"
+                                icon={<UserCircle size={20} />}
+                                iconRight={<ChevronRight size={16} />}
                                 onClick={() => router.push('/profiler/profiles')}
                                 className="profiler-dashboard__action-btn"
                             >
-                                <UserCircle size={20} />
                                 Manage Profiles
-                                <ChevronRight size={16} />
                             </Button>
                             <Button
                                 variant="outline"
+                                icon={<Receipt size={20} />}
+                                iconRight={<ChevronRight size={16} />}
                                 onClick={() => router.push('/profiler/transactions')}
                                 className="profiler-dashboard__action-btn"
                             >
-                                <Receipt size={20} />
                                 Manage Transactions
-                                <ChevronRight size={16} />
                             </Button>
                         </div>
                     </div>
@@ -198,10 +198,10 @@ const ProfilerDashboard: React.FC = () => {
                                 <Button
                                     variant="ghost"
                                     size="small"
+                                    iconRight={<ChevronRight size={16} />}
                                     onClick={() => router.push('/profiler/profiles')}
                                 >
                                     View All
-                                    <ChevronRight size={16} />
                                 </Button>
                             </div>
                             <div className="profiler-dashboard__list">
@@ -244,10 +244,10 @@ const ProfilerDashboard: React.FC = () => {
                                 <h2 className="profiler-dashboard__section-title">Recent Transactions</h2>
                                 <Button
                                     variant="ghost"
+                                    iconRight={<ChevronRight size={16} />}
                                     onClick={() => router.push('/profiler/transactions')}
                                 >
                                     View All
-                                    <ChevronRight size={16} />
                                 </Button>
                             </div>
                             <div className="profiler-dashboard__list">

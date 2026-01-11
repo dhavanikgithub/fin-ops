@@ -104,7 +104,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
         <div className="profiler-client-list">
             <div className="profiler-client-list__header">
                 <div className="profiler-client-list__title-section">
-                    <h1 className="profiler-client-list__title">Profiler Clients</h1>
+                    <h1 className="profiler-client-list__title">Clients</h1>
                     <p className="profiler-client-list__subtitle">
                         Manage clients for financial profiling
                     </p>

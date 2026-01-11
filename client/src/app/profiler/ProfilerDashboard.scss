@@ -219,15 +219,8 @@
     }
 
     &__action-btn {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: var(--spacing-sm, 12px);
-        padding: var(--spacing-md, 16px);
-        height: auto;
-        font-size: 15px;
-        font-weight: 500;
-        transition: all 0.2s;
+        justify-content: space-between !important;
+        text-align: left;
 
         &:hover {
             transform: translateX(4px);

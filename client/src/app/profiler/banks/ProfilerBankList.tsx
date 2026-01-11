@@ -104,7 +104,7 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
         <div className="profiler-bank-list">
             <div className="profiler-bank-list__header">
                 <div className="profiler-bank-list__title-section">
-                    <h1 className="profiler-bank-list__title">Profiler Banks</h1>
+                    <h1 className="profiler-bank-list__title">Banks</h1>
                     <p className="profiler-bank-list__subtitle">
                         Manage banks for financial profiling
                     </p>
