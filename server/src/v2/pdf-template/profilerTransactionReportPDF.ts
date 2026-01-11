@@ -211,7 +211,7 @@ class ProfilerTransactionReportPDF {
             .text('Opening Balance:', rightX, currentY);
         this.doc.font('Helvetica')
             .fill(this.colors.green700)
-            .text(this.formatCurrency(data.opening_balance), rightX + 110, currentY);
+            .text(this.formatCurrency(data.opening_balance).replace('₹', 'Rs. '), rightX + 110, currentY);
 
         currentY += 20;
         this.doc.fill(this.colors.gray900)
@@ -219,7 +219,7 @@ class ProfilerTransactionReportPDF {
             .text('Current Balance:', rightX, currentY);
         this.doc.font('Helvetica')
             .fill(data.current_balance >= 0 ? this.colors.green700 : this.colors.red700)
-            .text(this.formatCurrency(data.current_balance), rightX + 110, currentY);
+            .text(this.formatCurrency(data.current_balance).replace('₹', 'Rs. '), rightX + 110, currentY);
 
         this.doc.y = startY + boxHeight + 20;
     }
@@ -233,13 +233,13 @@ class ProfilerTransactionReportPDF {
                 backgroundColor: transaction.transaction_type === 'deposit' ? '#d1fae5' : '#fee2e2'
             },
             {
-                text: this.formatCurrency(transaction.amount),
+                text: this.formatCurrency(transaction.amount).replace('₹', 'Rs. '),
                 align: { x: "right", y: "center" },
                 padding: "8"
             },
             {
                 text: transaction.withdraw_charges_amount 
-                    ? `${this.formatCurrency(transaction.withdraw_charges_amount)}\n(${transaction.withdraw_charges_percentage}%)`
+                    ? `${this.formatCurrency(transaction.withdraw_charges_amount).replace('₹', 'Rs. ')}\n(${transaction.withdraw_charges_percentage}%)`
                     : '-',
                 align: { x: "right", y: "center" },
                 padding: "8",
@@ -274,6 +274,7 @@ class ProfilerTransactionReportPDF {
                         padding: "12",
                         align: { x: "center", y: "center" },
                         backgroundColor: this.colors.gray700,
+                        textColor: this.colors.white,
                         text: "Transactions"
                     }
                 ],
@@ -344,7 +345,7 @@ class ProfilerTransactionReportPDF {
             .text('Total Deposits:', leftX, currentY);
         this.doc.font('Helvetica')
             .fill(this.colors.green700)
-            .text(this.formatCurrency(summary.total_deposits), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.total_deposits).replace('₹', 'Rs. '), leftX + 150, currentY);
 
         currentY += 20;
         this.doc.fill(this.colors.gray900);
@@ -354,7 +355,7 @@ class ProfilerTransactionReportPDF {
             .text('Total Withdrawals:', leftX, currentY);
         this.doc.font('Helvetica')
             .fill(this.colors.red700)
-            .text(this.formatCurrency(summary.total_withdrawals), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.total_withdrawals).replace('₹', 'Rs. '), leftX + 150, currentY);
 
         currentY += 20;
         this.doc.fill(this.colors.gray900);
@@ -364,7 +365,7 @@ class ProfilerTransactionReportPDF {
             .text('Total Charges:', leftX, currentY);
         this.doc.font('Helvetica')
             .fill(this.colors.red700)
-            .text(this.formatCurrency(summary.total_charges), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.total_charges).replace('₹', 'Rs. '), leftX + 150, currentY);
 
         currentY += 25;
 
@@ -381,7 +382,7 @@ class ProfilerTransactionReportPDF {
             .text('Net Amount:', leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(summary.net_amount >= 0 ? this.colors.green700 : this.colors.red700)
-            .text(this.formatCurrency(summary.net_amount), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.net_amount).replace('₹', 'Rs. '), leftX + 150, currentY);
 
         this.doc.y = startY + boxHeight + 20;
     }

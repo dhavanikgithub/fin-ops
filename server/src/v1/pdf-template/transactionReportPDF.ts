@@ -1,6 +1,5 @@
-import PDFDocument from 'pdfkit'; // This extends PDFDocument with table method
+import PDFDocument from 'pdfkit';
 import * as fs from 'fs';
-
 
 // Type definitions
 interface Transaction {
@@ -20,9 +19,17 @@ interface ClientTotal {
     final_amount: string;
 }
 
+interface ClientInfo {
+    name: string;
+    email?: string | null;
+    contact?: string | null;
+    address?: string | null;
+}
+
 interface ClientData {
     data: Transaction[];
     total: ClientTotal;
+    clientInfo?: ClientInfo;
 }
 
 interface ReportData {
@@ -58,17 +65,17 @@ class TransactionReportPDF {
         this.pageWidth = this.doc.page.width - 40; // Account for margins
 
         this.colors = {
-            gray100: '#f3f4f6',
-            gray200: '#e5e7eb',
-            gray500: '#6b7280',
-            gray700: '#374151',
-            gray900: '#111827',
+            gray100: '#f8fafc',
+            gray200: '#e2e8f0',
+            gray500: '#64748b',
+            gray700: '#334155',
+            gray900: '#0f172a',
             red500: '#ef4444',
-            red700: '#b91c1c',
-            red900: '#7f1d1d',
-            green500: '#10b981',
-            green700: '#047857',
-            green900: '#064e3b',
+            red700: '#dc2626',
+            red900: '#991b1b',
+            green500: '#22c55e',
+            green700: '#16a34a',
+            green900: '#15803d',
             white: '#ffffff'
         };
     }
@@ -101,128 +108,159 @@ class TransactionReportPDF {
     }
 
     private addHeader(startDate: string, endDate: string): void {
-        const dateRangeText = startDate === "All" ? "" : `${startDate} to ${endDate}`
-        const headerHeight = dateRangeText === "" ? 60 : 80;
+        const headerHeight = 120;
 
-        // Header background
+        // Modern gradient-like header background
         this.doc.rect(0, 0, this.doc.page.width, headerHeight)
-            .fill('#e5e7eb')
+            .fill('#1e293b')
             .stroke();
 
-        // Title
+        // Accent bar
+        this.doc.rect(0, headerHeight - 6, this.doc.page.width, 6)
+            .fill('#3b82f6')
+            .stroke();
+
+        // Company Name
         this.setFont();
-        this.doc.fill(this.colors.gray700)
-            .fontSize(20)
+        this.doc.fill(this.colors.white)
+            .fontSize(26)
             .font('Helvetica-Bold')
-            .text('Transaction Report', 0, 25, { align: 'center' });
+            .text('Bapa Sita Ram Enterprise', 40, 25);
 
-        // Date range
-        this.doc.fontSize(12)
+        // Subtitle
+        this.doc.fontSize(11)
             .font('Helvetica')
-            .fill(this.colors.gray500)
-            .text(dateRangeText, 0, 50, { align: 'center' });
+            .fill('#94a3b8')
+            .text('Financial Transaction Report', 40, 58);
 
-        this.doc.y = headerHeight + 10;
+        // Date range on right
+        if (startDate !== "All") {
+            this.doc.fontSize(10)
+                .font('Helvetica-Bold')
+                .fill(this.colors.white)
+                .text('Report Period', 0, 30, { align: 'right', width: this.doc.page.width - 40 });
+            
+            this.doc.fontSize(11)
+                .font('Helvetica')
+                .fill('#94a3b8')
+                .text(`${startDate} to ${endDate}`, 0, 48, { align: 'right', width: this.doc.page.width - 40 });
+        }
+
+        // Generation date
+        const currentDate = new Date().toLocaleDateString('en-IN', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        this.doc.fontSize(8)
+            .font('Helvetica')
+            .fill('#64748b')
+            .text(`Generated on: ${currentDate}`, 0, 85, { align: 'right', width: this.doc.page.width - 40 });
+
+        this.doc.y = headerHeight + 25;
     }
 
     private addClientTable(clientName: string, clientData: ClientData): void {
-        const tableWidth = this.pageWidth * 0.9;
-        const tableStartX = (this.doc.page.width - tableWidth) / 2;
+        // Add client info section if available
+        if (clientData.clientInfo) {
+            this.addClientInfoSection(clientData.clientInfo);
+        }
 
-        // Check if we need a new page
-        // if (this.doc.y + (clientData.data.length + 3) * 35 > this.doc.page.height - 50) {
-        //   this.doc.addPage(); // Standard PDFKit method
-        // }
         const dynamicData = clientData.data.map(transaction => [
             {
                 text: transaction.is_widthdraw_transaction ? "WITHDRAW" : "DEPOSIT",
-                align: { y: "center" },
-                padding: "5"
+                align: { x: "center", y: "center" },
+                padding: "8",
+                backgroundColor: transaction.is_widthdraw_transaction ? '#fee2e2' : '#dcfce7'
             },
             {
                 text: transaction.transaction_amount,
-                align: { y: "center" },
-                padding: "5"
+                align: { x: "right", y: "center" },
+                padding: "8"
             },
             {
                 text: `${transaction.widthdraw_charges}\n${transaction.widthdraw_charges_pr}`,
-                align: { y: "center" },
-                padding: "5",
+                align: { x: "right", y: "center" },
+                padding: "8",
                 textOptions: {
-                    lineGap: 5,
+                    lineGap: 3,
                 },
             },
             {
                 text: transaction.bank_name,
                 align: { y: "center" },
-                padding: "5"
+                padding: "8"
             },
             {
                 text: transaction.card_name,
                 align: { y: "center" },
-                padding: "5"
+                padding: "8"
             },
             {
                 text: `${transaction.date}\n${transaction.time}`,
-                align: { y: "center" },
-                padding: "5",
+                align: { x: "center", y: "center" },
+                padding: "8",
                 textOptions: {
-                    lineGap: 5,
+                    lineGap: 3,
                 },
             }
         ] as PDFKit.Mixins.CellOptions[])
 
 
-        // Prepare table data for pdfkit-table
+        // Prepare table data with modern styling
         const tableData: PDFKit.Mixins.TableOptionsWithData = {
             rowStyles: (i) => {
-                return { borderColor: "#E3E5E9" };
+                return { borderColor: this.colors.gray200 };
             },
-            position: { x: 15 },
+            position: { x: 20 },
             data: [
                 [
                     {
                         colSpan: 6,
-                        padding: "10",
+                        padding: "12",
                         align: { x: "center", y: "center" },
-                        text: clientName
+                        backgroundColor: this.colors.gray700,
+                        textColor: this.colors.white,
+                        text: `Transactions for ${clientName}`
                     }
                 ],
                 [
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
-                        text: "Transaction Type",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
+                        text: "Type",
                     },
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
-                        text: "Amount",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
+                        text: "Amount (Rs.)",
                     },
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
-                        text: "Withdraw charge",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
+                        text: "Charges",
                     },
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
                         text: "Bank",
                     },
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
                         text: "Card",
                     },
                     {
                         align: { x: "center", y: "center" },
-                        padding: "5",
-                        backgroundColor: "#ECEDF0",
+                        padding: "10",
+                        backgroundColor: this.colors.gray100,
                         text: "Date & Time",
                     }
                 ],
@@ -231,26 +269,80 @@ class TransactionReportPDF {
                     {
                         colSpan: 4,
                         border: [true, false, true, true],
-                        backgroundColor: "#ECEDF0",
+                        backgroundColor: this.colors.gray100,
                     },
                     {
                         colSpan: 2,
                         border: [true, true, true, false],
-                        align: { y: "center" },
-                        backgroundColor: "#ECEDF0",
-                        padding: "10",
+                        align: { x: "right", y: "center" },
+                        backgroundColor: this.colors.gray100,
+                        padding: "12",
                         textOptions: {
-                            lineGap: 5,
+                            lineGap: 4,
                         },
-                        text: `${clientData.total.widthdraw_charges} (Fee)\n${clientData.total.transaction_amount} (Credit)\nTotal: ${clientData.total.final_amount}`,
+                        text: `Charges: ${clientData.total.widthdraw_charges}\nCredit: ${clientData.total.transaction_amount}\nNet Total: ${clientData.total.final_amount}`,
                     }
                 ],
             ],
         };
 
-        this.doc.y = this.doc.y + 10
-        // Create table using the table method from pdfkit-table
+        this.doc.y = this.doc.y + 10;
         this.doc.table(tableData);
+    }
+
+    private addClientInfoSection(clientInfo: ClientInfo): void {
+        const startY = this.doc.y;
+        const sectionHeight = 85;
+
+        // Info box with modern styling
+        this.doc.rect(20, startY, this.pageWidth, sectionHeight)
+            .fill(this.colors.gray100)
+            .stroke();
+
+        this.doc.fill(this.colors.gray900);
+
+        // Section title
+        this.doc.fontSize(12)
+            .font('Helvetica-Bold')
+            .text('Client Information', 35, startY + 15);
+
+        // Client details
+        const leftX = 35;
+        let currentY = startY + 35;
+
+        // Client Name
+        this.doc.fontSize(10)
+            .font('Helvetica-Bold')
+            .fill(this.colors.gray700)
+            .text('Name:', leftX, currentY);
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray900)
+            .text(clientInfo.name, leftX + 80, currentY);
+
+        currentY += 18;
+
+        // Email
+        if (clientInfo.email) {
+            this.doc.font('Helvetica-Bold')
+                .fill(this.colors.gray700)
+                .text('Email:', leftX, currentY);
+            this.doc.font('Helvetica')
+                .fill(this.colors.gray900)
+                .text(clientInfo.email, leftX + 80, currentY);
+            currentY += 18;
+        }
+
+        // Contact
+        if (clientInfo.contact) {
+            this.doc.font('Helvetica-Bold')
+                .fill(this.colors.gray700)
+                .text('Contact:', leftX, currentY);
+            this.doc.font('Helvetica')
+                .fill(this.colors.gray900)
+                .text(clientInfo.contact, leftX + 80, currentY);
+        }
+
+        this.doc.y = startY + sectionHeight + 20;
     }
 }
 

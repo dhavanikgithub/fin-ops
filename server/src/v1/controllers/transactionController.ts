@@ -551,7 +551,13 @@ export class TransactionController {
                             transaction_amount: "0",
                             widthdraw_charges: "0",
                         },
-                        data: []
+                        data: [],
+                        clientInfo: {
+                            name: row.client_name,
+                            email: row.client_email || null,
+                            contact: row.client_contact || null,
+                            address: row.client_address || null
+                        }
                     };
                 }
 

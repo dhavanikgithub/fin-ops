@@ -123,6 +123,12 @@ export interface ClientTotal {
 export interface GroupedData {
     total: ClientTotal;
     data: TransactionReportData[];
+    clientInfo?: {
+        name: string;
+        email?: string | null;
+        contact?: string | null;
+        address?: string | null;
+    };
 }
 
 export interface ReportData {
@@ -140,6 +146,9 @@ export interface TransactionRecord {
     widthdraw_charges: number;
     transaction_amount: number;
     client_name: string;
+    client_email?: string | null;
+    client_contact?: string | null;
+    client_address?: string | null;
     bank_name?: string | null;
     card_name?: string | null;
     bank_id?: number | null;

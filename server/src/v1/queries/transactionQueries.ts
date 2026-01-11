@@ -83,6 +83,9 @@ export const TRANSACTION_QUERIES = {
             tr.modify_date,
             tr.modify_time,
             c.name AS client_name,
+            c.email AS client_email,
+            c.contact AS client_contact,
+            c.address AS client_address,
             bk.name AS bank_name,
             ct.name AS card_name
         FROM transaction_records tr 
@@ -108,6 +111,9 @@ export const TRANSACTION_QUERIES = {
             tr.modify_date,
             tr.modify_time,
             c.name AS client_name,
+            c.email AS client_email,
+            c.contact AS client_contact,
+            c.address AS client_address,
             bk.name AS bank_name,
             ct.name AS card_name
         FROM transaction_records tr 
