@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createDepositTransaction } from '@/store/actions/profilerTransactionActions';
 import { fetchProfilerProfileAutocomplete } from '@/store/slices/profilerProfileAutocompleteSlice';
@@ -108,10 +108,15 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         }
     };
 
-    const profileOptions: AutocompleteOption[] = profiles.map((profile: any) => ({
-        id: profile.id,
-        name: `${profile.client_name} - ${profile.bank_name}`
-    }));
+    const profileOptions: AutocompleteOption[] = useMemo(() => {
+        return profiles.map((profile: any) => {
+            const last4Digits = profile.credit_card_number?.slice(-4) || 'N/A';
+            return {
+                id: profile.id,
+                name: `${profile.client_name} - ${profile.bank_name} (*${last4Digits})`
+            };
+        });
+    }, [profiles]);
 
     const formatCurrency = (amount: number) => {
         return new Intl.NumberFormat('en-IN', {
