@@ -207,7 +207,11 @@ const ProfilerDashboard: React.FC = () => {
                             <div className="profiler-dashboard__list">
                                 {topProfiles.length > 0 ? (
                                     topProfiles.map((profile) => (
-                                        <div key={profile.id} className="profiler-dashboard__list-item">
+                                        <div 
+                                            key={profile.id} 
+                                            className="profiler-dashboard__list-item profiler-dashboard__list-item--clickable"
+                                            onClick={() => router.push(`/profiler/profiles/${profile.id}/transaction`)}
+                                        >
                                             <div className="profiler-dashboard__list-item-content">
                                                 <div className="profiler-dashboard__list-item-header">
                                                     <span className="profiler-dashboard__list-item-name">

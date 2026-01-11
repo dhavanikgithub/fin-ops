@@ -261,6 +261,14 @@
         &:hover {
             background: var(--muted);
         }
+
+        &--clickable {
+            cursor: pointer;
+
+            &:active {
+                transform: scale(0.99);
+            }
+        }
     }
 
     &__list-item-icon {
