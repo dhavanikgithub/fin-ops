@@ -101,7 +101,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                 <div className="main__header-left">
                     <div className="main__title-row">
                         <h1 className="main__title">Transactions</h1>
-                        <p className="main__subtitle">Track deposits and withdrawals for financial profiles</p>
+                        {/* <p className="main__subtitle">Track deposits and withdrawals for financial profiles</p> */}
                     </div>
                 </div>
                 
