@@ -20,6 +20,14 @@ interface ProfilerProfileTableProps {
     onRefresh: () => void;
 }
 
+// Format credit card number with bullet every 4 digits
+const formatCreditCard = (value: string): string => {
+    if (!value) return '';
+    const digits = value.replace(/[•\-\s]/g, '');
+    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+    return formatted;
+};
+
 const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
     profiles,
     sortConfig,
@@ -119,6 +127,7 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                         Bank {getSortIcon('profiler_bank_name')}
                                     </div>
                                 </th>
+                                <th className="profiler-profile-table__th">Credit Card</th>
                                 <th onClick={() => handleSortClick('opening_balance')} className="profiler-profile-table__th profiler-profile-table__th--sortable profiler-profile-table__th--right">
                                     <div className="profiler-profile-table__th-content">
                                         Opening Bal {getSortIcon('opening_balance')}
@@ -165,6 +174,11 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                                 <Building2 size={14} />
                                                 {profile.bank_name}
                                             </div>
+                                        </td>
+                                        <td className="profiler-profile-table__td">
+                                            <span className="profiler-profile-table__card-number">
+                                                {formatCreditCard(profile.credit_card_number)}
+                                            </span>
                                         </td>
                                         <td className="profiler-profile-table__td profiler-profile-table__td--right">
                                             <span className="profiler-profile-table__amount">
