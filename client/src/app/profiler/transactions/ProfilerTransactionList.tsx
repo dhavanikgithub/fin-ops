@@ -96,16 +96,16 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
     }, [dispatch]);
 
     return (
-        <div className="profiler-transaction-list">
-            <div className="profiler-transaction-list__header">
-                <div className="profiler-transaction-list__title-section">
-                    <h1 className="profiler-transaction-list__title">Transactions</h1>
-                    <p className="profiler-transaction-list__subtitle">
-                        Track deposits and withdrawals for financial profiles
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <div className="main__title-row">
+                        <h1 className="main__title">Transactions</h1>
+                        <p className="main__subtitle">Track deposits and withdrawals for financial profiles</p>
+                    </div>
                 </div>
                 
-                <div className="profiler-transaction-list__actions">
+                <div className="main__header-right">
                     <div className="profiler-transaction-list__search">
                         <TextInput
                             type="text"
@@ -113,7 +113,6 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                             value={searchQuery}
                             onChange={(value: string) => handleSearch(value)}
                             icon={<Search size={18} />}
-                            className="profiler-transaction-list__search-input"
                         />
                     </div>
                     
@@ -121,7 +120,6 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                         variant="primary"
                         icon={<ArrowDownCircle size={18} />}
                         onClick={onNewDeposit}
-                        className="profiler-transaction-list__add-button"
                     >
                         Add Deposit
                     </Button>
@@ -130,70 +128,71 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                         variant="destructive"
                         icon={<ArrowUpCircle size={18} />}
                         onClick={onNewWithdraw}
-                        className="profiler-transaction-list__add-button"
                     >
                         Add Withdraw
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            {pagination && (
-                <div className="profiler-transaction-list__stats">
-                    <span className="profiler-transaction-list__stats-text">
-                        Showing {transactions.length} of {pagination.total_count} transactions
-                    </span>
-                </div>
-            )}
-
-            <div className="profiler-transaction-list__content">
-                {loading && transactions.length === 0 ? (
-                    <div className="profiler-transaction-list__loading">
-                        <Loader2 size={48} className="profiler-transaction-list__loading-icon" />
-                        <p>Loading profiler transactions...</p>
-                    </div>
-                ) : transactions.length === 0 ? (
-                    <div className="profiler-transaction-list__empty">
-                        <ArrowDownCircle size={64} className="profiler-transaction-list__empty-icon" />
-                        <h3>No Transactions Found</h3>
-                        <p>Get started by adding your first transaction</p>
-                        <div className="profiler-transaction-list__empty-actions">
-                            <Button
-                                variant="primary"
-                                icon={<ArrowDownCircle size={18} />}
-                                onClick={onNewDeposit}
-                            >
-                                Add Deposit
-                            </Button>
-                            <Button
-                                variant="destructive"
-                                icon={<ArrowUpCircle size={18} />}
-                                onClick={onNewWithdraw}
-                            >
-                                Add Withdraw
-                            </Button>
+            <div className="main__content">
+                <div className="main__view">
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {transactions.length} of {pagination.total_count} transactions
+                            </span>
                         </div>
-                    </div>
-                ) : (
-                    <>
-                        <ProfilerTransactionTable
-                            transactions={transactions}
-                            sortConfig={sortConfig}
-                            onSort={handleSort}
-                            onRefresh={handleRefresh}
-                        />
-                        
-                        {hasMore && (
-                            <div ref={observerTarget} className="profiler-transaction-list__load-more">
-                                {loadingMore && (
-                                    <div className="profiler-transaction-list__loading-more">
-                                        <Loader2 size={24} className="profiler-transaction-list__loading-more-icon" />
-                                        <span>Loading more transactions...</span>
-                                    </div>
-                                )}
+                    )}
+
+                    {loading && transactions.length === 0 ? (
+                        <div className="profiler-transaction-list__loading">
+                            <Loader2 size={48} className="profiler-transaction-list__loading-icon" />
+                            <p>Loading profiler transactions...</p>
+                        </div>
+                    ) : transactions.length === 0 ? (
+                        <div className="profiler-transaction-list__empty">
+                            <ArrowDownCircle size={64} className="profiler-transaction-list__empty-icon" />
+                            <h3>No Transactions Found</h3>
+                            <p>Get started by adding your first transaction</p>
+                            <div className="profiler-transaction-list__empty-actions">
+                                <Button
+                                    variant="primary"
+                                    icon={<ArrowDownCircle size={18} />}
+                                    onClick={onNewDeposit}
+                                >
+                                    Add Deposit
+                                </Button>
+                                <Button
+                                    variant="destructive"
+                                    icon={<ArrowUpCircle size={18} />}
+                                    onClick={onNewWithdraw}
+                                >
+                                    Add Withdraw
+                                </Button>
                             </div>
-                        )}
-                    </>
-                )}
+                        </div>
+                    ) : (
+                        <>
+                            <ProfilerTransactionTable
+                                transactions={transactions}
+                                sortConfig={sortConfig}
+                                onSort={handleSort}
+                                onRefresh={handleRefresh}
+                            />
+                            
+                            {hasMore && (
+                                <div ref={observerTarget} className="profiler-transaction-list__load-more">
+                                    {loadingMore && (
+                                        <div className="profiler-transaction-list__loading-more">
+                                            <Loader2 size={24} className="profiler-transaction-list__loading-more-icon" />
+                                            <span>Loading more transactions...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </div>
     );

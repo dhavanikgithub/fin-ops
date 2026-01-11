@@ -220,24 +220,43 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     }));
 
     return (
-        <div className="add-profiler-profile">
-            <div className="add-profiler-profile__header">
-                <Button
-                    variant="ghost"
-                    icon={<ArrowLeft size={18} />}
-                    onClick={onBack}
-                    className="add-profiler-profile__back-button"
-                >
-                    Back to Profiles
-                </Button>
-                
-                <div className="add-profiler-profile__title-section">
-                    <h1 className="add-profiler-profile__title">Add New Profiler Profile</h1>
-                    <p className="add-profiler-profile__subtitle">
-                        Create a new financial profile for a client
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <h1>New Profile</h1>
                 </div>
-            </div>
+                <div className="main__header-right">
+                    <Button
+                        variant="secondary"
+                        icon={<ArrowLeft size={16} />}
+                        onClick={onBack}
+                        className="main__icon-button"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                        onClick={handleSubmit}
+                        disabled={creating}
+                        className="main__button"
+                    >
+                        {creating ? 'Saving...' : 'Save Profile'}
+                    </Button>
+                </div>
+            </header>
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="main__view-header">
+                        <div className="main__title-row">
+                            <h2 className="main__title">Profile Details</h2>
+                        </div>
+                        <p className="main__subtitle">
+                            Create a new financial profile
+                        </p>
+                    </div>
 
             <form onSubmit={handleSubmit} className="add-profiler-profile__form">
                 <div className="add-profiler-profile__card">
@@ -348,40 +367,34 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="add-profiler-profile__actions">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={handleReset}
-                        disabled={creating}
-                    >
-                        Reset Form
-                    </Button>
-                    
-                    <div className="add-profiler-profile__actions-right">
+                    <div className="main__footer-actions">
                         <Button
                             type="button"
-                            variant="outline"
-                            onClick={onBack}
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
+                            onClick={handleReset}
                             disabled={creating}
+                            className="main__icon-button"
                         >
-                            Cancel
+                            Reset Form
                         </Button>
                         
                         <Button
                             type="submit"
                             variant="primary"
-                            icon={creating ? <Loader2 size={18} className="add-profiler-profile__spinner" /> : <Save size={18} />}
+                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
                             disabled={creating}
+                            className="main__button"
                         >
-                            {creating ? 'Creating...' : 'Create Profile'}
+                            {creating ? 'Creating...' : 'Confirm & Add Profile'}
                         </Button>
                     </div>
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
     );
 };
 

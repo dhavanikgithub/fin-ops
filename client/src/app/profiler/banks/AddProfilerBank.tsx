@@ -115,24 +115,43 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
     };
 
     return (
-        <div className="add-profiler-bank">
-            <div className="add-profiler-bank__header">
-                <Button
-                    variant="ghost"
-                    icon={<ArrowLeft size={18} />}
-                    onClick={onBack}
-                    className="add-profiler-bank__back-button"
-                >
-                    Back to Banks
-                </Button>
-                
-                <div className="add-profiler-bank__title-section">
-                    <h1 className="add-profiler-bank__title">Add New Profiler Bank</h1>
-                    <p className="add-profiler-bank__subtitle">
-                        Create a new bank for financial profiling
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <h1>New Bank</h1>
                 </div>
-            </div>
+                <div className="main__header-right">
+                    <Button
+                        variant="secondary"
+                        icon={<ArrowLeft size={16} />}
+                        onClick={onBack}
+                        className="main__icon-button"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="submit"
+                        variant="primary"
+                        icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
+                        onClick={handleSubmit}
+                        disabled={creating}
+                        className="main__button"
+                    >
+                        {creating ? 'Saving...' : 'Save Bank'}
+                    </Button>
+                </div>
+            </header>
+
+            <div className="main__content">
+                <div className="main__view">
+                    <div className="main__view-header">
+                        <div className="main__title-row">
+                            <h2 className="main__title">Bank Details</h2>
+                        </div>
+                        <p className="main__subtitle">
+                            Create a new bank for financial profiling
+                        </p>
+                    </div>
 
             <form onSubmit={handleSubmit} className="add-profiler-bank__form">
                 <div className="add-profiler-bank__card">
@@ -156,40 +175,34 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="add-profiler-bank__actions">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={handleReset}
-                        disabled={creating}
-                    >
-                        Reset Form
-                    </Button>
-                    
-                    <div className="add-profiler-bank__actions-right">
+                    <div className="main__footer-actions">
                         <Button
                             type="button"
-                            variant="outline"
-                            onClick={onBack}
+                            variant="secondary"
+                            icon={<ArrowLeft size={16} />}
+                            onClick={handleReset}
                             disabled={creating}
+                            className="main__icon-button"
                         >
-                            Cancel
+                            Reset Form
                         </Button>
                         
                         <Button
                             type="submit"
                             variant="primary"
-                            icon={creating ? <Loader2 size={18} className="add-profiler-bank__spinner" /> : <Save size={18} />}
+                            icon={creating ? <Loader2 size={16} /> : <Save size={16} />}
                             disabled={creating}
+                            className="main__button"
                         >
-                            {creating ? 'Creating...' : 'Create Bank'}
+                            {creating ? 'Creating...' : 'Confirm & Add Bank'}
                         </Button>
                     </div>
-                </div>
-            </form>
+                    </div>
+                </form>
+            </div>
         </div>
+    </div>
     );
 };
 

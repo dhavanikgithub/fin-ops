@@ -1,0 +1,225 @@
+.profile-transaction-table {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg, 12px);
+    overflow: hidden;
+
+    &__loading,
+    &__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: var(--spacing-xxl, 48px) var(--spacing-lg, 24px);
+        gap: var(--spacing-md, 16px);
+        color: var(--muted-foreground);
+        min-height: 300px;
+
+        p {
+            font-size: 14px;
+            font-weight: 500;
+        }
+    }
+
+    &__spinner {
+        color: var(--primary);
+        animation: spin 1s linear infinite;
+    }
+
+    &__wrapper {
+        overflow-x: auto;
+    }
+
+    &__table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    &__thead {
+        background: var(--background);
+        border-bottom: 1px solid var(--border);
+    }
+
+    &__th {
+        padding: var(--spacing-md, 16px);
+        text-align: left;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--muted-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+
+        &--sortable {
+            cursor: pointer;
+            user-select: none;
+
+            &:hover {
+                background: var(--muted);
+            }
+        }
+
+        &--right {
+            text-align: right;
+        }
+
+        &--center {
+            text-align: center;
+        }
+
+        &--actions {
+            width: 100px;
+            text-align: center;
+        }
+    }
+
+    &__th-content {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-xs, 8px);
+    }
+
+    &__sort-icon {
+        color: var(--muted-foreground);
+
+        &--active {
+            color: var(--primary);
+        }
+    }
+
+    &__tbody {
+        tr {
+            border-bottom: 1px solid var(--border);
+
+            &:last-child {
+                border-bottom: none;
+            }
+
+            &:hover {
+                background: var(--muted);
+            }
+        }
+    }
+
+    &__td {
+        padding: var(--spacing-md, 16px);
+        font-size: 14px;
+        color: var(--foreground);
+
+        &--right {
+            text-align: right;
+        }
+
+        &--center {
+            text-align: center;
+        }
+
+        &--actions {
+            text-align: center;
+        }
+    }
+
+    &__type {
+        display: inline-flex;
+        align-items: center;
+        gap: var(--spacing-xs, 8px);
+        padding: 0.25rem var(--spacing-sm, 12px);
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 500;
+        text-transform: capitalize;
+
+        &--deposit {
+            background: hsla(142, 76%, 36%, 0.1);
+            color: hsl(142, 76%, 36%);
+        }
+
+        &--withdraw {
+            background: hsla(0, 84%, 60%, 0.1);
+            color: hsl(0, 84%, 60%);
+        }
+    }
+
+    &__amount {
+        font-weight: 600;
+
+        &--deposit {
+            color: hsl(142, 76%, 36%);
+        }
+
+        &--withdraw {
+            color: hsl(0, 84%, 60%);
+        }
+    }
+
+    &__amount {
+        font-weight: 600;
+
+        &--deposit {
+            color: hsl(142, 76%, 36%);
+        }
+
+        &--withdraw {
+            color: hsl(0, 84%, 60%);
+        }
+    }
+
+    &__charges {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: var(--spacing-xs, 8px);
+        color: var(--muted-foreground);
+    }
+
+    &__charges-percent {
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+
+    &__notes {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    &__date {
+        color: var(--muted-foreground);
+    }
+
+    &__empty {
+        color: var(--muted-foreground);
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: var(--spacing-xs, 8px);
+    }
+
+    &__delete-btn {
+        color: var(--muted-foreground);
+
+        &:hover:not(:disabled) {
+            color: var(--destructive);
+        }
+    }
+
+    &__pagination {
+        padding: var(--spacing-md, 16px);
+        border-top: 1px solid var(--border);
+        display: flex;
+        justify-content: center;
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}

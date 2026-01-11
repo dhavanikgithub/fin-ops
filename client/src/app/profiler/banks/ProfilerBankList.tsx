@@ -101,16 +101,16 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
     }, [dispatch]);
 
     return (
-        <div className="profiler-bank-list">
-            <div className="profiler-bank-list__header">
-                <div className="profiler-bank-list__title-section">
-                    <h1 className="profiler-bank-list__title">Banks</h1>
-                    <p className="profiler-bank-list__subtitle">
-                        Manage banks for financial profiling
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <div className="main__title-row">
+                        <h1 className="main__title">Banks</h1>
+                        {/* <p className="main__subtitle">Manage banks for financial profiling</p> */}
+                    </div>
                 </div>
                 
-                <div className="profiler-bank-list__actions">
+                <div className="main__header-right">
                     <div className="profiler-bank-list__search">
                         <TextInput
                             type="text"
@@ -118,7 +118,6 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
                             value={searchQuery}
                             onChange={(value: string) => handleSearch(value)}
                             icon={<Search size={18} />}
-                            className="profiler-bank-list__search-input"
                         />
                     </div>
                     
@@ -126,61 +125,62 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
                         variant="primary"
                         icon={<Building2 size={18} />}
                         onClick={onNewBank}
-                        className="profiler-bank-list__add-button"
                     >
                         Add Bank
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            {pagination && (
-                <div className="profiler-bank-list__stats">
-                    <span className="profiler-bank-list__stats-text">
-                        Showing {banks.length} of {pagination.total_count} banks
-                    </span>
+            <div className="main__content">
+                <div className="main__view">
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {banks.length} of {pagination.total_count} banks
+                            </span>
+                        </div>
+                    )}
+
+                    {loading && banks.length === 0 ? (
+                        <div className="profiler-bank-list__loading">
+                            <Loader2 size={48} className="profiler-bank-list__loading-icon" />
+                            <p>Loading profiler banks...</p>
+                        </div>
+                    ) : banks.length === 0 ? (
+                        <div className="profiler-bank-list__empty">
+                            <Building2 size={64} className="profiler-bank-list__empty-icon" />
+                            <h3>No Banks Found</h3>
+                            <p>Get started by adding your first profiler bank</p>
+                            <Button
+                                variant="primary"
+                                icon={<Building2 size={18} />}
+                                onClick={onNewBank}
+                            >
+                                Add First Bank
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <ProfilerBankTable
+                                banks={banks}
+                                sortConfig={sortConfig}
+                                onSort={handleSort}
+                                onRefresh={handleRefresh}
+                            />
+                            
+                            {hasMore && (
+                                <div ref={observerTarget} className="profiler-bank-list__load-more">
+                                    {loadingMore && (
+                                        <div className="profiler-bank-list__loading-more">
+                                            <Loader2 size={24} className="profiler-bank-list__loading-more-icon" />
+                                            <span>Loading more banks...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-            )}
-
-            <div className="profiler-bank-list__content">
-                {loading && banks.length === 0 ? (
-                    <div className="profiler-bank-list__loading">
-                        <Loader2 size={48} className="profiler-bank-list__loading-icon" />
-                        <p>Loading profiler banks...</p>
-                    </div>
-                ) : banks.length === 0 ? (
-                    <div className="profiler-bank-list__empty">
-                        <Building2 size={64} className="profiler-bank-list__empty-icon" />
-                        <h3>No Banks Found</h3>
-                        <p>Get started by adding your first profiler bank</p>
-                        <Button
-                            variant="primary"
-                            icon={<Building2 size={18} />}
-                            onClick={onNewBank}
-                        >
-                            Add First Bank
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <ProfilerBankTable
-                            banks={banks}
-                            sortConfig={sortConfig}
-                            onSort={handleSort}
-                            onRefresh={handleRefresh}
-                        />
-                        
-                        {hasMore && (
-                            <div ref={observerTarget} className="profiler-bank-list__load-more">
-                                {loadingMore && (
-                                    <div className="profiler-bank-list__loading-more">
-                                        <Loader2 size={24} className="profiler-bank-list__loading-more-icon" />
-                                        <span>Loading more banks...</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
             </div>
         </div>
     );

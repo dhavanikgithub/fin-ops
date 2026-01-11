@@ -170,6 +170,34 @@ export const getTransactionsByProfile = createAsyncThunk<
     }
 );
 
+// Fetch transactions by profile ID with pagination and sorting
+export const fetchProfilerTransactionsByProfile = createAsyncThunk<
+    ProfilerTransactionPaginatedResponse,
+    { profileId: number } & ProfilerTransactionFilters,
+    { rejectValue: string }
+>(
+    'profilerTransactions/fetchByProfile',
+    async ({ profileId, ...filters }, { rejectWithValue }) => {
+        try {
+            const requestFilters: ProfilerTransactionFilters = {
+                profile_id: profileId,
+                page: 1,
+                limit: 10,
+                sort_by: 'created_at',
+                sort_order: 'desc',
+                ...filters
+            };
+
+            const response = await profilerTransactionService.getPaginatedTransactions(requestFilters);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to fetch transactions by profile'
+            );
+        }
+    }
+);
+
 // Get profile transaction summary
 export const getProfileTransactionSummary = createAsyncThunk<
     ProfileTransactionSummaryResponse,

@@ -95,16 +95,16 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
     }, [dispatch]);
 
     return (
-        <div className="profiler-profile-list">
-            <div className="profiler-profile-list__header">
-                <div className="profiler-profile-list__title-section">
-                    <h1 className="profiler-profile-list__title">Profiles</h1>
-                    <p className="profiler-profile-list__subtitle">
-                        Manage financial profiles for clients
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <div className="main__title-row">
+                        <h1 className="main__title">Profiles</h1>
+                        {/* <p className="main__subtitle">Manage financial profiles for clients</p> */}
+                    </div>
                 </div>
                 
-                <div className="profiler-profile-list__actions">
+                <div className="main__header-right">
                     <div className="profiler-profile-list__search">
                         <TextInput
                             type="text"
@@ -112,7 +112,6 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
                             value={searchQuery}
                             onChange={(value: string) => handleSearch(value)}
                             icon={<Search size={18} />}
-                            className="profiler-profile-list__search-input"
                         />
                     </div>
                     
@@ -120,61 +119,62 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
                         variant="primary"
                         icon={<FileText size={18} />}
                         onClick={onNewProfile}
-                        className="profiler-profile-list__add-button"
                     >
                         Add Profile
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            {pagination && (
-                <div className="profiler-profile-list__stats">
-                    <span className="profiler-profile-list__stats-text">
-                        Showing {profiles.length} of {pagination.total_count} profiles
-                    </span>
+            <div className="main__content">
+                <div className="main__view">
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {profiles.length} of {pagination.total_count} profiles
+                            </span>
+                        </div>
+                    )}
+
+                    {loading && profiles.length === 0 ? (
+                        <div className="profiler-profile-list__loading">
+                            <Loader2 size={48} className="profiler-profile-list__loading-icon" />
+                            <p>Loading profiler profiles...</p>
+                        </div>
+                    ) : profiles.length === 0 ? (
+                        <div className="profiler-profile-list__empty">
+                            <FileText size={64} className="profiler-profile-list__empty-icon" />
+                            <h3>No Profiles Found</h3>
+                            <p>Get started by adding your first profiler profile</p>
+                            <Button
+                                variant="primary"
+                                icon={<FileText size={18} />}
+                                onClick={onNewProfile}
+                            >
+                                Add First Profile
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <ProfilerProfileTable
+                                profiles={profiles}
+                                sortConfig={sortConfig}
+                                onSort={handleSort}
+                                onRefresh={handleRefresh}
+                            />
+                            
+                            {hasMore && (
+                                <div ref={observerTarget} className="profiler-profile-list__load-more">
+                                    {loadingMore && (
+                                        <div className="profiler-profile-list__loading-more">
+                                            <Loader2 size={24} className="profiler-profile-list__loading-more-icon" />
+                                            <span>Loading more profiles...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-            )}
-
-            <div className="profiler-profile-list__content">
-                {loading && profiles.length === 0 ? (
-                    <div className="profiler-profile-list__loading">
-                        <Loader2 size={48} className="profiler-profile-list__loading-icon" />
-                        <p>Loading profiler profiles...</p>
-                    </div>
-                ) : profiles.length === 0 ? (
-                    <div className="profiler-profile-list__empty">
-                        <FileText size={64} className="profiler-profile-list__empty-icon" />
-                        <h3>No Profiles Found</h3>
-                        <p>Get started by adding your first profiler profile</p>
-                        <Button
-                            variant="primary"
-                            icon={<FileText size={18} />}
-                            onClick={onNewProfile}
-                        >
-                            Add First Profile
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <ProfilerProfileTable
-                            profiles={profiles}
-                            sortConfig={sortConfig}
-                            onSort={handleSort}
-                            onRefresh={handleRefresh}
-                        />
-                        
-                        {hasMore && (
-                            <div ref={observerTarget} className="profiler-profile-list__load-more">
-                                {loadingMore && (
-                                    <div className="profiler-profile-list__loading-more">
-                                        <Loader2 size={24} className="profiler-profile-list__loading-more-icon" />
-                                        <span>Loading more profiles...</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
             </div>
         </div>
     );

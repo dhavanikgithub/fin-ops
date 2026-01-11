@@ -145,29 +145,34 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
     };
 
     return (
-        <div className="add-profiler-transaction">
-            <div className="add-profiler-transaction__header">
-                <Button
-                    variant="ghost"
-                    icon={<ArrowLeft size={18} />}
-                    onClick={onBack}
-                    className="add-profiler-transaction__back-button"
-                >
-                    Back to Transactions
-                </Button>
-                
-                <div className="add-profiler-transaction__title-section">
-                    <h1 className="add-profiler-transaction__title">
-                        <ArrowUpCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--destructive" size={32} />
-                        Add New Withdraw
-                    </h1>
-                    <p className="add-profiler-transaction__subtitle">
-                        Record a withdraw transaction for a profile
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <Button
+                        variant="ghost"
+                        icon={<ArrowLeft size={18} />}
+                        onClick={onBack}
+                        className="main__icon-button"
+                    >
+                        Back to Transactions
+                    </Button>
                 </div>
-            </div>
+                <div className="main__header-right">
+                    <div className="main__title-row">
+                        <h1 className="main__title">
+                            <ArrowUpCircle className="add-profiler-transaction__title-icon add-profiler-transaction__title-icon--destructive" size={32} />
+                            Add New Withdraw
+                        </h1>
+                        <p className="main__subtitle">
+                            Record a withdraw transaction for a profile
+                        </p>
+                    </div>
+                </div>
+            </header>
 
-            <form onSubmit={handleSubmit} className="add-profiler-transaction__form">
+            <div className="main__content">
+                <div className="main__view">
+                    <form onSubmit={handleSubmit} className="add-profiler-transaction__form">
                 <div className="add-profiler-transaction__card">
                     <div className="add-profiler-transaction__section">
                         <h2 className="add-profiler-transaction__section-title">Withdraw Information</h2>
@@ -253,26 +258,28 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
                     </div>
                 </div>
 
-                <div className="add-profiler-transaction__actions">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        onClick={onBack}
-                        disabled={creating}
-                    >
-                        Cancel
-                    </Button>
-                    
-                    <Button
-                        type="submit"
-                        variant="destructive"
-                        icon={creating ? <Loader2 size={18} className="add-profiler-transaction__spinner" /> : <Save size={18} />}
-                        disabled={creating}
-                    >
-                        {creating ? 'Creating...' : 'Create Withdraw'}
-                    </Button>
+                        <div className="main__footer-actions">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={onBack}
+                                disabled={creating}
+                            >
+                                Cancel
+                            </Button>
+                            
+                            <Button
+                                type="submit"
+                                variant="destructive"
+                                icon={creating ? <Loader2 size={18} className="add-profiler-transaction__spinner" /> : <Save size={18} />}
+                                disabled={creating}
+                            >
+                                {creating ? 'Creating...' : 'Create Withdraw'}
+                            </Button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     );
 };

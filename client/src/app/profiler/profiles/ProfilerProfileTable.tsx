@@ -1,9 +1,10 @@
 'use client'
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { markProfilerProfileDone, deleteProfilerProfile } from '@/store/actions/profilerProfileActions';
 import { ProfilerProfile } from '@/services/profilerProfileService';
-import { CheckCircle, Trash2, ChevronUp, ChevronDown, Minus, User, Building2 } from 'lucide-react';
+import { CheckCircle, Trash2, ChevronUp, ChevronDown, Minus, User, Building2, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import DeleteProfilerProfileModal from './DeleteProfilerProfileModal';
 import './ProfilerProfileTable.scss';
@@ -34,9 +35,14 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
     onSort,
     onRefresh
 }) => {
+    const router = useRouter();
     const dispatch = useAppDispatch();
     const { markingDoneIds, deletingProfileIds } = useAppSelector((state) => state.profilerProfiles);
     const [deleteModalProfile, setDeleteModalProfile] = useState<ProfilerProfile | null>(null);
+
+    const handleProfileClick = (profileId: number) => {
+        router.push(`/profiler/profiles/${profileId}/transaction`);
+    };
 
     const handleSortClick = (column: string) => {
         const newOrder = sortConfig.sort_by === column && sortConfig.sort_order === 'asc' ? 'desc' : 'asc';
@@ -162,7 +168,11 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                 const isDeleting = deletingProfileIds.includes(profile.id);
 
                                 return (
-                                    <tr key={profile.id} className="profiler-profile-table__tr">
+                                    <tr 
+                                        key={profile.id} 
+                                        className="profiler-profile-table__tr profiler-profile-table__tr--clickable"
+                                        onClick={() => handleProfileClick(profile.id)}
+                                    >
                                         <td className="profiler-profile-table__td">
                                             <div className="profiler-profile-table__client">
                                                 <User size={14} />
@@ -211,14 +221,17 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                                 {formatDate(profile.created_at)}
                                             </span>
                                         </td>
-                                        <td className="profiler-profile-table__td profiler-profile-table__td--actions">
+                                        <td className="profiler-profile-table__td profiler-profile-table__td--actions" onClick={(e) => e.stopPropagation()}>
                                             <div className="profiler-profile-table__actions">
                                                 {profile.status.toLowerCase() !== 'done' && (
                                                     <Button
                                                         variant="ghost"
                                                         size="small"
                                                         icon={<CheckCircle size={16} />}
-                                                        onClick={() => handleMarkDone(profile.id)}
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleMarkDone(profile.id);
+                                                        }}
                                                         disabled={isMarkingDone || isDeleting}
                                                         className="profiler-profile-table__mark-done-btn"
                                                         title="Mark as done"
@@ -228,7 +241,10 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                                     variant="ghost"
                                                     size="small"
                                                     icon={<Trash2 size={16} />}
-                                                    onClick={() => handleDeleteClick(profile)}
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleDeleteClick(profile);
+                                                    }}
                                                     disabled={isDeleting || (profile.transaction_count ? profile.transaction_count > 0 : false)}
                                                     className="profiler-profile-table__delete-btn"
                                                     title="Delete profile"

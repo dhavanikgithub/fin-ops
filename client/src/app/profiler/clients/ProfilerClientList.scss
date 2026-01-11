@@ -1,77 +1,12 @@
+@use '../../../styles/Main.scss';
+
 .profiler-client-list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg, 24px);
-    padding: var(--spacing-xl, 32px);
-    background: var(--background);
-    min-height: 100vh;
-
-    &__header {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-start;
-        gap: var(--spacing-lg, 24px);
-        flex-wrap: wrap;
-    }
-
-    &__title-section {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-xs, 8px);
-    }
-
-    &__title {
-        font-size: 28px;
-        font-weight: 700;
-        color: var(--foreground);
-        margin: 0;
-    }
-
-    &__subtitle {
-        font-size: 14px;
-        color: var(--muted-foreground);
-        margin: 0;
-    }
-
-    &__actions {
-        display: flex;
-        gap: var(--spacing-md, 16px);
-        align-items: center;
-        flex-wrap: wrap;
-    }
-
     &__search {
         min-width: 320px;
         
         @media (max-width: 768px) {
             min-width: 100%;
         }
-    }
-
-    &__search-input {
-        width: 100%;
-    }
-
-    &__add-button {
-        white-space: nowrap;
-    }
-
-    &__stats {
-        padding: var(--spacing-sm, 12px) var(--spacing-md, 16px);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: var(--radius-md, 8px);
-    }
-
-    &__stats-text {
-        font-size: 14px;
-        color: var(--muted-foreground);
-    }
-
-    &__content {
-        display: flex;
-        flex-direction: column;
-        gap: var(--spacing-md, 16px);
     }
 
     &__loading,

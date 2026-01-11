@@ -1,0 +1,203 @@
+@use '../../../../../styles/Main.scss';
+
+.add-profile-transaction {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg, 24px);
+    padding: var(--spacing-xl, 32px);
+
+    &__header {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md, 16px);
+    }
+
+    &__back-button {
+        align-self: flex-start;
+    }
+
+    &__title-section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs, 8px);
+    }
+
+    &__title {
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--foreground);
+        margin: 0;
+    }
+
+    &__subtitle {
+        font-size: 14px;
+        color: var(--muted-foreground);
+        margin: 0;
+    }
+
+    &__form {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-lg, 24px);
+        max-width: 900px;
+    }
+
+    &__card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg, 12px);
+        padding: var(--spacing-lg, 24px);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xl, 32px);
+    }
+
+    &__section {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md, 16px);
+
+        &:not(:last-child) {
+            padding-bottom: var(--spacing-lg, 24px);
+            border-bottom: 1px solid var(--border);
+        }
+    }
+
+    &__section-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin: 0;
+    }
+
+    &__type-selector {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-md, 16px);
+    }
+
+    &__type-button {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: var(--spacing-sm, 12px);
+        padding: var(--spacing-lg, 24px);
+        background: var(--background);
+        border: 2px solid var(--border);
+        border-radius: var(--radius-md, 8px);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--muted-foreground);
+        font-family: var(--font-family-body);
+
+        &:hover:not(:disabled) {
+            border-color: var(--primary);
+            background: var(--muted);
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        &--active {
+            color: var(--primary-foreground);
+
+            &.add-profile-transaction__type-button--deposit {
+                background: var(--success);
+                border-color: var(--success);
+            }
+
+            &.add-profile-transaction__type-button--withdraw {
+                background: var(--destructive);
+                border-color: var(--destructive);
+            }
+        }
+
+        span {
+            font-size: 14px;
+            font-weight: 600;
+        }
+    }
+
+    &__form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: var(--spacing-lg, 24px);
+
+        @media (max-width: 768px) {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    &__form-group {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-xs, 8px);
+
+        &--full {
+            grid-column: 1 / -1;
+        }
+    }
+
+    &__label {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+
+    &__required {
+        color: var(--destructive);
+    }
+
+    &__helper-text {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        margin: 0;
+        margin-top: var(--spacing-xs, 4px);
+    }
+
+    &__summary {
+        padding: var(--spacing-md, 16px);
+        background: var(--background);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md, 8px);
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-sm, 12px);
+    }
+
+    &__summary-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: var(--spacing-sm, 12px) 0;
+        font-size: 14px;
+        color: var(--foreground);
+
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--border);
+        }
+
+        &--total {
+            font-size: 16px;
+            font-weight: 700;
+            padding-top: var(--spacing-md, 16px);
+        }
+    }
+
+    &__summary-charges {
+        color: var(--destructive);
+        font-weight: 600;
+    }
+
+    &__summary-positive {
+        color: var(--success);
+        font-weight: 700;
+    }
+
+    &__summary-negative {
+        color: var(--destructive);
+        font-weight: 700;
+    }
+}

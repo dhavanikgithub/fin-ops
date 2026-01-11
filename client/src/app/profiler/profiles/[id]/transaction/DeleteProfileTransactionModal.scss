@@ -1,0 +1,136 @@
+.delete-transaction-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 1rem;
+}
+
+.delete-transaction-modal {
+    background: var(--color-surface);
+    border-radius: 12px;
+    max-width: 500px;
+    width: 100%;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    animation: modalSlideIn 0.2s ease-out;
+
+    &__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 1.5rem 1.5rem 0;
+    }
+
+    &__icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 48px;
+        height: 48px;
+        background: rgba(239, 68, 68, 0.1);
+        border-radius: 50%;
+    }
+
+    &__icon {
+        color: var(--color-error);
+    }
+
+    &__close {
+        background: none;
+        border: none;
+        color: var(--color-text-secondary);
+        cursor: pointer;
+        padding: 0.25rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 4px;
+        transition: all 0.2s;
+
+        &:hover {
+            background: var(--color-surface-hover);
+            color: var(--color-text-primary);
+        }
+    }
+
+    &__content {
+        padding: 1.5rem;
+    }
+
+    &__title {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin: 0 0 0.5rem 0;
+    }
+
+    &__message {
+        font-size: 0.875rem;
+        color: var(--color-text-secondary);
+        margin: 0 0 1.5rem 0;
+        line-height: 1.5;
+    }
+
+    &__details {
+        background: var(--color-background);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 1rem;
+    }
+
+    &__detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 0.5rem 0;
+        font-size: 0.875rem;
+
+        &:not(:last-child) {
+            border-bottom: 1px solid var(--color-border);
+        }
+    }
+
+    &__detail-label {
+        color: var(--color-text-secondary);
+        font-weight: 500;
+    }
+
+    &__detail-value {
+        color: var(--color-text-primary);
+        text-align: right;
+        font-weight: 500;
+        text-transform: capitalize;
+
+        &--deposit {
+            color: var(--color-success);
+        }
+
+        &--withdraw {
+            color: var(--color-error);
+        }
+    }
+
+    &__actions {
+        display: flex;
+        gap: 0.75rem;
+        padding: 1.5rem;
+        padding-top: 0;
+    }
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

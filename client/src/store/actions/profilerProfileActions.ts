@@ -183,6 +183,25 @@ export const getProfilerProfileById = createAsyncThunk<
     }
 );
 
+// Fetch profiler profile by ID and set as selected
+export const fetchProfilerProfileById = createAsyncThunk<
+    ProfilerProfileResponse,
+    { id: number },
+    { rejectValue: string }
+>(
+    'profilerProfiles/fetchProfileById',
+    async ({ id }, { rejectWithValue }) => {
+        try {
+            const response = await profilerProfileService.getProfileById(id);
+            return response;
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to fetch profiler profile'
+            );
+        }
+    }
+);
+
 // Get profiles by client ID
 export const getProfilesByClient = createAsyncThunk<
     ProfilerProfilePaginatedResponse,

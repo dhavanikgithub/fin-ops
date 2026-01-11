@@ -101,16 +101,16 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
     }, [dispatch]);
 
     return (
-        <div className="profiler-client-list">
-            <div className="profiler-client-list__header">
-                <div className="profiler-client-list__title-section">
-                    <h1 className="profiler-client-list__title">Clients</h1>
-                    <p className="profiler-client-list__subtitle">
-                        Manage clients for financial profiling
-                    </p>
+        <div className="main">
+            <header className="main__header">
+                <div className="main__header-left">
+                    <div className="main__title-row">
+                        <h1 className="main__title">Clients</h1>
+                        {/* <p className="main__subtitle">Manage clients for financial profiling</p> */}
+                    </div>
                 </div>
                 
-                <div className="profiler-client-list__actions">
+                <div className="main__header-right">
                     <div className="profiler-client-list__search">
                         <TextInput
                             type="text"
@@ -118,7 +118,6 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                             value={searchQuery}
                             onChange={(value: string) => handleSearch(value)}
                             icon={<Search size={18} />}
-                            className="profiler-client-list__search-input"
                         />
                     </div>
                     
@@ -126,61 +125,62 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                         variant="primary"
                         icon={<UserPlus size={18} />}
                         onClick={onNewClient}
-                        className="profiler-client-list__add-button"
                     >
                         Add Client
                     </Button>
                 </div>
-            </div>
+            </header>
 
-            {pagination && (
-                <div className="profiler-client-list__stats">
-                    <span className="profiler-client-list__stats-text">
-                        Showing {clients.length} of {pagination.total_count} clients
-                    </span>
+            <div className="main__content">
+                <div className="main__view">
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {clients.length} of {pagination.total_count} clients
+                            </span>
+                        </div>
+                    )}
+
+                    {loading && clients.length === 0 ? (
+                        <div className="profiler-client-list__loading">
+                            <Loader2 size={48} className="profiler-client-list__loading-icon" />
+                            <p>Loading profiler clients...</p>
+                        </div>
+                    ) : clients.length === 0 ? (
+                        <div className="profiler-client-list__empty">
+                            <UserPlus size={64} className="profiler-client-list__empty-icon" />
+                            <h3>No Clients Found</h3>
+                            <p>Get started by adding your first profiler client</p>
+                            <Button
+                                variant="primary"
+                                icon={<UserPlus size={18} />}
+                                onClick={onNewClient}
+                            >
+                                Add First Client
+                            </Button>
+                        </div>
+                    ) : (
+                        <>
+                            <ProfilerClientTable
+                                clients={clients}
+                                sortConfig={sortConfig}
+                                onSort={handleSort}
+                                onRefresh={handleRefresh}
+                            />
+                            
+                            {hasMore && (
+                                <div ref={observerTarget} className="profiler-client-list__load-more">
+                                    {loadingMore && (
+                                        <div className="profiler-client-list__loading-more">
+                                            <Loader2 size={24} className="profiler-client-list__loading-more-icon" />
+                                            <span>Loading more clients...</span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-            )}
-
-            <div className="profiler-client-list__content">
-                {loading && clients.length === 0 ? (
-                    <div className="profiler-client-list__loading">
-                        <Loader2 size={48} className="profiler-client-list__loading-icon" />
-                        <p>Loading profiler clients...</p>
-                    </div>
-                ) : clients.length === 0 ? (
-                    <div className="profiler-client-list__empty">
-                        <UserPlus size={64} className="profiler-client-list__empty-icon" />
-                        <h3>No Clients Found</h3>
-                        <p>Get started by adding your first profiler client</p>
-                        <Button
-                            variant="primary"
-                            icon={<UserPlus size={18} />}
-                            onClick={onNewClient}
-                        >
-                            Add First Client
-                        </Button>
-                    </div>
-                ) : (
-                    <>
-                        <ProfilerClientTable
-                            clients={clients}
-                            sortConfig={sortConfig}
-                            onSort={handleSort}
-                            onRefresh={handleRefresh}
-                        />
-                        
-                        {hasMore && (
-                            <div ref={observerTarget} className="profiler-client-list__load-more">
-                                {loadingMore && (
-                                    <div className="profiler-client-list__loading-more">
-                                        <Loader2 size={24} className="profiler-client-list__loading-more-icon" />
-                                        <span>Loading more clients...</span>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </>
-                )}
             </div>
         </div>
     );

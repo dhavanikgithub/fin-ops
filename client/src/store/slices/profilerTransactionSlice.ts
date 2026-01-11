@@ -7,6 +7,7 @@ import {
     sortProfilerTransactions,
     getProfilerTransactionById,
     getTransactionsByProfile,
+    fetchProfilerTransactionsByProfile,
     getProfileTransactionSummary,
     createDepositTransaction,
     createWithdrawTransaction,
@@ -172,6 +173,22 @@ const profilerTransactionSlice = createSlice({
                 state.error = null;
             })
             .addCase(getTransactionsByProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to fetch transactions by profile';
+            })
+            .addCase(fetchProfilerTransactionsByProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchProfilerTransactionsByProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.transactions = action.payload.data.data;
+                state.pagination = action.payload.data.pagination;
+                state.summary = action.payload.data.summary;
+                state.sortConfig = action.payload.data.sort_applied;
+                state.error = null;
+            })
+            .addCase(fetchProfilerTransactionsByProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch transactions by profile';
             })

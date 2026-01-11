@@ -7,6 +7,7 @@ import {
     searchProfilerProfiles, 
     sortProfilerProfiles,
     getProfilerProfileById,
+    fetchProfilerProfileById,
     getProfilesByClient,
     createProfilerProfile,
     updateProfilerProfile,
@@ -173,6 +174,19 @@ const profilerProfileSlice = createSlice({
                 state.error = null;
             })
             .addCase(getProfilerProfileById.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || 'Failed to fetch profiler profile';
+            })
+            .addCase(fetchProfilerProfileById.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(fetchProfilerProfileById.fulfilled, (state, action) => {
+                state.loading = false;
+                state.selectedProfile = action.payload.data;
+                state.error = null;
+            })
+            .addCase(fetchProfilerProfileById.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch profiler profile';
             })
