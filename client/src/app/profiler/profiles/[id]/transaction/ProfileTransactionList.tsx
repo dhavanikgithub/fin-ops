@@ -6,6 +6,7 @@ import { fetchProfilerProfileById } from '@/store/actions/profilerProfileActions
 import { fetchProfilerTransactionsByProfile } from '@/store/actions/profilerTransactionActions';
 import { clearProfilerTransactions } from '@/store/slices/profilerTransactionSlice';
 import { Building2, CreditCard, Loader2, User } from 'lucide-react';
+import { SearchInput } from '@/components/FormInputs';
 import ProfileTransactionHeader from './ProfileTransactionHeader';
 import ProfileTransactionTable from './ProfileTransactionTable';
 import './ProfileTransactionList.scss';
@@ -33,6 +34,8 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState<string>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+    const [searchQuery, setSearchQuery] = useState<string>('');
+    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
         if (profileId) {
@@ -58,13 +61,14 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
         }
     }, [transactionsError]);
 
-    const loadTransactions = (page: number = currentPage, sort_by: string = sortBy, sort_order: 'asc' | 'desc' = sortOrder) => {
+    const loadTransactions = (page: number = currentPage, sort_by: string = sortBy, sort_order: 'asc' | 'desc' = sortOrder, search: string = searchQuery) => {
         dispatch(fetchProfilerTransactionsByProfile({
             profileId,
             page,
             limit: 10,
             sort_by,
-            sort_order
+            sort_order,
+            search: search || undefined
         }));
     };
 
@@ -85,6 +89,33 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
         logger.log('Refreshing transactions');
         loadTransactions();
     };
+
+    const handleSearchChange = (value: string) => {
+        setSearchQuery(value);
+
+        // Clear existing timeout
+        if (searchTimeout) {
+            clearTimeout(searchTimeout);
+        }
+
+        // Set new timeout for debounced search
+        const timeout = setTimeout(() => {
+            logger.log('Searching transactions with query:', value);
+            setCurrentPage(1); // Reset to first page on search
+            loadTransactions(1, sortBy, sortOrder, value);
+        }, 500); // 500ms debounce
+
+        setSearchTimeout(timeout);
+    };
+
+    // Cleanup timeout on unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+        };
+    }, [searchTimeout]);
 
     if (profileLoading || !selectedProfile) {
         return (
@@ -120,6 +151,8 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
             <div className="main__content">
                 <div className="main__view">
                     <div className="profile-transaction-header__info-wrapper">
+
+
                         <div className="main__title-row">
                             <div>
                                 <h1 className="main__title">Profile Transactions</h1>
@@ -183,11 +216,20 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
                             </div>
                         </div>
                     </div>
+                    <div className="profile-transaction-header__search-row">
+                        <SearchInput
+                            value={searchQuery}
+                            onChange={handleSearchChange}
+                            placeholder="Search transactions by amount, notes..."
+                            loading={transactionsLoading}
+                        />
+                    </div>
                     <ProfileTransactionTable
                         transactions={transactions}
                         loading={transactionsLoading}
                         pagination={pagination}
                         sortConfig={{ sort_by: sortBy, sort_order: sortOrder }}
+                        searchQuery={searchQuery}
                         onPageChange={handlePageChange}
                         onSort={handleSort}
                         onRefresh={handleRefresh}

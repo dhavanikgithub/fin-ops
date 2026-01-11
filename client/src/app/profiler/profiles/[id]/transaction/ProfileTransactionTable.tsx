@@ -19,6 +19,7 @@ interface ProfileTransactionTableProps {
         sort_by: string;
         sort_order: 'asc' | 'desc';
     };
+    searchQuery?: string;
     onPageChange: (page: number) => void;
     onSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
     onRefresh: () => void;
@@ -29,6 +30,7 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
     loading,
     pagination,
     sortConfig,
+    searchQuery = '',
     onPageChange,
     onSort,
     onRefresh

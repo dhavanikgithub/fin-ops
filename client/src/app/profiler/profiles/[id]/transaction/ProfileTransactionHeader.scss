@@ -6,6 +6,11 @@
         gap: 20px;
     }
 
+    &__search-row {
+        width: 100%;
+        max-width: 500px;
+    }
+
     &__profile-card {
         background: var(--card);
         border: 1px solid var(--border);

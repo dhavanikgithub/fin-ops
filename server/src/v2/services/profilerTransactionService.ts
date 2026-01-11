@@ -71,7 +71,10 @@ export class ProfilerTransactionService {
                     c.name ILIKE $${paramIndex} OR 
                     b.bank_name ILIKE $${paramIndex} OR 
                     p.credit_card_number ILIKE $${paramIndex} OR 
-                    COALESCE(t.notes, '') ILIKE $${paramIndex}
+                    COALESCE(t.notes, '') ILIKE $${paramIndex} OR
+                    CAST(t.amount AS TEXT) ILIKE $${paramIndex} OR
+                    CAST(t.withdraw_charges_percentage AS TEXT) ILIKE $${paramIndex} OR
+                    CAST(t.withdraw_charges_amount AS TEXT) ILIKE $${paramIndex}
                 )`);
                 queryParams.push(searchTerm);
                 paramIndex++;
