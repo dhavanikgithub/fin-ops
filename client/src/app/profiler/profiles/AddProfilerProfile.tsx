@@ -72,13 +72,13 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     const validateField = (name: keyof FormData, value: string | boolean | number | AutocompleteOption | null): string | undefined => {
         switch (name) {
             case 'profiler_client_id':
-                if (!value || value === null) {
+                if (!value || value === null || typeof value !== 'object' || !('id' in value) || !value.id) {
                     return 'Client is required';
                 }
                 break;
 
             case 'profiler_bank_id':
-                if (!value || value === null) {
+                if (!value || value === null || typeof value !== 'object' || !('id' in value) || !value.id) {
                     return 'Bank is required';
                 }
                 break;
@@ -159,9 +159,7 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
         setTouched((prev) => ({ ...prev, [name]: true }));
 
         const error = validateField(name as keyof FormData, formData[name as keyof FormData]);
-        if (error) {
-            setErrors((prev) => ({ ...prev, [name]: error }));
-        }
+        setErrors((prev) => ({ ...prev, [name]: error }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
