@@ -550,6 +550,10 @@ export class TransactionController {
                             final_amount: "0",
                             transaction_amount: "0",
                             widthdraw_charges: "0",
+                            total_deposits: "0",
+                            total_withdrawals: "0",
+                            transaction_difference: "0",
+                            credit_uncountable: "0"
                         },
                         data: [],
                         clientInfo: {
@@ -582,10 +586,16 @@ export class TransactionController {
                 // Update totals
                 if (isTransactionTypeDeposit(row.transaction_type)) {
                     isOnlyWithdraw = false;
+                    clientData.total.total_deposits = (
+                        parseFloat(clientData.total.total_deposits) + row.transaction_amount
+                    ).toString();
                     clientData.total.transaction_amount = (
                         parseFloat(clientData.total.transaction_amount) + row.transaction_amount
                     ).toString();
                 } else {
+                    clientData.total.total_withdrawals = (
+                        parseFloat(clientData.total.total_withdrawals) + row.transaction_amount
+                    ).toString();
                     clientData.total.transaction_amount = (
                         parseFloat(clientData.total.transaction_amount) - row.transaction_amount
                     ).toString();
@@ -611,25 +621,46 @@ export class TransactionController {
             if (isOnlyWithdraw) {
                 num = 0;
             }
-            return `Rs. ${formatAmount(Math.abs(num).toString())}/-`;
+            const sign = num < 0 ? '- ' : '';
+            return `${sign}Rs. ${formatAmount(Math.abs(num).toString())}/-`;
         };
 
         const finalAmountWithSign = (amount: string, widthdraw_charges: string): string => {
             let num = parseFloat(amount.toString());
             if (isOnlyWithdraw) {
-                return `Rs. ${formatAmount(widthdraw_charges)}/-`;
+                return `Rs. ${formatAmount(widthdraw_charges.replace(/[^0-9.]/g, ''))}/-`;
             } else {
-                return `Rs. ${formatAmount(Math.abs(num).toString())}/-`;
+                const sign = num < 0 ? '- ' : '';
+                return `${sign}Rs. ${formatAmount(Math.abs(num).toString())}/-`;
             }
         };
 
         // Format the totals as currency
         Object.keys(groupedData).forEach(clientName => {
             const clientData = groupedData[clientName]!;
+            
+            // Calculate transaction difference (withdrawals - deposits)
+            const deposits = parseFloat(clientData.total.total_deposits);
+            const withdrawals = parseFloat(clientData.total.total_withdrawals);
+            const difference = withdrawals - deposits;
+            clientData.total.transaction_difference = difference.toString();
+            
+            // Credit uncountable is the transaction_amount (deposits - withdrawals)
+            clientData.total.credit_uncountable = clientData.total.transaction_amount;
+            
+            clientData.total.total_deposits = `Rs. ${formatAmount(clientData.total.total_deposits)}/-`;
+            clientData.total.total_withdrawals = `Rs. ${formatAmount(clientData.total.total_withdrawals)}/-`;
             clientData.total.widthdraw_charges = `Rs. ${formatAmount(clientData.total.widthdraw_charges)}/-`;
+            
+            // Format transaction difference with sign
+            clientData.total.transaction_difference = `Rs. ${formatAmount(Math.abs(difference).toString())}/-`;
+            
             clientData.total.final_amount = finalAmountWithSign(
                 clientData.total.final_amount, 
                 clientData.total.widthdraw_charges
+            );
+            clientData.total.credit_uncountable = transactionAmountWithSign(
+                clientData.total.credit_uncountable
             );
             clientData.total.transaction_amount = transactionAmountWithSign(
                 clientData.total.transaction_amount

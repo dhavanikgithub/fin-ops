@@ -118,6 +118,10 @@ export interface ClientTotal {
     final_amount: string;
     transaction_amount: string;
     widthdraw_charges: string;
+    total_deposits: string;
+    total_withdrawals: string;
+    transaction_difference: string;
+    credit_uncountable: string;
 }
 
 export interface GroupedData {

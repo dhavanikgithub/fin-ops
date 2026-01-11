@@ -17,6 +17,10 @@ interface ClientTotal {
     widthdraw_charges: string;
     transaction_amount: string;
     final_amount: string;
+    total_deposits: string;
+    total_withdrawals: string;
+    transaction_difference: string;
+    credit_uncountable: string;
 }
 
 interface ClientInfo {
@@ -267,20 +271,9 @@ class TransactionReportPDF {
                 ...dynamicData,
                 [
                     {
-                        colSpan: 4,
-                        border: [true, false, true, true],
-                        backgroundColor: this.colors.gray100,
-                    },
-                    {
-                        colSpan: 2,
+                        colSpan: 6,
+                        padding: "0",
                         border: [true, true, true, false],
-                        align: { x: "right", y: "center" },
-                        backgroundColor: this.colors.gray100,
-                        padding: "12",
-                        textOptions: {
-                            lineGap: 4,
-                        },
-                        text: `Charges: ${clientData.total.widthdraw_charges}\nCredit: ${clientData.total.transaction_amount}\nNet Total: ${clientData.total.final_amount}`,
                     }
                 ],
             ],
@@ -288,6 +281,170 @@ class TransactionReportPDF {
 
         this.doc.y = this.doc.y + 10;
         this.doc.table(tableData);
+
+        // Add comprehensive summary section
+        this.addTransactionSummary(clientData.total, clientName);
+    }
+
+    private addTransactionSummary(total: ClientTotal, clientName: string): void {
+        this.doc.y += 15;
+        const startY = this.doc.y;
+        const summaryHeight = 140;
+
+        // Summary box
+        this.doc.rect(20, startY, this.pageWidth, summaryHeight)
+            .fill(this.colors.gray100)
+            .stroke();
+
+        this.doc.fill(this.colors.gray900);
+
+        // Title
+        this.doc.fontSize(13)
+            .font('Helvetica-Bold')
+            .text('Transaction Summary', 35, startY + 15);
+
+        const leftX = 35;
+        let currentY = startY + 40;
+        const valueX = this.pageWidth - 120;
+
+        // Total Deposits
+        this.doc.fontSize(10)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text(`Total Deposits (${clientName} Paid):`, leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.green700)
+            .text(total.total_deposits, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 22;
+
+        // Total Withdrawals
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Total Withdrawals (Company Paid):', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.red700)
+            .text(total.total_withdrawals, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 22;
+
+        // Withdrawal Charges
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Withdrawal Charges (Company Earned):', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.green700)
+            .text(total.widthdraw_charges, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 25;
+
+        // Separator line
+        this.doc.strokeColor(this.colors.gray500)
+            .lineWidth(1)
+            .moveTo(leftX, currentY)
+            .lineTo(this.pageWidth+15, currentY)
+            .stroke();
+
+        currentY += 15;
+
+        // Parse the transaction difference to determine color and label
+        const transactionDiffStr = total.transaction_difference.replace(/[^0-9.-]/g, '');
+        const transactionDiff = parseFloat(transactionDiffStr);
+        const isDiffNegative = transactionDiff < 0;
+
+        // Transaction Difference (Withdrawals - Deposits)
+        this.doc.fontSize(11)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Payment Difference:', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
+            .text(total.transaction_difference, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 18;
+
+        // Explanation for transaction difference
+        const diffExplanation = isDiffNegative 
+            ? `(Amount Receivable from ${clientName})`
+            : `(Amount Payable to ${clientName})`;
+        
+        this.doc.fontSize(7)
+            .font('Helvetica')
+            .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
+            .text(diffExplanation, valueX - 40, currentY, { width: 180, align: 'right' });
+
+        currentY += 20;
+
+        // Separator line before Credit Uncountable
+        this.doc.strokeColor(this.colors.gray500)
+            .lineWidth(1)
+            .moveTo(leftX, currentY)
+            .lineTo(this.pageWidth+15, currentY)
+            .stroke();
+
+        currentY += 15;
+
+        // Credit Uncountable
+        this.doc.fontSize(11)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Credit Uncountable:', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.gray900)
+            .text(total.credit_uncountable, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 20;
+
+        // Formula explanation line 1
+        this.doc.fontSize(9)
+            .font('Helvetica')
+            .fill(this.colors.gray500)
+            .text('Withdrawal Charges:', leftX + 20, currentY);
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray900)
+            .text('+ '+total.widthdraw_charges, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 18;
+
+        // Formula explanation line (equals line)
+        this.doc.strokeColor(this.colors.gray500)
+            .lineWidth(0.5)
+            .moveTo(valueX, currentY - 3)
+            .lineTo(this.pageWidth+15, currentY - 3)
+            .stroke();
+
+        currentY += 10;
+
+        // Parse the final amount to determine color and label
+        const finalAmountStr = total.final_amount.replace(/[^0-9.-]/g, '');
+        const finalAmount = parseFloat(finalAmountStr);
+        const isPositive = finalAmount >= 0;
+
+        // Net Balance with dynamic label
+        this.doc.fontSize(12)
+            .font('Helvetica-Bold')
+            .fill(this.colors.gray900)
+            .text('Net Balance:', leftX, currentY);
+        
+        this.doc.font('Helvetica-Bold')
+            .fontSize(12)
+            .fill(isPositive ? this.colors.green700 : this.colors.red700)
+            .text(total.final_amount, valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 20;
+
+        // Explanation text
+        const explanationText = isPositive 
+            ? `(${clientName} Outstanding Balance)`
+            : '(Company Outstanding Balance)';
+        
+        this.doc.fontSize(8)
+            .font('Helvetica')
+            .fill(this.colors.gray500)
+            .fill(isPositive ? this.colors.green700 : this.colors.red700)
+            .text(explanationText, leftX, currentY, { width: this.pageWidth - 50, align: 'center' });
+
+        this.doc.y = startY + summaryHeight + 60;
     }
 
     private addClientInfoSection(clientInfo: ClientInfo): void {
