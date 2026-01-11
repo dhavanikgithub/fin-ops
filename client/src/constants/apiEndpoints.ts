@@ -110,6 +110,7 @@ export const PROFILER_TRANSACTION_ENDPOINTS = {
     GET_BY_ID: (id: number) => `${API_CONFIG.BASE_URL_V2}/profiler/transactions/${id}`,
     GET_BY_PROFILE: (profileId: number) => `${API_CONFIG.BASE_URL_V2}/profiler/transactions/profile/${profileId}`,
     GET_SUMMARY: (profileId: number) => `${API_CONFIG.BASE_URL_V2}/profiler/transactions/profile/${profileId}/summary`,
+    EXPORT_PDF: (profileId: number) => `${API_CONFIG.BASE_URL_V2}/profiler/transactions/profile/${profileId}/export-pdf`,
     CREATE_DEPOSIT: `${API_CONFIG.BASE_URL_V2}/profiler/transactions/deposit`,
     CREATE_WITHDRAW: `${API_CONFIG.BASE_URL_V2}/profiler/transactions/withdraw`,
     DELETE: `${API_CONFIG.BASE_URL_V2}/profiler/transactions`,

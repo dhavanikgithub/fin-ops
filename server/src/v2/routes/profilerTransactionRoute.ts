@@ -47,6 +47,13 @@ router.get('/profile/:profileId', ProfilerTransactionController.getTransactionsB
 router.get('/profile/:profileId/summary', ProfilerTransactionController.getProfileTransactionSummary);
 
 /**
+ * @route GET /api/v2/profiler/transactions/profile/:profileId/export-pdf
+ * @description Export profile transactions as PDF
+ * @access Public
+ */
+router.get('/profile/:profileId/export-pdf', ProfilerTransactionController.exportProfileTransactionsPDF);
+
+/**
  * @route GET /api/v2/profiler/transactions/:id
  * @description Get profiler transaction by ID
  * @access Public

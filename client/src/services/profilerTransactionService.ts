@@ -161,6 +161,14 @@ export const profilerTransactionService = {
         const response = await api.delete(PROFILER_TRANSACTION_ENDPOINTS.DELETE, { data: deleteData });
         return response.data;
     },
+
+    // Export profile transactions to PDF
+    exportProfileTransactionsPDF: async (profileId: number): Promise<Blob> => {
+        const response = await api.get(PROFILER_TRANSACTION_ENDPOINTS.EXPORT_PDF(profileId), {
+            responseType: 'blob'
+        });
+        return response.data;
+    },
 };
 
 export default profilerTransactionService;

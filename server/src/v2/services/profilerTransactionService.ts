@@ -1,6 +1,9 @@
 import { QueryResult } from 'pg';
 import { query } from '../../utils/db.js';
 import { PROFILER_TRANSACTION_QUERIES } from '../queries/profilerTransactionQueries.js';
+import * as path from 'path';
+import * as fs from 'fs';
+import ProfilerTransactionReportPDF from '../pdf-template/profilerTransactionReportPDF.js';
 import {
     ProfilerTransaction,
     ProfilerDepositTransactionInput,
@@ -392,6 +395,75 @@ export class ProfilerTransactionService {
         } catch (error) {
             logger.error('Error fetching profile transaction summary:', error);
             throw new DatabaseError('Failed to fetch profile transaction summary', error);
+        }
+    }
+
+    /**
+     * Export profile transactions as PDF
+     */
+    static async exportProfileTransactionsPDF(profileId: number): Promise<string> {
+        try {
+            // Get profile information
+            const profileQuery = `
+                SELECT 
+                    p.id,
+                    c.name AS client_name,
+                    b.bank_name,
+                    p.credit_card_number,
+                    p.pre_planned_deposit_amount,
+                    p.current_balance
+                FROM profiler_profiles p
+                INNER JOIN profiler_clients c ON p.client_id = c.id
+                INNER JOIN profiler_banks b ON p.bank_id = b.id
+                WHERE p.id = $1
+            `;
+            const profileResult = await query(profileQuery, [profileId]);
+            
+            if (profileResult.rows.length === 0) {
+                throw new NotFoundError(`Profile with ID ${profileId} not found`);
+            }
+
+            const profile = profileResult.rows[0];
+
+            // Get transactions
+            const transactions = await this.getTransactionsByProfile(profileId);
+
+            // Get summary
+            const summary = await this.getProfileTransactionSummary(profileId);
+
+            // Prepare PDF data
+            const pdfData = {
+                client_name: profile.client_name,
+                bank_name: profile.bank_name,
+                credit_card_number: profile.credit_card_number,
+                opening_balance: parseFloat(profile.pre_planned_deposit_amount),
+                current_balance: parseFloat(profile.current_balance),
+                transactions,
+                summary
+            };
+
+            // Generate filename with client name and datetime
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const sanitizedClientName = profile.client_name.replace(/[^a-z0-9]/gi, '_');
+            const filename = `${sanitizedClientName}_Transactions_${timestamp}.pdf`;
+            
+            // Ensure temp directory exists
+            const tempDir = path.join(process.cwd(), 'temp', 'pdf-exports');
+            if (!fs.existsSync(tempDir)) {
+                fs.mkdirSync(tempDir, { recursive: true });
+            }
+
+            const outputPath = path.join(tempDir, filename);
+
+            // Generate PDF
+            const pdfGenerator = new ProfilerTransactionReportPDF();
+            await pdfGenerator.generatePDF(pdfData, outputPath);
+
+            return outputPath;
+        } catch (error) {
+            if (error instanceof NotFoundError) throw error;
+            logger.error('Error exporting profile transactions to PDF:', error);
+            throw new DatabaseError('Failed to export profile transactions to PDF', error);
         }
     }
 }

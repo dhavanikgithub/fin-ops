@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { markProfilerProfileDone, deleteProfilerProfile } from '@/store/actions/profilerProfileActions';
+import { exportProfileTransactionsPDF } from '@/store/actions/profilerTransactionActions';
 import { ProfilerProfile } from '@/services/profilerProfileService';
-import { CheckCircle, Trash2, ChevronUp, ChevronDown, Minus, User, Building2, ExternalLink } from 'lucide-react';
+import { CheckCircle, Trash2, ChevronUp, ChevronDown, Minus, User, Building2, ExternalLink, Download, Loader2 } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import DeleteProfilerProfileModal from './DeleteProfilerProfileModal';
 import './ProfilerProfileTable.scss';
@@ -39,9 +40,39 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
     const dispatch = useAppDispatch();
     const { markingDoneIds, deletingProfileIds } = useAppSelector((state) => state.profilerProfiles);
     const [deleteModalProfile, setDeleteModalProfile] = useState<ProfilerProfile | null>(null);
+    const [exportingProfileId, setExportingProfileId] = useState<number | null>(null);
 
     const handleProfileClick = (profileId: number) => {
         router.push(`/profiler/profiles/${profileId}/transaction`);
+    };
+
+    const handleExportPDF = async (profileId: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            setExportingProfileId(profileId);
+            logger.log('Exporting profile transactions to PDF...');
+            
+            const result = await dispatch(exportProfileTransactionsPDF(profileId)).unwrap();
+            
+            // Create download link
+            const url = window.URL.createObjectURL(result.blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = result.filename;
+            document.body.appendChild(a);
+            a.click();
+            
+            // Cleanup
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+            
+            toast.success('PDF exported successfully');
+        } catch (error: any) {
+            logger.error('Error exporting PDF:', error);
+            toast.error(error || 'Failed to export PDF');
+        } finally {
+            setExportingProfileId(null);
+        }
     };
 
     const handleSortClick = (column: string) => {
@@ -223,6 +254,15 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                         </td>
                                         <td className="profiler-profile-table__td profiler-profile-table__td--actions" onClick={(e) => e.stopPropagation()}>
                                             <div className="profiler-profile-table__actions">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="small"
+                                                    icon={exportingProfileId === profile.id ? <Loader2 size={16} className="spinner" /> : <Download size={16} />}
+                                                    onClick={(e) => handleExportPDF(profile.id, e)}
+                                                    disabled={exportingProfileId === profile.id || (profile.transaction_count === 0)}
+                                                    className="profiler-profile-table__export-btn"
+                                                    title="Export PDF"
+                                                />
                                                 {profile.status.toLowerCase() !== 'done' && (
                                                     <Button
                                                         variant="ghost"

@@ -273,3 +273,27 @@ export const deleteProfilerTransaction = createAsyncThunk<
         }
     }
 );
+
+// Export profile transactions to PDF
+export const exportProfileTransactionsPDF = createAsyncThunk<
+    { blob: Blob; filename: string },
+    number,
+    { rejectValue: string }
+>(
+    'profilerTransactions/exportPDF',
+    async (profileId, { rejectWithValue }) => {
+        try {
+            const blob = await profilerTransactionService.exportProfileTransactionsPDF(profileId);
+            
+            // Generate a default filename with timestamp
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+            const filename = `Profile_${profileId}_Transactions_${timestamp}.pdf`;
+            
+            return { blob, filename };
+        } catch (error: any) {
+            return rejectWithValue(
+                error.response?.data?.message || error.message || 'Failed to export PDF'
+            );
+        }
+    }
+);

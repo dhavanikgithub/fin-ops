@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
 import { ProfilerTransactionService } from '../services/profilerTransactionService.js';
+import * as path from 'path';
+import * as fs from 'fs';
 import {
     ProfilerDepositTransactionInput,
     ProfilerWithdrawTransactionInput,
@@ -8,6 +10,7 @@ import {
 } from '../types/profilerTransaction.js';
 import { createSuccessResponse } from '../../common/utils/responseFormat.js';
 import { ValidationError, asyncHandler } from '../../common/errors/index.js';
+import { logger } from '../../utils/logger.js';
 
 /**
  * Controller for profiler transaction operations
@@ -329,5 +332,30 @@ export class ProfilerTransactionController {
             'Profiler transaction deleted successfully'
         );
         res.status(200).json(response);
+    });
+
+    /**
+     * GET export profile transactions as PDF
+     */
+    static exportProfileTransactionsPDF = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+        const profileId = parseInt(req.params.profileId!);
+        if (isNaN(profileId)) {
+            throw new ValidationError('Invalid profile ID', { field: 'profileId', value: req.params.profileId });
+        }
+
+        const pdfPath = await ProfilerTransactionService.exportProfileTransactionsPDF(profileId);
+        
+        // Send file for download
+        res.download(pdfPath, path.basename(pdfPath), (err) => {
+            if (err) {
+                logger.error('Error sending PDF file:', err);
+            }
+            // Clean up the file after sending
+            try {
+                fs.unlinkSync(pdfPath);
+            } catch (cleanupError) {
+                logger.error('Error cleaning up PDF file:', cleanupError);
+            }
+        });
     });
 }

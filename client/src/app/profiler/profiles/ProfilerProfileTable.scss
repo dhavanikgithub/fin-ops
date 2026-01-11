@@ -202,6 +202,31 @@
         }
     }
 
+    &__export-btn {
+        &:hover:not(:disabled) {
+            color: var(--primary);
+            background: var(--primary-bg, rgba(59, 130, 246, 0.1));
+        }
+
+        &:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
     @media (max-width: 1200px) {
         &__th,
         &__td {

@@ -1,4 +1,4 @@
-import { Users, CreditCard, Calculator, Wallet, Building2, Percent, LayoutDashboard } from 'lucide-react';
+import { Users, CreditCard, Calculator, Wallet, Building2, Percent, LayoutDashboard, IdCard } from 'lucide-react';
 import Finkeda from './Icons/Finkeda';
 
 interface NavItem {
@@ -30,7 +30,7 @@ export const navItemsObject: NavItemsObject = {
         label: 'Profiler',
         subItems: {
             Dashboard: { icon: <LayoutDashboard size={20} />, label: 'Dashboard', href: '/profiler' },
-            Profiles: { icon: <Wallet size={20} />, label: 'Profiles', href: '/profiler/profiles' },
+            Profiles: { icon: <IdCard size={20} />, label: 'Profiles', href: '/profiler/profiles' },
             Clients: { icon: <Users size={20} />, label: 'Clients', href: '/profiler/clients' },
             Banks: { icon: <Building2 size={20} />, label: 'Banks', href: '/profiler/banks' },
             Transactions: { icon: <Wallet size={20} />, label: 'Transactions', href: '/profiler/transactions' },
