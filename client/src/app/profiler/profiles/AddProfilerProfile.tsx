@@ -4,8 +4,9 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createProfilerProfile } from '@/store/actions/profilerProfileActions';
 import { fetchProfilerClientAutocomplete } from '@/store/slices/profilerClientAutocompleteSlice';
 import { fetchProfilerBankAutocomplete } from '@/store/slices/profilerBankAutocompleteSlice';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
-import { TextInput, NumericInput, Button, TextArea, SelectInput } from '@/components/FormInputs';
+import { ArrowLeft, Save, Loader2, Users, Building2 } from 'lucide-react';
+import { TextInput, NumericInput, Button, TextArea, AutocompleteInput } from '@/components/FormInputs';
+import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInput';
 import './AddProfilerProfile.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
@@ -15,8 +16,8 @@ interface AddProfilerProfileProps {
 }
 
 interface FormData {
-    profiler_client_id: string;
-    profiler_bank_id: string;
+    profiler_client_id: AutocompleteOption | null;
+    profiler_bank_id: AutocompleteOption | null;
     credit_card_number: string;
     opening_balance: number;
     carry_forward_balance: number;
@@ -39,8 +40,8 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
     const { items: banks, loading: banksLoading } = useAppSelector((state) => state.profilerBankAutocomplete);
 
     const [formData, setFormData] = useState<FormData>({
-        profiler_client_id: '',
-        profiler_bank_id: '',
+        profiler_client_id: null,
+        profiler_bank_id: null,
         credit_card_number: '',
         opening_balance: 0,
         carry_forward_balance: 0,
@@ -56,16 +57,16 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
         dispatch(fetchProfilerBankAutocomplete({}));
     }, [dispatch]);
 
-    const validateField = (name: keyof FormData, value: string | boolean | number): string | undefined => {
+    const validateField = (name: keyof FormData, value: string | boolean | number | AutocompleteOption | null): string | undefined => {
         switch (name) {
             case 'profiler_client_id':
-                if (!value) {
+                if (!value || value === null) {
                     return 'Client is required';
                 }
                 break;
 
             case 'profiler_bank_id':
-                if (!value) {
+                if (!value || value === null) {
                     return 'Bank is required';
                 }
                 break;
@@ -105,7 +106,7 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleChange = (name: string, value: string | number | boolean) => {
+    const handleChange = (name: string, value: string | number | boolean | AutocompleteOption | null) => {
         setFormData((prev) => ({ 
             ...prev, 
             [name]: value 
@@ -146,8 +147,8 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
 
         try {
             await dispatch(createProfilerProfile({
-                client_id: parseInt(formData.profiler_client_id),
-                bank_id: parseInt(formData.profiler_bank_id),
+                client_id: formData.profiler_client_id!.id,
+                bank_id: formData.profiler_bank_id!.id,
                 credit_card_number: formData.credit_card_number.trim(),
                 pre_planned_deposit_amount: formData.opening_balance,
                 carry_forward_enabled: formData.carry_forward,
@@ -165,8 +166,8 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
 
     const handleReset = () => {
         setFormData({
-            profiler_client_id: '',
-            profiler_bank_id: '',
+            profiler_client_id: null,
+            profiler_bank_id: null,
             credit_card_number: '',
             opening_balance: 0,
             carry_forward_balance: 0,
@@ -177,14 +178,14 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
         setTouched({});
     };
 
-    const clientOptions = clients.map((client: any) => ({
-        value: client.id.toString(),
-        label: client.name
+    const clientOptions: AutocompleteOption[] = clients.map((client: any) => ({
+        id: client.id,
+        name: client.name
     }));
 
-    const bankOptions = banks.map((bank: any) => ({
-        value: bank.id.toString(),
-        label: bank.bank_name
+    const bankOptions: AutocompleteOption[] = banks.map((bank: any) => ({
+        id: bank.id,
+        name: bank.bank_name
     }));
 
     return (
@@ -214,28 +215,32 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
                         
                         <div className="add-profiler-profile__form-grid">
                             <div className="add-profiler-profile__form-group">
-                                <label htmlFor="profiler_client_id" className="add-profiler-profile__label">
-                                    Client <span className="add-profiler-profile__required">*</span>
-                                </label>
-                                <SelectInput
+                                <AutocompleteInput
+                                    label="Client"
                                     value={formData.profiler_client_id}
                                     onChange={(value) => handleChange('profiler_client_id', value)}
-                                    options={[{ value: '', label: 'Select client' }, ...clientOptions]}
+                                    options={clientOptions}
+                                    loading={clientsLoading}
+                                    placeholder="Search for a client..."
+                                    icon={<Users size={16} />}
                                     error={touched.profiler_client_id ? errors.profiler_client_id : undefined}
-                                    disabled={creating || clientsLoading}
+                                    disabled={creating}
+                                    onBlur={() => handleBlur('profiler_client_id')}
                                 />
                             </div>
 
                             <div className="add-profiler-profile__form-group">
-                                <label htmlFor="profiler_bank_id" className="add-profiler-profile__label">
-                                    Bank <span className="add-profiler-profile__required">*</span>
-                                </label>
-                                <SelectInput
+                                <AutocompleteInput
+                                    label="Bank"
                                     value={formData.profiler_bank_id}
                                     onChange={(value) => handleChange('profiler_bank_id', value)}
-                                    options={[{ value: '', label: 'Select bank' }, ...bankOptions]}
+                                    options={bankOptions}
+                                    loading={banksLoading}
+                                    placeholder="Search for a bank..."
+                                    icon={<Building2 size={16} />}
                                     error={touched.profiler_bank_id ? errors.profiler_bank_id : undefined}
-                                    disabled={creating || banksLoading}
+                                    disabled={creating}
+                                    onBlur={() => handleBlur('profiler_bank_id')}
                                 />
                             </div>
 

@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createDepositTransaction } from '@/store/actions/profilerTransactionActions';
 import { fetchProfilerProfileAutocomplete } from '@/store/slices/profilerProfileAutocompleteSlice';
-import { ArrowLeft, Save, Loader2, ArrowDownCircle } from 'lucide-react';
-import { NumericInput, Button, TextArea, SelectInput } from '@/components/FormInputs';
+import { ArrowLeft, Save, Loader2, ArrowDownCircle, UserCircle } from 'lucide-react';
+import { NumericInput, Button, TextArea, AutocompleteInput } from '@/components/FormInputs';
+import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInput';
 import './AddProfilerTransaction.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
@@ -14,7 +15,7 @@ interface AddProfilerDepositProps {
 }
 
 interface FormData {
-    profiler_profile_id: string;
+    profiler_profile_id: AutocompleteOption | null;
     original_amount: number;
     remarks: string;
 }
@@ -30,7 +31,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
     const { items: profiles, loading: profilesLoading } = useAppSelector((state) => state.profilerProfileAutocomplete);
 
     const [formData, setFormData] = useState<FormData>({
-        profiler_profile_id: '',
+        profiler_profile_id: null,
         original_amount: 0,
         remarks: ''
     });
@@ -42,10 +43,10 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         dispatch(fetchProfilerProfileAutocomplete({}));
     }, [dispatch]);
 
-    const validateField = (name: keyof FormData, value: string | number): string | undefined => {
+    const validateField = (name: keyof FormData, value: string | number | AutocompleteOption | null): string | undefined => {
         switch (name) {
             case 'profiler_profile_id':
-                if (!value) return 'Profile is required';
+                if (!value || value === null) return 'Profile is required';
                 break;
             case 'original_amount':
                 if (typeof value === 'number' && value <= 0) {
@@ -67,7 +68,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleChange = (name: string, value: string | number) => {
+    const handleChange = (name: string, value: string | number | AutocompleteOption | null) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
         if (errors[name as keyof FormErrors]) {
             setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -93,7 +94,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
 
         try {
             await dispatch(createDepositTransaction({
-                profile_id: parseInt(formData.profiler_profile_id),
+                profile_id: formData.profiler_profile_id!.id,
                 amount: formData.original_amount,
                 notes: formData.remarks.trim() || null
             })).unwrap();
@@ -107,9 +108,9 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         }
     };
 
-    const profileOptions = profiles.map((profile: any) => ({
-        value: profile.id.toString(),
-        label: `${profile.client_name} - ${profile.bank_name}`
+    const profileOptions: AutocompleteOption[] = profiles.map((profile: any) => ({
+        id: profile.id,
+        name: `${profile.client_name} - ${profile.bank_name}`
     }));
 
     const formatCurrency = (amount: number) => {
@@ -150,14 +151,16 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
                         
                         <div className="add-profiler-transaction__form-grid">
                             <div className="add-profiler-transaction__form-group add-profiler-transaction__form-group--full">
-                                <SelectInput
+                                <AutocompleteInput
                                     label="Profile"
                                     value={formData.profiler_profile_id}
                                     onChange={(value) => handleChange('profiler_profile_id', value)}
                                     options={profileOptions}
-                                    placeholder="Select profile"
+                                    loading={profilesLoading}
+                                    placeholder="Search for a profile..."
+                                    icon={<UserCircle size={16} />}
                                     error={touched.profiler_profile_id ? errors.profiler_profile_id : undefined}
-                                    disabled={creating || profilesLoading}
+                                    disabled={creating}
                                 />
                             </div>
 

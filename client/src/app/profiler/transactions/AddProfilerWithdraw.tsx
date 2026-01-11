@@ -3,8 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createWithdrawTransaction } from '@/store/actions/profilerTransactionActions';
 import { fetchProfilerProfileAutocomplete } from '@/store/slices/profilerProfileAutocompleteSlice';
-import { ArrowLeft, Save, Loader2, ArrowUpCircle } from 'lucide-react';
-import { NumericInput, Button, TextArea, SelectInput } from '@/components/FormInputs';
+import { ArrowLeft, Save, Loader2, ArrowUpCircle, UserCircle } from 'lucide-react';
+import { NumericInput, Button, TextArea, AutocompleteInput } from '@/components/FormInputs';
+import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInput';
 import './AddProfilerTransaction.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
@@ -14,7 +15,7 @@ interface AddProfilerWithdrawProps {
 }
 
 interface FormData {
-    profiler_profile_id: string;
+    profiler_profile_id: AutocompleteOption | null;
     amount: number;
     withdraw_charges_percentage: number;
     notes: string;
@@ -32,7 +33,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
     const { items: profiles, loading: profilesLoading } = useAppSelector((state) => state.profilerProfileAutocomplete);
 
     const [formData, setFormData] = useState<FormData>({
-        profiler_profile_id: '',
+        profiler_profile_id: null,
         amount: 0,
         withdraw_charges_percentage: 0,
         notes: ''
@@ -53,10 +54,10 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
         setAdjustedAmount(calculated);
     }, [formData.amount, formData.withdraw_charges_percentage]);
 
-    const validateField = (name: keyof FormData, value: string | number): string | undefined => {
+    const validateField = (name: keyof FormData, value: string | number | AutocompleteOption | null): string | undefined => {
         switch (name) {
             case 'profiler_profile_id':
-                if (!value) return 'Profile is required';
+                if (!value || value === null) return 'Profile is required';
                 break;
             case 'amount':
                 if (typeof value === 'number' && value <= 0) {
@@ -82,7 +83,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleChange = (name: string, value: string | number) => {
+    const handleChange = (name: string, value: string | number | AutocompleteOption | null) => {
         setFormData((prev) => ({ ...prev, [name]: value }));
         if (errors[name as keyof FormErrors]) {
             setErrors((prev) => ({ ...prev, [name]: undefined }));
@@ -110,7 +111,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
 
         try {
             await dispatch(createWithdrawTransaction({
-                profile_id: parseInt(formData.profiler_profile_id),
+                profile_id: formData.profiler_profile_id!.id,
                 amount: formData.amount,
                 withdraw_charges_percentage: formData.withdraw_charges_percentage,
                 notes: formData.notes.trim() || null
@@ -125,9 +126,9 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
         }
     };
 
-    const profileOptions = profiles.map((profile: any) => ({
-        value: profile.id.toString(),
-        label: `${profile.client_name} - ${profile.bank_name}`
+    const profileOptions: AutocompleteOption[] = profiles.map((profile: any) => ({
+        id: profile.id,
+        name: `${profile.client_name} - ${profile.bank_name}`
     }));
 
     const formatCurrency = (amount: number) => {
@@ -168,15 +169,16 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
                         
                         <div className="add-profiler-transaction__form-grid">
                             <div className="add-profiler-transaction__form-group add-profiler-transaction__form-group--full">
-                                <label htmlFor="profiler_profile_id" className="add-profiler-transaction__label">
-                                    Profile <span className="add-profiler-transaction__required">*</span>
-                                </label>
-                                <SelectInput
+                                <AutocompleteInput
+                                    label="Profile"
                                     value={formData.profiler_profile_id}
                                     onChange={(value) => handleChange('profiler_profile_id', value)}
-                                    options={[{ value: '', label: 'Select profile' }, ...profileOptions]}
+                                    options={profileOptions}
+                                    loading={profilesLoading}
+                                    placeholder="Search for a profile..."
+                                    icon={<UserCircle size={16} />}
                                     error={touched.profiler_profile_id ? errors.profiler_profile_id : undefined}
-                                    disabled={creating || profilesLoading}
+                                    disabled={creating}
                                 />
                             </div>
 
