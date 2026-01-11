@@ -21,6 +21,8 @@ interface ProfileSummary {
     total_withdrawals: number;
     total_charges: number;
     net_amount: number;
+    transaction_difference: number;
+    credit_uncountable: number;
 }
 
 interface ProfileReportData {
@@ -121,7 +123,7 @@ class ProfilerTransactionReportPDF {
         this.addTransactionsTable(data.transactions);
 
         // Add summary
-        this.addSummary(data.summary);
+        this.addSummary(data.summary, data.client_name);
 
         this.doc.end();
 
@@ -317,10 +319,10 @@ class ProfilerTransactionReportPDF {
         this.doc.table(tableData);
     }
 
-    private addSummary(summary: ProfileSummary): void {
+    private addSummary(summary: ProfileSummary, clientName: string): void {
         this.doc.y += 20;
         const startY = this.doc.y;
-        const boxHeight = 120;
+        const boxHeight = 190;
 
         // Summary box background
         this.doc.rect(20, startY, this.pageWidth, boxHeight)
@@ -331,58 +333,144 @@ class ProfilerTransactionReportPDF {
 
         const leftX = 35;
         let currentY = startY + 15;
+        const valueX = this.pageWidth - 120;
 
         // Title
-        this.doc.fontSize(14)
+        this.doc.fontSize(13)
             .font('Helvetica-Bold')
             .text('Transaction Summary', leftX, currentY);
 
-        currentY += 25;
-        this.doc.fontSize(11);
+        currentY += 30;
 
         // Total Deposits
+        this.doc.fontSize(10)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text(`Total Deposits (${clientName} Paid):`, leftX, currentY);
         this.doc.font('Helvetica-Bold')
-            .text('Total Deposits:', leftX, currentY);
-        this.doc.font('Helvetica')
             .fill(this.colors.green700)
-            .text(this.formatCurrency(summary.total_deposits).replace('₹', 'Rs. '), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.total_deposits).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
 
-        currentY += 20;
-        this.doc.fill(this.colors.gray900);
+        currentY += 22;
 
         // Total Withdrawals
-        this.doc.font('Helvetica-Bold')
-            .text('Total Withdrawals:', leftX, currentY);
         this.doc.font('Helvetica')
-            .fill(this.colors.red700)
-            .text(this.formatCurrency(summary.total_withdrawals).replace('₹', 'Rs. '), leftX + 150, currentY);
-
-        currentY += 20;
-        this.doc.fill(this.colors.gray900);
-
-        // Total Charges
+            .fill(this.colors.gray700)
+            .text('Total Withdrawals (Company Paid):', leftX, currentY);
         this.doc.font('Helvetica-Bold')
-            .text('Total Charges:', leftX, currentY);
-        this.doc.font('Helvetica')
             .fill(this.colors.red700)
-            .text(this.formatCurrency(summary.total_charges).replace('₹', 'Rs. '), leftX + 150, currentY);
+            .text(this.formatCurrency(summary.total_withdrawals).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 22;
+
+        // Withdrawal Charges
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Withdrawal Charges (Company Earned):', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.green700)
+            .text(this.formatCurrency(summary.total_charges).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
 
         currentY += 25;
 
-        // Net Amount (with line separator)
+        // Separator line
         this.doc.strokeColor(this.colors.gray500)
             .lineWidth(1)
-            .moveTo(leftX, currentY - 5)
-            .lineTo(leftX + 250, currentY - 5)
+            .moveTo(leftX, currentY)
+            .lineTo(this.pageWidth - 15, currentY)
             .stroke();
+
+        currentY += 15;
+
+        // Payment Difference (Withdrawals - Deposits)
+        const isDiffNegative = summary.transaction_difference < 0;
+
+        this.doc.fontSize(11)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Payment Difference:', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
+            .text(this.formatCurrency(summary.transaction_difference).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 18;
+
+        // Explanation for transaction difference
+        const diffExplanation = isDiffNegative 
+            ? `(Amount Receivable from ${clientName})`
+            : `(Amount Payable to ${clientName})`;
+        
+        this.doc.fontSize(7)
+            .font('Helvetica')
+            .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
+            .text(diffExplanation, valueX - 40, currentY, { width: 180, align: 'right' });
+
+        currentY += 20;
+
+        // Separator line before Credit Uncountable
+        this.doc.strokeColor(this.colors.gray500)
+            .lineWidth(1)
+            .moveTo(leftX, currentY)
+            .lineTo(this.pageWidth - 15, currentY)
+            .stroke();
+
+        currentY += 15;
+
+        // Credit Uncountable
+        this.doc.fontSize(11)
+            .font('Helvetica')
+            .fill(this.colors.gray700)
+            .text('Credit Uncountable:', leftX, currentY);
+        this.doc.font('Helvetica-Bold')
+            .fill(this.colors.gray900)
+            .text(this.formatCurrency(summary.credit_uncountable).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 20;
+
+        // Formula explanation line
+        this.doc.fontSize(9)
+            .font('Helvetica')
+            .fill(this.colors.gray500)
+            .text('Withdrawal Charges:', leftX + 20, currentY);
+        this.doc.font('Helvetica')
+            .fill(this.colors.gray900)
+            .text('+ ' + this.formatCurrency(summary.total_charges).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 18;
+
+        // Formula separator (equals line)
+        this.doc.strokeColor(this.colors.gray500)
+            .lineWidth(0.5)
+            .moveTo(valueX, currentY - 3)
+            .lineTo(this.pageWidth - 15, currentY - 3)
+            .stroke();
+
+        currentY += 10;
+
+        // Net Balance with dynamic label
+        const isPositive = summary.net_amount >= 0;
 
         this.doc.fontSize(12)
             .font('Helvetica-Bold')
             .fill(this.colors.gray900)
-            .text('Net Amount:', leftX, currentY);
+            .text('Net Balance:', leftX, currentY);
+        
         this.doc.font('Helvetica-Bold')
-            .fill(summary.net_amount >= 0 ? this.colors.green700 : this.colors.red700)
-            .text(this.formatCurrency(summary.net_amount).replace('₹', 'Rs. '), leftX + 150, currentY);
+            .fontSize(12)
+            .fill(isPositive ? this.colors.green700 : this.colors.red700)
+            .text(this.formatCurrency(summary.net_amount).replace('₹', 'Rs. '), valueX, currentY, { width: 140, align: 'right' });
+
+        currentY += 20;
+
+        // Explanation text
+        const explanationText = isPositive 
+            ? `(${clientName} Outstanding Balance)`
+            : '(Company Outstanding Balance)';
+        
+        this.doc.fontSize(8)
+            .font('Helvetica')
+            .fill(isPositive ? this.colors.green700 : this.colors.red700)
+            .text(explanationText, leftX, currentY, { width: this.pageWidth - 50, align: 'center' });
 
         this.doc.y = startY + boxHeight + 20;
     }

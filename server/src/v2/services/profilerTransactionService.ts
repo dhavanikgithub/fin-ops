@@ -213,13 +213,20 @@ export class ProfilerTransactionService {
             const totalPages = Math.ceil(totalCount / validatedLimit);
 
             const summary = summaryResult.rows[0];
+            const totalDeposits = parseFloat(summary?.total_deposits || '0');
+            const totalWithdrawals = parseFloat(summary?.total_withdrawals || '0');
+            const totalCharges = parseFloat(summary?.total_charges || '0');
+            const transactionDifference = totalWithdrawals - totalDeposits;
+            const creditUncountable = totalDeposits - totalWithdrawals;
+            const netAmount = creditUncountable + totalCharges;
+            
             const summaryData = {
-                total_deposits: parseFloat(summary?.total_deposits || '0'),
-                total_withdrawals: parseFloat(summary?.total_withdrawals || '0'),
-                total_charges: parseFloat(summary?.total_charges || '0'),
-                net_amount: parseFloat(summary?.total_deposits || '0') - 
-                           parseFloat(summary?.total_withdrawals || '0') - 
-                           parseFloat(summary?.total_charges || '0')
+                total_deposits: totalDeposits,
+                total_withdrawals: totalWithdrawals,
+                total_charges: totalCharges,
+                net_amount: netAmount,
+                transaction_difference: transactionDifference,
+                credit_uncountable: creditUncountable
             };
 
             const filters: any = {};
@@ -374,6 +381,8 @@ export class ProfilerTransactionService {
         total_withdrawals: number;
         total_charges: number;
         net_amount: number;
+        transaction_difference: number;
+        credit_uncountable: number;
         transaction_count: number;
     }> {
         try {
@@ -383,13 +392,20 @@ export class ProfilerTransactionService {
             );
 
             const summary = result.rows[0];
+            const totalDeposits = parseFloat(summary?.total_deposits || '0');
+            const totalWithdrawals = parseFloat(summary?.total_withdrawals || '0');
+            const totalCharges = parseFloat(summary?.total_charges || '0');
+            const transactionDifference = totalWithdrawals - totalDeposits;
+            const creditUncountable = totalDeposits - totalWithdrawals;
+            const netAmount = creditUncountable + totalCharges;
+            
             return {
-                total_deposits: parseFloat(summary?.total_deposits || '0'),
-                total_withdrawals: parseFloat(summary?.total_withdrawals || '0'),
-                total_charges: parseFloat(summary?.total_charges || '0'),
-                net_amount: parseFloat(summary?.total_deposits || '0') - 
-                           parseFloat(summary?.total_withdrawals || '0') - 
-                           parseFloat(summary?.total_charges || '0'),
+                total_deposits: totalDeposits,
+                total_withdrawals: totalWithdrawals,
+                total_charges: totalCharges,
+                net_amount: netAmount,
+                transaction_difference: transactionDifference,
+                credit_uncountable: creditUncountable,
                 transaction_count: parseInt(summary?.transaction_count || '0')
             };
         } catch (error) {
