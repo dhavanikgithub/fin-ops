@@ -121,7 +121,7 @@ const BanksScreenContent: React.FC = () => {
         }
     };
 
-    return renderCurrentView();
+    return <div className='main'>{renderCurrentView()}</div>;
 };
 
 const BanksScreen: React.FC = () => {
