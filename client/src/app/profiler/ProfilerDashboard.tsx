@@ -14,11 +14,12 @@ import {
     TrendingUp, 
     ChevronRight,
     Activity,
-    Loader2
+    Loader2,
+    CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import './ProfilerDashboard.scss';
-import { formatAmountAsCurrency, formatDate } from '@/utils/helperFunctions';
+import { formatAmountAsCurrency, formatCreditCard, formatDate, formatDateTime } from '@/utils/helperFunctions';
 
 const ProfilerDashboard: React.FC = () => {
     const router = useRouter();
@@ -263,8 +264,12 @@ const ProfilerDashboard: React.FC = () => {
                                                             <Building2 size={14} />
                                                             {transaction.bank_name}
                                                         </span>
+                                                        <span className="profiler-dashboard__list-item-bank">
+                                                            <CreditCard size={14} />
+                                                            {formatCreditCard(transaction.credit_card_number)}
+                                                        </span>
                                                         <span className="profiler-dashboard__list-item-date">
-                                                            {formatDate(transaction.created_at)}
+                                                            {formatDateTime(transaction.created_at)}
                                                         </span>
                                                     </div>
                                                 </div>
