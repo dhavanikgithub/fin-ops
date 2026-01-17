@@ -1,15 +1,16 @@
 .profiler-dashboard {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-xl, 32px);
-    padding: var(--spacing-xl, 32px);
+    gap: var(--spacing-md, 16px);
+    padding: var(--spacing-md, 16px);
     background: var(--background);
-    min-height: 100vh;
     width: 100%;
+    height: 100vh;
+    overflow-y: auto;
 
     @media (max-width: 768px) {
-        padding: var(--spacing-lg, 24px);
-        gap: var(--spacing-lg, 24px);
+        padding: var(--spacing-sm, 12px);
+        gap: var(--spacing-sm, 12px);
     }
 
     &__header {
@@ -79,7 +80,7 @@
     &__summary {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: var(--spacing-lg, 24px);
+        gap: var(--spacing-md, 16px);
 
         @media (max-width: 768px) {
             grid-template-columns: 1fr;
@@ -90,9 +91,9 @@
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius-lg, 12px);
-        padding: var(--spacing-lg, 24px);
+        padding: var(--spacing-md, 16px);
         display: flex;
-        gap: var(--spacing-md, 16px);
+        gap: var(--spacing-sm, 12px);
         transition: transform 0.2s, box-shadow 0.2s;
 
         &:hover {
@@ -121,12 +122,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 56px;
-        height: 56px;
+        width: 48px;
+        height: 48px;
         border-radius: var(--radius-md, 8px);
         background: var(--muted);
         color: var(--foreground);
         flex-shrink: 0;
+
+        svg {
+            width: 24px;
+            height: 24px;
+        }
 
         .profiler-dashboard__card--primary & {
             background: var(--primary-bg, rgba(59, 130, 246, 0.1));
@@ -166,12 +172,16 @@
     }
 
     &__card-value {
-        font-size: 28px;
+        font-size: 22px;
         font-weight: 700;
         color: var(--foreground);
         margin: 0;
-        line-height: 1;
+        line-height: 1.2;
         font-family: 'Courier New', monospace;
+
+        @media (max-width: 768px) {
+            font-size: 20px;
+        }
 
         &--positive {
             color: var(--success, #22c55e);
@@ -191,7 +201,7 @@
     &__section {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-md, 16px);
+        gap: var(--spacing-sm, 12px);
     }
 
     &__section-header {
@@ -232,10 +242,14 @@
     &__content {
         display: grid;
         grid-template-columns: repeat(2, 1fr);
-        gap: var(--spacing-xl, 32px);
+        gap: var(--spacing-md, 16px);
+        flex: 1;
+        min-height: 0;
+        align-items: start;
 
         @media (max-width: 1024px) {
             grid-template-columns: 1fr;
+            gap: var(--spacing-sm, 12px);
         }
     }
 
@@ -243,14 +257,20 @@
         background: var(--card);
         border: 1px solid var(--border);
         border-radius: var(--radius-lg, 12px);
-        overflow: hidden;
+        overflow-y: auto;
+        max-height: 280px;
+        flex: 1;
+
+        @media (max-width: 768px) {
+            max-height: 250px;
+        }
     }
 
     &__list-item {
         display: flex;
         align-items: center;
-        gap: var(--spacing-md, 16px);
-        padding: var(--spacing-md, 16px);
+        gap: var(--spacing-sm, 12px);
+        padding: var(--spacing-sm, 12px);
         border-bottom: 1px solid var(--border);
         transition: background 0.2s;
 
@@ -354,8 +374,8 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: var(--spacing-md, 16px);
-        padding: var(--spacing-xxl, 64px) var(--spacing-lg, 24px);
+        gap: var(--spacing-sm, 12px);
+        padding: var(--spacing-xl, 32px) var(--spacing-md, 16px);
         color: var(--muted-foreground);
 
         p {

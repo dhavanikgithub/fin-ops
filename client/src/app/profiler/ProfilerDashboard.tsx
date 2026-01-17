@@ -231,6 +231,7 @@ const ProfilerDashboard: React.FC = () => {
                                 <h2 className="profiler-dashboard__section-title">Recent Transactions</h2>
                                 <Button
                                     variant="ghost"
+                                    size="small"
                                     iconRight={<ChevronRight size={16} />}
                                     onClick={() => router.push('/profiler/transactions')}
                                 >
