@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { fetchProfilerProfileById } from '@/store/actions/profilerProfileActions';
@@ -26,16 +26,18 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
     const {
         transactions,
         loading: transactionsLoading,
+        loadingMore,
         error: transactionsError,
         pagination,
-        sortConfig
+        sortConfig,
+        hasMore
     } = useAppSelector((state) => state.profilerTransactions);
 
-    const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState<string>('created_at');
     const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
     const [searchQuery, setSearchQuery] = useState<string>('');
-    const [searchTimeout, setSearchTimeout] = useState<NodeJS.Timeout | null>(null);
+    const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const observerTarget = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         if (profileId) {
@@ -61,61 +63,80 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
         }
     }, [transactionsError]);
 
-    const loadTransactions = (page: number = currentPage, sort_by: string = sortBy, sort_order: 'asc' | 'desc' = sortOrder, search: string = searchQuery) => {
+    // Infinite scroll observer
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore && !transactionsLoading && !loadingMore) {
+                    logger.log('Loading more profile transactions...');
+                    loadMoreTransactions();
+                }
+            },
+            { threshold: 0.1 }
+        );
+
+        const currentTarget = observerTarget.current;
+        if (currentTarget) {
+            observer.observe(currentTarget);
+        }
+
+        return () => {
+            if (currentTarget) {
+                observer.unobserve(currentTarget);
+            }
+        };
+    }, [hasMore, transactionsLoading, loadingMore]);
+
+    const loadTransactions = useCallback((sort_by: string = sortBy, sort_order: 'asc' | 'desc' = sortOrder, search: string = searchQuery) => {
         dispatch(fetchProfilerTransactionsByProfile({
             profileId,
-            page,
-            limit: 10,
+            page: 1,
+            limit: 50,
             sort_by,
             sort_order,
             search: search || undefined
         }));
-    };
+    }, [dispatch, profileId, sortBy, sortOrder, searchQuery]);
 
-    const handlePageChange = (page: number) => {
-        logger.log('Changing page to:', page);
-        setCurrentPage(page);
-        loadTransactions(page);
-    };
+    const loadMoreTransactions = useCallback(() => {
+        if (!pagination?.has_next_page || loadingMore || transactionsLoading) return;
 
-    const handleSort = (sort_by: string, sort_order: 'asc' | 'desc') => {
+        dispatch(fetchProfilerTransactionsByProfile({
+            profileId,
+            page: pagination.current_page + 1,
+            limit: 50,
+            sort_by: sortBy,
+            sort_order: sortOrder,
+            search: searchQuery || undefined
+        }));
+    }, [dispatch, profileId, pagination, loadingMore, transactionsLoading, sortBy, sortOrder, searchQuery]);
+
+    const handleSort = useCallback((sort_by: string, sort_order: 'asc' | 'desc') => {
         logger.log('Sorting by:', sort_by, sort_order);
         setSortBy(sort_by);
         setSortOrder(sort_order);
-        loadTransactions(currentPage, sort_by, sort_order);
-    };
+        loadTransactions(sort_by, sort_order, searchQuery);
+    }, [loadTransactions, searchQuery]);
 
-    const handleRefresh = () => {
+    const handleRefresh = useCallback(() => {
         logger.log('Refreshing transactions');
         loadTransactions();
-    };
+    }, [loadTransactions]);
 
-    const handleSearchChange = (value: string) => {
+    const handleSearchChange = useCallback((value: string) => {
         setSearchQuery(value);
 
         // Clear existing timeout
-        if (searchTimeout) {
-            clearTimeout(searchTimeout);
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
         }
 
         // Set new timeout for debounced search
-        const timeout = setTimeout(() => {
+        searchTimeoutRef.current = setTimeout(() => {
             logger.log('Searching transactions with query:', value);
-            setCurrentPage(1); // Reset to first page on search
-            loadTransactions(1, sortBy, sortOrder, value);
+            loadTransactions(sortBy, sortOrder, value);
         }, 500); // 500ms debounce
-
-        setSearchTimeout(timeout);
-    };
-
-    // Cleanup timeout on unmount
-    useEffect(() => {
-        return () => {
-            if (searchTimeout) {
-                clearTimeout(searchTimeout);
-            }
-        };
-    }, [searchTimeout]);
+    }, [loadTransactions, sortBy, sortOrder]);
 
     if (profileLoading || !selectedProfile) {
         return (
@@ -227,13 +248,22 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
                     <ProfileTransactionTable
                         transactions={transactions}
                         loading={transactionsLoading}
-                        pagination={pagination}
                         sortConfig={{ sort_by: sortBy, sort_order: sortOrder }}
                         searchQuery={searchQuery}
-                        onPageChange={handlePageChange}
                         onSort={handleSort}
                         onRefresh={handleRefresh}
                     />
+                    
+                    {hasMore && (
+                        <div ref={observerTarget} className="profile-transaction-list__load-more">
+                            {loadingMore && (
+                                <div className="profile-transaction-list__loading-more">
+                                    <Loader2 size={24} className="profile-transaction-list__loading-more-icon" />
+                                    <span>Loading more transactions...</span>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             </div>
         </>

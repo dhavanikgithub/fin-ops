@@ -2,10 +2,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteProfilerTransaction } from '@/store/actions/profilerTransactionActions';
-import { ProfilerTransaction } from '@/services/profilerTransactionService';
+import { ProfilerTransaction, ProfilerTransactionPaginationInfo } from '@/services/profilerTransactionService';
 import { Trash2, ChevronUp, ChevronDown, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
-import Pagination from '@/components/Pagination';
 import DeleteProfileTransactionModal from './DeleteProfileTransactionModal';
 import './ProfileTransactionTable.scss';
 import toast from 'react-hot-toast';
@@ -14,13 +13,11 @@ import logger from '@/utils/logger';
 interface ProfileTransactionTableProps {
     transactions: ProfilerTransaction[];
     loading: boolean;
-    pagination: any;
     sortConfig: {
         sort_by: string;
         sort_order: 'asc' | 'desc';
     };
     searchQuery?: string;
-    onPageChange: (page: number) => void;
     onSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
     onRefresh: () => void;
 }
@@ -28,10 +25,8 @@ interface ProfileTransactionTableProps {
 const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
     transactions,
     loading,
-    pagination,
     sortConfig,
     searchQuery = '',
-    onPageChange,
     onSort,
     onRefresh
 }) => {
@@ -249,16 +244,6 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
                         </tbody>
                     </table>
                 </div>
-
-                {pagination && pagination.total_pages > 1 && (
-                    <div className="profile-transaction-table__pagination">
-                        <Pagination
-                            currentPage={pagination.current_page}
-                            totalPages={pagination.total_pages}
-                            onPageChange={onPageChange}
-                        />
-                    </div>
-                )}
             </div>
 
             {deleteModalTransaction && (

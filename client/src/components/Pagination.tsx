@@ -3,18 +3,18 @@ import { ChevronsLeft, ChevronLeft, ChevronRight, ChevronsRight } from 'lucide-r
 import '../styles/Pagination.scss';
 
 interface PaginationProps {
-    currentPage?: number;
-    totalPages?: number;
-    totalItems?: number;
-    itemsPerPage?: number;
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
     onPageChange?: (page: number) => void;
 }
 
 const Pagination: React.FC<PaginationProps> = ({
-    currentPage = 1,
-    totalPages = 25,
-    totalItems = 248,
-    itemsPerPage = 10,
+    currentPage,
+    totalPages,
+    totalItems,
+    itemsPerPage,
     onPageChange
 }) => {
     const startItem = (currentPage - 1) * itemsPerPage + 1;

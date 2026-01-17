@@ -176,20 +176,39 @@ const profilerTransactionSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch transactions by profile';
             })
-            .addCase(fetchProfilerTransactionsByProfile.pending, (state) => {
-                state.loading = true;
+            .addCase(fetchProfilerTransactionsByProfile.pending, (state, action) => {
+                // Check if this is a load more request (page > 1)
+                const isLoadMore = action.meta.arg.page && action.meta.arg.page > 1;
+                if (isLoadMore) {
+                    state.loadingMore = true;
+                } else {
+                    state.loading = true;
+                }
                 state.error = null;
             })
             .addCase(fetchProfilerTransactionsByProfile.fulfilled, (state, action) => {
-                state.loading = false;
-                state.transactions = action.payload.data.data;
+                // Check if this was a load more request
+                const isLoadMore = action.meta.arg.page && action.meta.arg.page > 1;
+                
+                if (isLoadMore) {
+                    state.loadingMore = false;
+                    // Append new transactions to existing ones
+                    state.transactions = [...state.transactions, ...action.payload.data.data];
+                } else {
+                    state.loading = false;
+                    // Replace transactions with new data
+                    state.transactions = action.payload.data.data;
+                }
+                
                 state.pagination = action.payload.data.pagination;
                 state.summary = action.payload.data.summary;
                 state.sortConfig = action.payload.data.sort_applied;
+                state.hasMore = action.payload.data.pagination.has_next_page;
                 state.error = null;
             })
             .addCase(fetchProfilerTransactionsByProfile.rejected, (state, action) => {
                 state.loading = false;
+                state.loadingMore = false;
                 state.error = action.payload || 'Failed to fetch transactions by profile';
             })
             .addCase(getProfileTransactionSummary.pending, (state) => {
