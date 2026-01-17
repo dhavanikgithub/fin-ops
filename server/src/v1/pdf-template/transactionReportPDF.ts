@@ -46,16 +46,17 @@ interface ReportData {
 interface Colors {
     gray100: string;
     gray200: string;
+    gray300: string;
+    gray400: string;
     gray500: string;
     gray700: string;
     gray900: string;
     red500: string;
     red700: string;
-    red900: string;
     green500: string;
     green700: string;
-    green900: string;
     white: string;
+    primary: string;
 }
 
 class TransactionReportPDF {
@@ -69,18 +70,19 @@ class TransactionReportPDF {
         this.pageWidth = this.doc.page.width - 40; // Account for margins
 
         this.colors = {
-            gray100: '#f8fafc',
-            gray200: '#e2e8f0',
-            gray500: '#64748b',
-            gray700: '#334155',
-            gray900: '#0f172a',
+            gray100: '#f3f4f6',
+            gray200: '#e5e7eb',
+            gray300: '#d1d5db',
+            gray400: '#9ca3af',
+            gray500: '#6b7280',
+            gray700: '#374151',
+            gray900: '#111827',
             red500: '#ef4444',
-            red700: '#dc2626',
-            red900: '#991b1b',
-            green500: '#22c55e',
-            green700: '#16a34a',
-            green900: '#15803d',
-            white: '#ffffff'
+            red700: '#b91c1c',
+            green500: '#10b981',
+            green700: '#047857',
+            white: '#ffffff',
+            primary: '#3b82f6'
         };
     }
 
@@ -193,16 +195,6 @@ class TransactionReportPDF {
                 },
             },
             {
-                text: transaction.bank_name,
-                align: { y: "center" },
-                padding: "8"
-            },
-            {
-                text: transaction.card_name,
-                align: { y: "center" },
-                padding: "8"
-            },
-            {
                 text: `${transaction.date}\n${transaction.time}`,
                 align: { x: "center", y: "center" },
                 padding: "8",
@@ -222,11 +214,14 @@ class TransactionReportPDF {
             data: [
                 [
                     {
-                        colSpan: 6,
+                        colSpan: 4,
                         padding: "12",
                         align: { x: "center", y: "center" },
                         backgroundColor: this.colors.gray700,
                         textColor: this.colors.white,
+                        font:{
+                            size: 14,
+                        },
                         text: `Transactions for ${clientName}`
                     }
                 ],
@@ -253,25 +248,13 @@ class TransactionReportPDF {
                         align: { x: "center", y: "center" },
                         padding: "10",
                         backgroundColor: this.colors.gray100,
-                        text: "Bank",
-                    },
-                    {
-                        align: { x: "center", y: "center" },
-                        padding: "10",
-                        backgroundColor: this.colors.gray100,
-                        text: "Card",
-                    },
-                    {
-                        align: { x: "center", y: "center" },
-                        padding: "10",
-                        backgroundColor: this.colors.gray100,
                         text: "Date & Time",
                     }
                 ],
                 ...dynamicData,
                 [
                     {
-                        colSpan: 6,
+                        colSpan: 4,
                         padding: "0",
                         border: [true, true, true, false],
                     }
@@ -287,12 +270,19 @@ class TransactionReportPDF {
     }
 
     private addTransactionSummary(total: ClientTotal, clientName: string): void {
-        this.doc.y += 15;
+        this.doc.y += 20;
+        const boxHeight = 280;
+        const requiredSpace = boxHeight + 40; // Box height plus margins
+
+        // Check if there's enough space on current page, if not add a new page
+        if (this.doc.y + requiredSpace > this.doc.page.height - 40) {
+            this.doc.addPage();
+        }
+
         const startY = this.doc.y;
-        const summaryHeight = 140;
 
         // Summary box
-        this.doc.rect(20, startY, this.pageWidth, summaryHeight)
+        this.doc.rect(20, startY, this.pageWidth, boxHeight)
             .fill(this.colors.gray100)
             .stroke();
 
@@ -314,7 +304,7 @@ class TransactionReportPDF {
             .text(`Total Deposits (${clientName} Paid):`, leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(this.colors.green700)
-            .text(total.total_deposits, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.total_deposits, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 22;
 
@@ -324,7 +314,7 @@ class TransactionReportPDF {
             .text('Total Withdrawals (Company Paid):', leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(this.colors.red700)
-            .text(total.total_withdrawals, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.total_withdrawals, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 22;
 
@@ -334,12 +324,12 @@ class TransactionReportPDF {
             .text('Withdrawal Charges (Company Earned):', leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(this.colors.green700)
-            .text(total.widthdraw_charges, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.widthdraw_charges, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 25;
 
         // Separator line
-        this.doc.strokeColor(this.colors.gray500)
+        this.doc.strokeColor(this.colors.gray300)
             .lineWidth(1)
             .moveTo(leftX, currentY)
             .lineTo(this.pageWidth+15, currentY)
@@ -359,7 +349,7 @@ class TransactionReportPDF {
             .text('Payment Difference:', leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
-            .text(total.transaction_difference, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.transaction_difference, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 18;
 
@@ -371,12 +361,12 @@ class TransactionReportPDF {
         this.doc.fontSize(7)
             .font('Helvetica')
             .fill(isDiffNegative ? this.colors.green700 : this.colors.red700)
-            .text(diffExplanation, valueX - 40, currentY, { width: 180, align: 'right' });
+            .text(diffExplanation, valueX - 40, currentY, { width: 175, align: 'right' });
 
         currentY += 20;
 
         // Separator line before Credit Uncountable
-        this.doc.strokeColor(this.colors.gray500)
+        this.doc.strokeColor(this.colors.gray300)
             .lineWidth(1)
             .moveTo(leftX, currentY)
             .lineTo(this.pageWidth+15, currentY)
@@ -391,7 +381,7 @@ class TransactionReportPDF {
             .text('Credit Uncountable:', leftX, currentY);
         this.doc.font('Helvetica-Bold')
             .fill(this.colors.gray900)
-            .text(total.credit_uncountable, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.credit_uncountable, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 20;
 
@@ -402,12 +392,12 @@ class TransactionReportPDF {
             .text('Withdrawal Charges:', leftX + 20, currentY);
         this.doc.font('Helvetica')
             .fill(this.colors.gray900)
-            .text('+ '+total.widthdraw_charges, valueX, currentY, { width: 140, align: 'right' });
+            .text('+ '+total.widthdraw_charges, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 18;
 
         // Formula explanation line (equals line)
-        this.doc.strokeColor(this.colors.gray500)
+        this.doc.strokeColor(this.colors.gray300)
             .lineWidth(0.5)
             .moveTo(valueX, currentY - 3)
             .lineTo(this.pageWidth+15, currentY - 3)
@@ -429,7 +419,7 @@ class TransactionReportPDF {
         this.doc.font('Helvetica-Bold')
             .fontSize(12)
             .fill(isPositive ? this.colors.green700 : this.colors.red700)
-            .text(total.final_amount, valueX, currentY, { width: 140, align: 'right' });
+            .text(total.final_amount, valueX, currentY, { width: 135, align: 'right' });
 
         currentY += 20;
 
@@ -444,12 +434,13 @@ class TransactionReportPDF {
             .fill(isPositive ? this.colors.green700 : this.colors.red700)
             .text(explanationText, leftX, currentY, { width: this.pageWidth - 50, align: 'center' });
 
-        this.doc.y = startY + summaryHeight + 60;
+        this.doc.y = startY + boxHeight + 60;
     }
 
     private addClientInfoSection(clientInfo: ClientInfo): void {
         const startY = this.doc.y;
-        const sectionHeight = 85;
+        const sectionHeight = 60;
+        
 
         // Info box with modern styling
         this.doc.rect(20, startY, this.pageWidth, sectionHeight)
