@@ -133,9 +133,42 @@
 
 .bnk-banks-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 12px;
     margin-top: 16px;
+    width: 100%;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        max-height: calc(100vh - 220px);
+    }
 }
 
 .bnk-bank-card {
@@ -147,6 +180,13 @@
     border-radius: var(--radius-lg);
     background: var(--card);
     transition: all 0.2s ease;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 12px;
+    }
 
     &--selected {
         border-color: var(--primary);
@@ -164,6 +204,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex: 1;
 }
 
 .bnk-bank-title {
@@ -180,6 +221,12 @@
     display: flex;
     align-items: center;
     gap: 12px;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+        width: 100%;
+        justify-content: space-between;
+    }
 }
 
 .bnk-meta-block {
@@ -294,11 +341,7 @@
 
 
 // Responsive design
-@media (max-width: 1024px) {
-    .bnk-banks-grid {
-        grid-template-columns: 1fr;
-    }
-
+@media (max-width: 1200px) {
     .main__content {
         flex-direction: column;
     }
@@ -306,26 +349,17 @@
     .bnk-detail {
         width: 100%;
         order: -1;
+        max-width: 100%;
+    }
+}
+
+@media (max-width: 1024px) {
+    .bnk-banks-grid {
+        grid-template-columns: 1fr;
     }
 }
 
 @media (max-width: 768px) {
-    .bnk-bank-card {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .bnk-bank-meta {
-        width: 100%;
-        justify-content: space-between;
-    }
-
-    .bnk-banks-grid {
-        gap: 8px;
-        margin-top: 12px;
-    }
-
     .bnk-detail {
         padding: 12px;
     }

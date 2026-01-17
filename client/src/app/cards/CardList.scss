@@ -1,9 +1,42 @@
 
 .cards-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     gap: 12px;
     margin-top: 16px;
+    width: 100%;
+    max-height: calc(100vh - 250px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+
+    @media (max-width: 1200px) {
+        grid-template-columns: 1fr;
+    }
+
+    @media (max-width: 768px) {
+        grid-template-columns: 1fr;
+        gap: 8px;
+        max-height: calc(100vh - 220px);
+    }
 }
 
 .card-item {
@@ -15,6 +48,12 @@
     border-radius: var(--radius-lg);
     background: var(--card);
     transition: border-color 0.2s ease;
+
+    @media (max-width: 768px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
 
     &--empty {
         justify-content: center;
@@ -33,6 +72,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    flex: 1;
 }
 
 .card-title {
@@ -48,6 +88,12 @@
 .card-meta {
     display: flex;
     align-items: center;
+    flex-shrink: 0;
+
+    @media (max-width: 768px) {
+        width: 100%;
+        justify-content: space-between;
+    }
     gap: 12px;
 }
 
@@ -392,7 +438,18 @@
     }
 }
 
-// Responsive design for error boundary
+@media (max-width: 1200px) {
+    .main__content {
+        flex-direction: column;
+    }
+
+    .detail {
+        width: 100%;
+        order: -1;
+        max-width: 100%;
+    }
+}
+
 @media (max-width: 768px) {
     .cl__error-boundary {
         padding: 1rem;
@@ -402,6 +459,16 @@
         }
         
         &-actions {
+            flex-direction: column;
+            
+            button {
+                width: 100%;
+            }
+        }
+    }
+
+    .detail {
+        padding: 12px;-actions {
             flex-direction: column;
             
             button {
