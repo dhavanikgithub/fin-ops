@@ -1,4 +1,29 @@
 
+.ad__container {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+}
+
 .ad__form {
     display: flex;
     flex-direction: column;
@@ -202,8 +227,22 @@
 }
 
 
-// Responsive design
+@media (max-width: 1024px) {
+    .ad__container {
+        max-height: calc(100vh - 180px);
+    }
+
+    .ad__form {
+        gap: 14px;
+    }
+}
+
 @media (max-width: 768px) {
+    .ad__container {
+        max-height: calc(100vh - 160px);
+        padding-right: 4px;
+    }
+
     .ad__form {
         gap: 12px;
         margin-top: 16px;
@@ -212,6 +251,41 @@
     .ad__field {
         padding: 12px;
         gap: 6px;
+    }
+
+    .ad__label {
+        font-size: 13px;
+    }
+
+    .ad__input,
+    .ad__textarea {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .ad__textarea {
+        min-height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .ad__container {
+        max-height: calc(100vh - 140px);
+    }
+
+    .ad__form {
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .ad__field {
+        padding: 10px;
+    }
+
+    .ad__input,
+    .ad__textarea {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 }
 

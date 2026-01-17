@@ -1,4 +1,29 @@
 
+.aw__container {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+}
+
 .aw__form {
     display: flex;
     flex-direction: column;
@@ -207,8 +232,27 @@
     }
 }
 
-// Responsive design
+@media (max-width: 1024px) {
+    .aw__container {
+        max-height: calc(100vh - 180px);
+    }
+
+    .aw__form {
+        gap: 14px;
+    }
+
+    .aw__dual {
+        grid-template-columns: 1fr;
+        gap: 14px;
+    }
+}
+
 @media (max-width: 768px) {
+    .aw__container {
+        max-height: calc(100vh - 160px);
+        padding-right: 4px;
+    }
+
     .aw__form {
         gap: 12px;
         margin-top: 16px;
@@ -222,6 +266,45 @@
     .aw__dual {
         grid-template-columns: 1fr;
         gap: 12px;
+    }
+
+    .aw__label {
+        font-size: 13px;
+    }
+
+    .aw__input,
+    .aw__textarea {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .aw__textarea {
+        min-height: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    .aw__container {
+        max-height: calc(100vh - 140px);
+    }
+
+    .aw__form {
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .aw__field {
+        padding: 10px;
+    }
+
+    .aw__dual {
+        gap: 10px;
+    }
+
+    .aw__input,
+    .aw__textarea {
+        padding: 8px 12px;
+        font-size: 13px;
     }
 }
 

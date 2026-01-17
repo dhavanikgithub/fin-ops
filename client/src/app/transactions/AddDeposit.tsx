@@ -285,7 +285,7 @@ const AddDepositScreenContent: React.FC<AddDepositScreenProps> = ({ onCancel, on
             </header>
 
             <div className="main__content">
-                <div className="main__view">
+                <div className="main__view ad__container">
                     <div className="main__view-header">
                         <div className="main__title-row">
                             <h2 className="main__title">Deposit Details</h2>
