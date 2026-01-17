@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteProfilerTransaction } from '@/store/actions/profilerTransactionActions';
 import { ProfilerTransaction, ProfilerTransactionPaginationInfo } from '@/services/profilerTransactionService';
-import { Trash2, ChevronUp, ChevronDown, TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown, TrendingUp, TrendingDown, Loader2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import DeleteProfileTransactionModal from './DeleteProfileTransactionModal';
 import './ProfileTransactionTable.scss';
@@ -187,9 +187,9 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
                                         <td className="profile-transaction-table__td">
                                             <div className={`profile-transaction-table__type profile-transaction-table__type--${transaction.transaction_type}`}>
                                                 {transaction.transaction_type === 'deposit' ? (
-                                                    <TrendingUp size={16} />
+                                                    <ArrowDownLeft size={16} />
                                                 ) : (
-                                                    <TrendingDown size={16} />
+                                                    <ArrowUpRight size={16} />
                                                 )}
                                                 <span>{transaction.transaction_type}</span>
                                             </div>

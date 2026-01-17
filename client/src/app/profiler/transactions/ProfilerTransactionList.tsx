@@ -8,7 +8,7 @@ import {
     sortProfilerTransactions
 } from '@/store/actions/profilerTransactionActions';
 import { setSearchQuery, clearProfilerTransactions } from '@/store/slices/profilerTransactionSlice';
-import { Search, ArrowDownCircle, ArrowUpCircle, Loader2 } from 'lucide-react';
+import { Search, ArrowDownCircle, ArrowUpCircle, Loader2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { TextInput, Button } from '@/components/FormInputs';
 import ProfilerTransactionTable from './ProfilerTransactionTable';
 import './ProfilerTransactionList.scss';
@@ -118,7 +118,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
 
                     <Button
                         variant="primary"
-                        icon={<ArrowDownCircle size={18} />}
+                        icon={<ArrowDownLeft size={18} />}
                         onClick={onNewDeposit}
                     >
                         Add Deposit
@@ -126,7 +126,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
 
                     <Button
                         variant="destructive"
-                        icon={<ArrowUpCircle size={18} />}
+                        icon={<ArrowUpRight size={18} />}
                         onClick={onNewWithdraw}
                     >
                         Add Withdraw

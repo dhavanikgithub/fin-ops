@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { deleteProfilerTransaction } from '@/store/actions/profilerTransactionActions';
 import { ProfilerTransaction } from '@/services/profilerTransactionService';
-import { Trash2, ChevronUp, ChevronDown, Minus, ArrowDownCircle, ArrowUpCircle, User, Building2, Calendar } from 'lucide-react';
+import { Trash2, ChevronUp, ChevronDown, Minus, ArrowDownCircle, ArrowUpCircle, User, Building2, Calendar, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import DeleteProfilerTransactionModal from './DeleteProfilerTransactionModal';
 import './ProfilerTransactionTable.scss';
@@ -144,7 +144,7 @@ const ProfilerTransactionTable: React.FC<ProfilerTransactionTableProps> = ({
                                         </td>
                                         <td className="profiler-transaction-table__td profiler-transaction-table__td--center">
                                             <span className={`profiler-transaction-table__badge profiler-transaction-table__badge--${isDeposit ? 'success' : 'destructive'}`}>
-                                                {isDeposit ? <ArrowDownCircle size={12} /> : <ArrowUpCircle size={12} />}
+                                                {isDeposit ? <ArrowDownLeft size={12} /> : <ArrowUpRight size={12} />}
                                                 {transaction.transaction_type}
                                             </span>
                                         </td>

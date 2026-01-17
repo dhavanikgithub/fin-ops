@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { createDepositTransaction, createWithdrawTransaction } from '@/store/actions/profilerTransactionActions';
 import { ProfilerProfile } from '@/services/profilerProfileService';
-import { ArrowLeft, Save, Loader2, TrendingUp, TrendingDown, User, Building2, CreditCard } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, TrendingUp, TrendingDown, User, Building2, CreditCard, ArrowDownLeft, ArrowUpRight } from 'lucide-react';
 import { NumericInput, Button, TextArea } from '@/components/FormInputs';
 import './AddProfileTransaction.scss';
 import toast from 'react-hot-toast';
@@ -244,7 +244,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                             onClick={() => handleTransactionTypeChange('deposit')}
                                             disabled={creating}
                                         >
-                                            <TrendingUp size={20} />
+                                            <ArrowDownLeft size={20} />
                                             <span>Deposit</span>
                                         </button>
                                         <button
@@ -253,7 +253,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                             onClick={() => handleTransactionTypeChange('withdraw')}
                                             disabled={creating}
                                         >
-                                            <TrendingDown size={20} />
+                                            <ArrowUpRight size={20} />
                                             <span>Withdraw</span>
                                         </button>
                                     </div>
