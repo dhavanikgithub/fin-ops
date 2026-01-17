@@ -1,11 +1,11 @@
 'use client'
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { 
-    fetchProfilerTransactions, 
-    loadMoreProfilerTransactions, 
+import {
+    fetchProfilerTransactions,
+    loadMoreProfilerTransactions,
     searchProfilerTransactions,
-    sortProfilerTransactions 
+    sortProfilerTransactions
 } from '@/store/actions/profilerTransactionActions';
 import { setSearchQuery, clearProfilerTransactions } from '@/store/slices/profilerTransactionSlice';
 import { Search, ArrowDownCircle, ArrowUpCircle, Loader2 } from 'lucide-react';
@@ -22,15 +22,15 @@ interface ProfilerTransactionListProps {
 
 const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNewDeposit, onNewWithdraw }) => {
     const dispatch = useAppDispatch();
-    const { 
-        transactions, 
-        loading, 
-        loadingMore, 
-        error, 
-        hasMore, 
+    const {
+        transactions,
+        loading,
+        loadingMore,
+        error,
+        hasMore,
         searchQuery,
         sortConfig,
-        pagination 
+        pagination
     } = useAppSelector((state) => state.profilerTransactions);
 
     const observerTarget = useRef<HTMLDivElement>(null);
@@ -74,7 +74,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
 
     const handleSearch = useCallback((value: string) => {
         dispatch(setSearchQuery(value));
-        
+
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
@@ -104,7 +104,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                         {/* <p className="main__subtitle">Track deposits and withdrawals for financial profiles</p> */}
                     </div>
                 </div>
-                
+
                 <div className="main__header-right">
                     <div className="profiler-transaction-list__search">
                         <TextInput
@@ -115,7 +115,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                             icon={<Search size={18} />}
                         />
                     </div>
-                    
+
                     <Button
                         variant="primary"
                         icon={<ArrowDownCircle size={18} />}
@@ -136,13 +136,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
 
             <div className="main__content">
                 <div className="main__view">
-                    {pagination && (
-                        <div className="main__view-header">
-                            <span className="main__subtitle">
-                                Showing {transactions.length} of {pagination.total_count} transactions
-                            </span>
-                        </div>
-                    )}
+
 
                     {loading && transactions.length === 0 ? (
                         <div className="profiler-transaction-list__loading">
@@ -179,7 +173,7 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                                 onSort={handleSort}
                                 onRefresh={handleRefresh}
                             />
-                            
+
                             {hasMore && (
                                 <div ref={observerTarget} className="profiler-transaction-list__load-more">
                                     {loadingMore && (
@@ -191,6 +185,11 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                                 </div>
                             )}
                         </>
+                    )}
+                    {pagination && (
+                        <span className="main__subtitle">
+                            Showing {transactions.length} of {pagination.total_count} transactions
+                        </span>
                     )}
                 </div>
             </div>

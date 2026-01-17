@@ -133,13 +133,7 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
 
             <div className="main__content">
                 <div className="main__view">
-                    {pagination && (
-                        <div className="main__view-header">
-                            <span className="main__subtitle">
-                                Showing {banks.length} of {pagination.total_count} banks
-                            </span>
-                        </div>
-                    )}
+                    
 
                     {loading && banks.length === 0 ? (
                         <div className="profiler-bank-list__loading">
@@ -179,6 +173,13 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
                                 </div>
                             )}
                         </>
+                    )}
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {banks.length} of {pagination.total_count} banks
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

@@ -127,13 +127,7 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
 
             <div className="main__content">
                 <div className="main__view">
-                    {pagination && (
-                        <div className="main__view-header">
-                            <span className="main__subtitle">
-                                Showing {profiles.length} of {pagination.total_count} profiles
-                            </span>
-                        </div>
-                    )}
+                    
 
                     {loading && profiles.length === 0 ? (
                         <div className="profiler-profile-list__loading">
@@ -173,6 +167,13 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
                                 </div>
                             )}
                         </>
+                    )}
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {profiles.length} of {pagination.total_count} profiles
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

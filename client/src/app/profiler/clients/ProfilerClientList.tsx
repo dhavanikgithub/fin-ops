@@ -1,11 +1,11 @@
 'use client'
 import React, { useEffect, useCallback, useRef } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { 
-    fetchProfilerClients, 
-    loadMoreProfilerClients, 
+import {
+    fetchProfilerClients,
+    loadMoreProfilerClients,
     searchProfilerClients,
-    sortProfilerClients 
+    sortProfilerClients
 } from '@/store/actions/profilerClientActions';
 import { setSearchQuery, clearProfilerClients } from '@/store/slices/profilerClientSlice';
 import { Search, UserPlus, Loader2 } from 'lucide-react';
@@ -21,15 +21,15 @@ interface ProfilerClientListProps {
 
 const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) => {
     const dispatch = useAppDispatch();
-    const { 
-        clients, 
-        loading, 
-        loadingMore, 
-        error, 
-        hasMore, 
+    const {
+        clients,
+        loading,
+        loadingMore,
+        error,
+        hasMore,
         searchQuery,
         sortConfig,
-        pagination 
+        pagination
     } = useAppSelector((state) => state.profilerClients);
 
     const observerTarget = useRef<HTMLDivElement>(null);
@@ -77,7 +77,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
     // Search handler with debounce
     const handleSearch = useCallback((value: string) => {
         dispatch(setSearchQuery(value));
-        
+
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
@@ -109,7 +109,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                         {/* <p className="main__subtitle">Manage clients for financial profiling</p> */}
                     </div>
                 </div>
-                
+
                 <div className="main__header-right">
                     <div className="profiler-client-list__search">
                         <TextInput
@@ -120,7 +120,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                             icon={<Search size={18} />}
                         />
                     </div>
-                    
+
                     <Button
                         variant="primary"
                         icon={<UserPlus size={18} />}
@@ -133,13 +133,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
 
             <div className="main__content">
                 <div className="main__view">
-                    {pagination && (
-                        <div className="main__view-header">
-                            <span className="main__subtitle">
-                                Showing {clients.length} of {pagination.total_count} clients
-                            </span>
-                        </div>
-                    )}
+
 
                     {loading && clients.length === 0 ? (
                         <div className="profiler-client-list__loading">
@@ -167,7 +161,7 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                                 onSort={handleSort}
                                 onRefresh={handleRefresh}
                             />
-                            
+
                             {hasMore && (
                                 <div ref={observerTarget} className="profiler-client-list__load-more">
                                     {loadingMore && (
@@ -179,6 +173,13 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                                 </div>
                             )}
                         </>
+                    )}
+                    {pagination && (
+                        <div className="main__view-header">
+                            <span className="main__subtitle">
+                                Showing {clients.length} of {pagination.total_count} clients
+                            </span>
+                        </div>
                     )}
                 </div>
             </div>

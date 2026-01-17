@@ -264,6 +264,11 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
                             )}
                         </div>
                     )}
+                    {pagination && (
+                        <span className="main__subtitle">
+                            Showing {transactions.length} of {pagination.total_count} transactions
+                        </span>
+                    )}
                 </div>
             </div>
         </>
