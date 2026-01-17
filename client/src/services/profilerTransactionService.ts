@@ -37,6 +37,7 @@ export interface ProfilerTransactionSummary {
     total_withdrawals: number;
     total_charges: number;
     net_amount: number;
+    credit_uncountable: number;
 }
 
 export interface ProfilerTransactionFilter {

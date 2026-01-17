@@ -25,7 +25,7 @@ const ProfilerDashboard: React.FC = () => {
     const dispatch = useAppDispatch();
     
     const { profiles, loading: profilesLoading } = useAppSelector((state) => state.profilerProfiles);
-    const { transactions, loading: transactionsLoading } = useAppSelector((state) => state.profilerTransactions);
+    const { transactions, summary, loading: transactionsLoading } = useAppSelector((state) => state.profilerTransactions);
 
     useEffect(() => {
         dispatch(fetchProfilerProfiles({ page: 1, limit: 100 }));
@@ -35,13 +35,9 @@ const ProfilerDashboard: React.FC = () => {
 
     // Calculate summary statistics
     const activeProfiles = profiles.filter(p => p.status === 'active');
-    const totalDeposits = transactions
-        .filter(t => t.transaction_type === 'deposit')
-        .reduce((sum, t) => sum + t.amount, 0);
-    const totalWithdraws = transactions
-        .filter(t => t.transaction_type === 'withdraw')
-        .reduce((sum, t) => sum + t.amount + (t.withdraw_charges_amount || 0), 0);
-    const currentBalance = totalDeposits - totalWithdraws;
+    const totalDeposits = summary?.total_deposits || 0;
+    const totalWithdraws = summary?.total_withdrawals || 0;
+    const currentBalance = summary?.credit_uncountable || 0;
 
     // Get top profiles by balance
     const topProfiles = [...profiles]
