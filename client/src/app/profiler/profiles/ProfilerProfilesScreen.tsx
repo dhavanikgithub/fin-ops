@@ -78,15 +78,19 @@ const ProfilerProfilesScreenContent: React.FC = () => {
     const handleBackToProfiles = () => {
         logger.log('Navigating back to profiles list');
         setCurrentView('list');
-        toast.success('Profile saved successfully');
     };
+
+    const handleProfileSubmit = () => {
+        setCurrentView('list');
+        toast.success('Profile saved successfully');
+    }
 
     const renderCurrentView = () => {
         switch (currentView) {
             case 'list':
                 return <ProfilerProfileList onNewProfile={handleShowAddProfile} />;
             case 'add-profile':
-                return <AddProfilerProfile onBack={handleBackToProfiles} />;
+                return <AddProfilerProfile onBack={handleBackToProfiles} onProfileSubmit={handleProfileSubmit} />;
             default:
                 return <ProfilerProfileList onNewProfile={handleShowAddProfile} />;
         }

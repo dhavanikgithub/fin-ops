@@ -103,7 +103,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack, onTrans
 
             toast.success('Deposit transaction created successfully');
             logger.log('Deposit transaction created');
-            onBack();
+            onTransactionSubmit();
         } catch (error: any) {
             logger.error('Error creating deposit transaction:', error);
             toast.error(error || 'Failed to create deposit');

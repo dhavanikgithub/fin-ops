@@ -14,6 +14,7 @@ import { formatCreditCard, unformatCreditCard } from '@/utils/helperFunctions';
 
 interface AddProfilerProfileProps {
     onBack: () => void;
+    onProfileSubmit: () => void;
 }
 
 interface FormData {
@@ -34,7 +35,7 @@ interface FormErrors {
     carry_forward_balance?: string;
 }
 
-const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
+const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack, onProfileSubmit }) => {
     const dispatch = useAppDispatch();
     const { creating } = useAppSelector((state) => state.profilerProfiles);
     const { items: clients, loading: clientsLoading } = useAppSelector((state) => state.profilerClientAutocomplete);
@@ -177,7 +178,7 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
 
             toast.success('Profiler profile created successfully');
             logger.log('Profiler profile created');
-            onBack();
+            onProfileSubmit();
         } catch (error: any) {
             logger.error('Error creating profiler profile:', error);
             toast.error(error || 'Failed to create profile');

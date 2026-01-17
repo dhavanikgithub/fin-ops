@@ -10,6 +10,7 @@ import logger from '@/utils/logger';
 
 interface AddProfilerBankProps {
     onBack: () => void;
+    onBankSubmit: () => void;
 }
 
 interface FormData {
@@ -20,7 +21,7 @@ interface FormErrors {
     bank_name?: string;
 }
 
-const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
+const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack, onBankSubmit }) => {
     const dispatch = useAppDispatch();
     const { creating } = useAppSelector((state) => state.profilerBanks);
 
@@ -99,7 +100,7 @@ const AddProfilerBank: React.FC<AddProfilerBankProps> = ({ onBack }) => {
 
             toast.success('Profiler bank created successfully');
             logger.log('Profiler bank created:', formData.bank_name);
-            onBack();
+            onBankSubmit();
         } catch (error: any) {
             logger.error('Error creating profiler bank:', error);
             toast.error(error || 'Failed to create bank');

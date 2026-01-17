@@ -81,12 +81,17 @@ const ProfilerBanksScreenContent: React.FC = () => {
         toast.success('Bank saved successfully');
     };
 
+    const handleOnBankSubmit = () => {
+        setCurrentView('list');
+        toast.success('Bank saved successfully');
+    }
+
     const renderCurrentView = () => {
         switch (currentView) {
             case 'list':
                 return <ProfilerBankList onNewBank={handleShowAddBank} />;
             case 'add-bank':
-                return <AddProfilerBank onBack={handleBackToBanks} />;
+                return <AddProfilerBank onBack={handleBackToBanks} onBankSubmit={handleOnBankSubmit} />;
             default:
                 return <ProfilerBankList onNewBank={handleShowAddBank} />;
         }

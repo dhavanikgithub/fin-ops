@@ -121,7 +121,7 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack, onTra
 
             toast.success('Withdraw transaction created successfully');
             logger.log('Withdraw transaction created');
-            onBack();
+            onTransactionSubmit();
         } catch (error: any) {
             logger.error('Error creating withdraw transaction:', error);
             toast.error(error || 'Failed to create withdraw');

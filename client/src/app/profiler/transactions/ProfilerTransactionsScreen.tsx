@@ -88,7 +88,6 @@ const ProfilerTransactionsScreenContent: React.FC = () => {
     };
 
     const handleTransactionSubmit = () => {
-        logger.log('Navigating back to transactions list');
         setCurrentView('list');
         toast.success('Transaction saved successfully');
     }
