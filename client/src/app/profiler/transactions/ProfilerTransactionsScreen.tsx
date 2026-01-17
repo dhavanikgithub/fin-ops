@@ -84,8 +84,14 @@ const ProfilerTransactionsScreenContent: React.FC = () => {
     const handleBackToTransactions = () => {
         logger.log('Navigating back to transactions list');
         setCurrentView('list');
-        toast.success('Transaction saved successfully');
+        
     };
+
+    const handleTransactionSubmit = () => {
+        logger.log('Navigating back to transactions list');
+        setCurrentView('list');
+        toast.success('Transaction saved successfully');
+    }
 
     const renderCurrentView = () => {
         switch (currentView) {
@@ -97,9 +103,9 @@ const ProfilerTransactionsScreenContent: React.FC = () => {
                     />
                 );
             case 'add-deposit':
-                return <AddProfilerDeposit onBack={handleBackToTransactions} />;
+                return <AddProfilerDeposit onBack={handleBackToTransactions} onTransactionSubmit={handleTransactionSubmit} />;
             case 'add-withdraw':
-                return <AddProfilerWithdraw onBack={handleBackToTransactions} />;
+                return <AddProfilerWithdraw onBack={handleBackToTransactions} onTransactionSubmit={handleTransactionSubmit} />;
             default:
                 return (
                     <ProfilerTransactionList 

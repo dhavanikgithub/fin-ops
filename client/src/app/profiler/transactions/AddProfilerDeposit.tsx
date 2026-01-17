@@ -13,6 +13,7 @@ import { formatAmountAsCurrency } from '@/utils/helperFunctions';
 
 interface AddProfilerDepositProps {
     onBack: () => void;
+    onTransactionSubmit: () => void;
 }
 
 interface FormData {
@@ -26,7 +27,7 @@ interface FormErrors {
     original_amount?: string;
 }
 
-const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
+const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack, onTransactionSubmit }) => {
     const dispatch = useAppDispatch();
     const { creating } = useAppSelector((state) => state.profilerTransactions);
     const { items: profiles, loading: profilesLoading } = useAppSelector((state) => state.profilerProfileAutocomplete);

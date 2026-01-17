@@ -13,6 +13,7 @@ import { formatAmountAsCurrency } from '@/utils/helperFunctions';
 
 interface AddProfilerWithdrawProps {
     onBack: () => void;
+    onTransactionSubmit: () => void;
 }
 
 interface FormData {
@@ -28,7 +29,7 @@ interface FormErrors {
     withdraw_charges_percentage?: string;
 }
 
-const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => {
+const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack, onTransactionSubmit }) => {
     const dispatch = useAppDispatch();
     const { creating } = useAppSelector((state) => state.profilerTransactions);
     const { items: profiles, loading: profilesLoading } = useAppSelector((state) => state.profilerProfileAutocomplete);
