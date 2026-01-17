@@ -36,7 +36,7 @@ const NotFound: React.FC = () => {
                             <div className="not-found__content">
                                 <div className="not-found__center">
                                     <div className="not-found__code">404</div>
-                                    <div className="not-found__title">We couldn't find that page</div>
+                                    <div className="not-found__title">We couldn&apos;t find that page</div>
                                     <div className="not-found__desc">
                                         The page you are looking for may have been moved or no longer exists.
                                         Choose a destination below to continue.

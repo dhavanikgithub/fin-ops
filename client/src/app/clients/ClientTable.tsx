@@ -30,8 +30,8 @@ const ClientTableErrorFallback: React.FC<{
                     <AlertTriangle size={48} className="ct__error-boundary-icon" />
                     <h3 className="ct__error-boundary-title">Unable to load clients table</h3>
                     <p className="ct__error-boundary-message">
-                        We're having trouble displaying the clients table. 
-                        Your client data is safe, but we can't show it right now.
+                        We&apos;re having trouble displaying the clients table. 
+                        Your client data is safe, but we can&apos;t show it right now.
                     </p>
                     {process.env.NODE_ENV === 'development' && (
                         <details className="ct__error-boundary-details">

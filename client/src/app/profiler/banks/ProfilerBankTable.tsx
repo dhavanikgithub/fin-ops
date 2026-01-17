@@ -9,6 +9,7 @@ import DeleteProfilerBankModal from './DeleteProfilerBankModal';
 import './ProfilerBankTable.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatDate } from '@/utils/helperFunctions';
 
 interface ProfilerBankTableProps {
     banks: ProfilerBank[];
@@ -99,13 +100,6 @@ const ProfilerBankTable: React.FC<ProfilerBankTableProps> = ({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
 
     return (
         <>

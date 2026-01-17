@@ -11,6 +11,7 @@ import DeleteProfilerProfileModal from './DeleteProfilerProfileModal';
 import './ProfilerProfileTable.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency, formatCreditCard, formatDate } from '@/utils/helperFunctions';
 
 interface ProfilerProfileTableProps {
     profiles: ProfilerProfile[];
@@ -22,13 +23,6 @@ interface ProfilerProfileTableProps {
     onRefresh: () => void;
 }
 
-// Format credit card number with bullet every 4 digits
-const formatCreditCard = (value: string): string => {
-    if (!value) return '';
-    const digits = value.replace(/[•\-\s]/g, '');
-    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
-    return formatted;
-};
 
 const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
     profiles,
@@ -116,22 +110,6 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
             logger.error('Error deleting profiler profile:', error);
             toast.error(error || 'Failed to delete profile');
         }
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
     };
 
     const getStatusBadgeClass = (status: string) => {
@@ -223,7 +201,7 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                         </td>
                                         <td className="profiler-profile-table__td profiler-profile-table__td--right">
                                             <span className="profiler-profile-table__amount">
-                                                {formatCurrency(profile.pre_planned_deposit_amount)}
+                                                {formatAmountAsCurrency(profile.pre_planned_deposit_amount)}
                                             </span>
                                         </td>
                                         <td className="profiler-profile-table__td profiler-profile-table__td--right">
@@ -234,7 +212,7 @@ const ProfilerProfileTable: React.FC<ProfilerProfileTableProps> = ({
                                                         ? 'profiler-profile-table__amount--negative' 
                                                         : ''
                                             }`}>
-                                                {formatCurrency(profile.current_balance)}
+                                                {formatAmountAsCurrency(profile.current_balance)}
                                             </span>
                                         </td>
                                         <td className="profiler-profile-table__td profiler-profile-table__td--center">

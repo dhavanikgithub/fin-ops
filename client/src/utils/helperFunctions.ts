@@ -103,6 +103,24 @@ const formatTime = (timeString: string): string => {
     return timeString;
 };
 
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+    });
+};
+
+const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+}
+
 
 // Debounce function
 const debounce = <T extends (...args: any[]) => any>(
@@ -120,10 +138,11 @@ const formatAmountWithSymbol = (amount: number): string => {
     return `₹ ${amount.toLocaleString()}`;
 };
 
-const formatAmountAsCurrency = (amount: number) => {
+const formatAmountAsCurrency = (amount: number, minimumFractionDigits: number = 0) => {
     return new Intl.NumberFormat('en-IN', {
         style: 'currency',
-        currency: 'INR'
+        currency: 'INR',
+        minimumFractionDigits
     }).format(amount);
 };
 
@@ -134,6 +153,30 @@ const decimalToPercentage = (decimal: number) => decimal * 100;
 const clampPercent = (value: number) => Math.max(0, Math.min(100, value));
 const clampPositive = (value: number) => Math.max(0, value);
 
+// Format credit card number with bullet every 4 digits
+const formatCreditCard = (value: string): string => {
+    const digits = value.replace(/[•–\-\s]/g, '');
+    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+    return formatted;
+};
+
+// Remove bullets, en-dash and hyphens from credit card number
+const unformatCreditCard = (value: string): string => {
+    return value.replace(/[•–\-\s]/g, '');
+};
+
+// Format Aadhaar number with bullet every 4 digits
+const formatAadhaar = (value: string): string => {
+    const digits = value.replace(/[•\-\s]/g, '');
+    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
+    return formatted;
+};
+
+// Remove bullets, hyphens and spaces from Aadhaar number
+const unformatAadhaar = (value: string): string => {
+    return value.replace(/[•\-\s]/g, '');
+};
+
 export { 
     getAvatarInitials, 
     getAvatarColorClass, 
@@ -141,6 +184,8 @@ export {
     formatDateToReadable, 
     formatDateWithTime,
     formatTime, 
+    formatDate,
+    formatDateTime,
     debounce, 
     formatCurrency, 
     formatAmountWithSymbol, 
@@ -149,5 +194,9 @@ export {
     percentageToDecimal,
     decimalToPercentage,
     clampPercent,
-    clampPositive
+    clampPositive,
+    formatCreditCard,
+    unformatCreditCard,
+    formatAadhaar,
+    unformatAadhaar
 };

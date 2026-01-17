@@ -8,6 +8,7 @@ import { NumericInput, Button, TextArea } from '@/components/FormInputs';
 import './AddProfileTransaction.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency, formatCreditCard } from '@/utils/helperFunctions';
 
 interface AddProfileTransactionProps {
     profile: ProfilerProfile;
@@ -146,20 +147,6 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
         setTouched({});
     };
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
-    const formatCreditCard = (value: string): string => {
-        if (!value) return '';
-        const digits = value.replace(/[•\-\s]/g, '');
-        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
-        return formatted;
-    };
 
     return (
         <>
@@ -293,7 +280,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                                 />
                                                 {formData.amount > 0 && formData.withdraw_charges_percentage > 0 && (
                                                     <p className="add-profile-transaction__helper-text">
-                                                        Charges: {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
+                                                        Charges: {formatAmountAsCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
                                                     </p>
                                                 )}
                                             </div>
@@ -355,7 +342,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                 <div className="add-profile-transaction__calculator-row">
                                     <span className="add-profile-transaction__calculator-label">Current Balance:</span>
                                     <span className="add-profile-transaction__calculator-value">
-                                        {formatCurrency(profile.current_balance)}
+                                        {formatAmountAsCurrency(profile.current_balance)}
                                     </span>
                                 </div>
 
@@ -365,7 +352,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                             Charges ({formData.withdraw_charges_percentage}%):
                                         </span>
                                         <span className="add-profile-transaction__calculator-value add-profile-transaction__calculator-value--charges">
-                                            {formatCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
+                                            {formatAmountAsCurrency((formData.amount * formData.withdraw_charges_percentage) / 100)}
                                         </span>
                                     </div>
                                 )}
@@ -375,7 +362,7 @@ const AddProfileTransaction: React.FC<AddProfileTransactionProps> = ({ profile, 
                                 <div className="add-profile-transaction__calculator-result">
                                     <span className="add-profile-transaction__calculator-result-label">New Balance:</span>
                                     <span className={`add-profile-transaction__calculator-result-value ${formData.transaction_type === 'deposit' ? 'add-profile-transaction__calculator-result-value--positive' : 'add-profile-transaction__calculator-result-value--negative'}`}>
-                                        {formatCurrency(
+                                        {formatAmountAsCurrency(
                                             formData.transaction_type === 'deposit'
                                                 ? profile.current_balance - formData.amount
                                                 : profile.current_balance

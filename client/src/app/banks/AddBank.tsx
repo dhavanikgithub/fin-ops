@@ -53,7 +53,7 @@ const AddBankErrorFallback: React.FC<{
                             <h2 className="ab__error-boundary-title">Something went wrong</h2>
                             <p className="ab__error-boundary-message">
                                 We encountered an unexpected error while setting up the bank creation form. 
-                                Don't worry, no data has been lost. You can try again or go back to the banks list.
+                                Don&apos;t worry, no data has been lost. You can try again or go back to the banks list.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
                                 <details className="ab__error-boundary-details">

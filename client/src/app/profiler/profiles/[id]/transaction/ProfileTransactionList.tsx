@@ -12,6 +12,7 @@ import ProfileTransactionTable from './ProfileTransactionTable';
 import './ProfileTransactionList.scss';
 import logger from '@/utils/logger';
 import toast from 'react-hot-toast';
+import { formatAmountAsCurrency } from '@/utils/helperFunctions';
 
 interface ProfileTransactionListProps {
     onAddTransaction: () => void;
@@ -147,14 +148,6 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
         );
     }
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
     const formatCreditCard = (value: string): string => {
         if (!value) return '';
         const digits = value.replace(/[•\-\s]/g, '');
@@ -211,7 +204,7 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
                             <div className="profile-transaction-header__balances">
                                 <div className="profile-transaction-header__balance-item">
                                     <span className="profile-transaction-header__balance-label">Opening Balance</span>
-                                    <span className="profile-transaction-header__balance-value">{formatCurrency(selectedProfile.pre_planned_deposit_amount)}</span>
+                                    <span className="profile-transaction-header__balance-value">{formatAmountAsCurrency(selectedProfile.pre_planned_deposit_amount)}</span>
                                 </div>
 
                                 <div className="profile-transaction-header__balance-item">
@@ -222,7 +215,7 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
                                             ? 'profile-transaction-header__balance-value--negative'
                                             : ''
                                         }`}>
-                                        {formatCurrency(selectedProfile.current_balance)}
+                                        {formatAmountAsCurrency(selectedProfile.current_balance)}
                                     </span>
                                 </div>
 

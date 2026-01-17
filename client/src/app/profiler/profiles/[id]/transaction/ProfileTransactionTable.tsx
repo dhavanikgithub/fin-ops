@@ -9,6 +9,7 @@ import DeleteProfileTransactionModal from './DeleteProfileTransactionModal';
 import './ProfileTransactionTable.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency, formatDateTime } from '@/utils/helperFunctions';
 
 interface ProfileTransactionTableProps {
     transactions: ProfilerTransaction[];
@@ -69,23 +70,6 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
 
     // Handle scroll events to show/hide header shadow
     useEffect(() => {
@@ -196,13 +180,13 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
                                         </td>
                                         <td className="profile-transaction-table__td profile-transaction-table__td--right">
                                             <span className={`profile-transaction-table__amount profile-transaction-table__amount--${transaction.transaction_type}`}>
-                                                {formatCurrency(transaction.amount)}
+                                                {formatAmountAsCurrency(transaction.amount)}
                                             </span>
                                         </td>
                                         <td className="profile-transaction-table__td profile-transaction-table__td--right">
                                             {transaction.withdraw_charges_amount ? (
                                                 <span className="profile-transaction-table__charges">
-                                                    {formatCurrency(transaction.withdraw_charges_amount)}
+                                                    {formatAmountAsCurrency(transaction.withdraw_charges_amount)}
                                                     {transaction.withdraw_charges_percentage && (
                                                         <span className="profile-transaction-table__charges-percent">
                                                             ({transaction.withdraw_charges_percentage}%)
@@ -222,7 +206,7 @@ const ProfileTransactionTable: React.FC<ProfileTransactionTableProps> = ({
                                         </td>
                                         <td className="profile-transaction-table__td">
                                             <span className="profile-transaction-table__date">
-                                                {formatDate(transaction.created_at)}
+                                                {formatDateTime(transaction.created_at)}
                                             </span>
                                         </td>
                                         <td className="profile-transaction-table__td profile-transaction-table__td--actions">

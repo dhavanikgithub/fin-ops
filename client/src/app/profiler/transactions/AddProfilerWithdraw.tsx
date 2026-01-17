@@ -9,6 +9,7 @@ import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInp
 import './AddProfilerTransaction.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency } from '@/utils/helperFunctions';
 
 interface AddProfilerWithdrawProps {
     onBack: () => void;
@@ -136,14 +137,6 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
         });
     }, [profiles]);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
     return (
         <>
             <header className="main__header">
@@ -230,17 +223,17 @@ const AddProfilerWithdraw: React.FC<AddProfilerWithdrawProps> = ({ onBack }) => 
                                     <div className="add-profiler-transaction__summary">
                                         <div className="add-profiler-transaction__summary-row">
                                             <span className="add-profiler-transaction__summary-label">Original Amount:</span>
-                                            <span className="add-profiler-transaction__summary-value">{formatCurrency(formData.amount)}</span>
+                                            <span className="add-profiler-transaction__summary-value">{formatAmountAsCurrency(formData.amount)}</span>
                                         </div>
                                         <div className="add-profiler-transaction__summary-row">
                                             <span className="add-profiler-transaction__summary-label">Charges ({formData.withdraw_charges_percentage}%):</span>
                                             <span className="add-profiler-transaction__summary-value add-profiler-transaction__summary-value--negative">
-                                                + {formatCurrency(formData.amount * formData.withdraw_charges_percentage / 100)}
+                                                + {formatAmountAsCurrency(formData.amount * formData.withdraw_charges_percentage / 100)}
                                             </span>
                                         </div>
                                         <div className="add-profiler-transaction__summary-row add-profiler-transaction__summary-row--total">
                                             <span className="add-profiler-transaction__summary-label">Net Withdraw:</span>
-                                            <span className="add-profiler-transaction__summary-value add-profiler-transaction__summary-value--destructive">{formatCurrency(adjustedAmount)}</span>
+                                            <span className="add-profiler-transaction__summary-value add-profiler-transaction__summary-value--destructive">{formatAmountAsCurrency(adjustedAmount)}</span>
                                         </div>
                                     </div>
                                 </div>

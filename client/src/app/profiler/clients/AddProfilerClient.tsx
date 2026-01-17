@@ -7,6 +7,7 @@ import { TextInput, Button, TextArea } from '@/components/FormInputs';
 import './AddProfilerClient.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAadhaar, unformatAadhaar } from '@/utils/helperFunctions';
 
 interface AddProfilerClientProps {
     onBack: () => void;
@@ -42,17 +43,7 @@ const AddProfilerClient: React.FC<AddProfilerClientProps> = ({ onBack }) => {
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
 
-    // Format Aadhaar number with bullet every 4 digits
-    const formatAadhaar = (value: string): string => {
-        const digits = value.replace(/[•\-\s]/g, '');
-        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
-        return formatted;
-    };
 
-    // Remove bullets, hyphens and spaces from Aadhaar number
-    const unformatAadhaar = (value: string): string => {
-        return value.replace(/[•\-\s]/g, '');
-    };
 
     const validateField = (name: keyof FormData, value: string): string | undefined => {
         switch (name) {

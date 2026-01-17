@@ -9,6 +9,7 @@ import DeleteProfilerClientModal from './DeleteProfilerClientModal';
 import './ProfilerClientTable.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAadhaar, formatDate, unformatAadhaar } from '@/utils/helperFunctions';
 
 interface ProfilerClientTableProps {
     clients: ProfilerClient[];
@@ -19,19 +20,6 @@ interface ProfilerClientTableProps {
     onSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void;
     onRefresh: () => void;
 }
-
-// Format Aadhaar number with bullet every 4 digits
-const formatAadhaar = (value: string): string => {
-    if (!value) return '';
-    const digits = value.replace(/[•\-\s]/g, '');
-    const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
-    return formatted;
-};
-
-// Remove bullets, hyphens and spaces from Aadhaar number
-const unformatAadhaar = (value: string): string => {
-    return value.replace(/[•\-\s]/g, '');
-};
 
 const ProfilerClientTable: React.FC<ProfilerClientTableProps> = ({
     clients,
@@ -118,14 +106,6 @@ const ProfilerClientTable: React.FC<ProfilerClientTableProps> = ({
             logger.error('Error deleting profiler client:', error);
             toast.error(error || 'Failed to delete client');
         }
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
     };
 
     return (

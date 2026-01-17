@@ -5,6 +5,7 @@ import { ProfilerTransaction } from '@/services/profilerTransactionService';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import './DeleteProfilerTransactionModal.scss';
+import { formatAmountAsCurrency, formatDate } from '@/utils/helperFunctions';
 
 interface DeleteProfilerTransactionModalProps {
     transaction: ProfilerTransaction;
@@ -24,22 +25,6 @@ const DeleteProfilerTransactionModal: React.FC<DeleteProfilerTransactionModalPro
         if (e.target === e.currentTarget && !isDeleting) {
             onCancel();
         }
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
     };
 
     return (
@@ -83,7 +68,7 @@ const DeleteProfilerTransactionModal: React.FC<DeleteProfilerTransactionModalPro
                         </div>
                         <div className="delete-profiler-transaction-modal__detail-row">
                             <span className="delete-profiler-transaction-modal__detail-label">Amount:</span>
-                            <span className="delete-profiler-transaction-modal__detail-value">{formatCurrency(transaction.amount)}</span>
+                            <span className="delete-profiler-transaction-modal__detail-value">{formatAmountAsCurrency(transaction.amount)}</span>
                         </div>
                     </div>
 

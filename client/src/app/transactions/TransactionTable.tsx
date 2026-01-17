@@ -31,7 +31,7 @@ const TransactionTableErrorFallback: React.FC<{
                         <h3 className="txn-table__error-boundary-title">Something went wrong with the transaction table</h3>
                         <p className="txn-table__error-boundary-message">
                             We encountered an unexpected error while displaying the transactions.
-                            Don't worry, your data is safe.
+                            Don&apos;t worry, your data is safe.
                         </p>
                         {process.env.NODE_ENV === 'development' && (
                             <details className="txn-table__error-boundary-details">

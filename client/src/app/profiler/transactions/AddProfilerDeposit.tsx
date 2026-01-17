@@ -9,6 +9,7 @@ import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInp
 import './AddProfilerTransaction.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency } from '@/utils/helperFunctions';
 
 interface AddProfilerDepositProps {
     onBack: () => void;
@@ -118,13 +119,6 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
         });
     }, [profiles]);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
 
     return (
         <>
@@ -194,7 +188,7 @@ const AddProfilerDeposit: React.FC<AddProfilerDepositProps> = ({ onBack }) => {
                                     <div className="add-profiler-transaction__summary">
                                         <div className="add-profiler-transaction__summary-row add-profiler-transaction__summary-row--total">
                                             <span className="add-profiler-transaction__summary-label">Deposit Amount:</span>
-                                            <span className="add-profiler-transaction__summary-value add-profiler-transaction__summary-value--success">{formatCurrency(formData.original_amount)}</span>
+                                            <span className="add-profiler-transaction__summary-value add-profiler-transaction__summary-value--success">{formatAmountAsCurrency(formData.original_amount)}</span>
                                         </div>
                                     </div>
                                 </div>

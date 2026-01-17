@@ -26,7 +26,7 @@ const ClientsScreenErrorFallback: React.FC<{
                             <h2 className="cs__error-boundary-title">Something went wrong</h2>
                             <p className="cs__error-boundary-message">
                                 We encountered an unexpected error in the clients section. 
-                                Don't worry, your client data is safe. You can try again or go back to the main dashboard.
+                                Don&apos;t worry, your client data is safe. You can try again or go back to the main dashboard.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
                                 <details className="cs__error-boundary-details">

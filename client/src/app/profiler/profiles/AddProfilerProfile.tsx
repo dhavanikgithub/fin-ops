@@ -10,6 +10,7 @@ import type { AutocompleteOption } from '@/components/FormInputs/AutocompleteInp
 import './AddProfilerProfile.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatCreditCard, unformatCreditCard } from '@/utils/helperFunctions';
 
 interface AddProfilerProfileProps {
     onBack: () => void;
@@ -51,18 +52,6 @@ const AddProfilerProfile: React.FC<AddProfilerProfileProps> = ({ onBack }) => {
 
     const [errors, setErrors] = useState<FormErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
-
-    // Format credit card number with bullet every 4 digits
-    const formatCreditCard = (value: string): string => {
-        const digits = value.replace(/[•–\-\s]/g, '');
-        const formatted = digits.match(/.{1,4}/g)?.join(' • ') || digits;
-        return formatted;
-    };
-
-    // Remove bullets, en-dash and hyphens from credit card number
-    const unformatCreditCard = (value: string): string => {
-        return value.replace(/[•–\-\s]/g, '');
-    };
 
     useEffect(() => {
         dispatch(fetchProfilerClientAutocomplete({}));

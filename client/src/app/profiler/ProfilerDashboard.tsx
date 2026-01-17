@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import './ProfilerDashboard.scss';
+import { formatAmountAsCurrency, formatDate } from '@/utils/helperFunctions';
 
 const ProfilerDashboard: React.FC = () => {
     const router = useRouter();
@@ -31,21 +32,6 @@ const ProfilerDashboard: React.FC = () => {
         dispatch(fetchProfilerTransactions({ page: 1, limit: 10 }));
     }, [dispatch]);
 
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric'
-        });
-    };
 
     // Calculate summary statistics
     const activeProfiles = profiles.filter(p => p.status === 'active');
@@ -110,7 +96,7 @@ const ProfilerDashboard: React.FC = () => {
                             </div>
                             <div className="profiler-dashboard__card-content">
                                 <p className="profiler-dashboard__card-label">Total Deposits</p>
-                                <h2 className="profiler-dashboard__card-value">{formatCurrency(totalDeposits)}</h2>
+                                <h2 className="profiler-dashboard__card-value">{formatAmountAsCurrency(totalDeposits)}</h2>
                                 <p className="profiler-dashboard__card-subtitle">
                                     {transactions.filter(t => t.transaction_type === 'deposit').length} transactions
                                 </p>
@@ -123,7 +109,7 @@ const ProfilerDashboard: React.FC = () => {
                             </div>
                             <div className="profiler-dashboard__card-content">
                                 <p className="profiler-dashboard__card-label">Total Withdraws</p>
-                                <h2 className="profiler-dashboard__card-value">{formatCurrency(totalWithdraws)}</h2>
+                                <h2 className="profiler-dashboard__card-value">{formatAmountAsCurrency(totalWithdraws)}</h2>
                                 <p className="profiler-dashboard__card-subtitle">
                                     {transactions.filter(t => t.transaction_type === 'withdraw').length} transactions
                                 </p>
@@ -137,7 +123,7 @@ const ProfilerDashboard: React.FC = () => {
                             <div className="profiler-dashboard__card-content">
                                 <p className="profiler-dashboard__card-label">Current Balance</p>
                                 <h2 className={`profiler-dashboard__card-value ${currentBalance >= 0 ? 'profiler-dashboard__card-value--positive' : 'profiler-dashboard__card-value--negative'}`}>
-                                    {formatCurrency(currentBalance)}
+                                    {formatAmountAsCurrency(currentBalance)}
                                 </h2>
                                 <p className="profiler-dashboard__card-subtitle">
                                     Net position
@@ -218,7 +204,7 @@ const ProfilerDashboard: React.FC = () => {
                                                         {profile.client_name}
                                                     </span>
                                                     <span className={`profiler-dashboard__list-item-balance ${profile.current_balance >= 0 ? 'profiler-dashboard__list-item-balance--positive' : 'profiler-dashboard__list-item-balance--negative'}`}>
-                                                        {formatCurrency(profile.current_balance)}
+                                                        {formatAmountAsCurrency(profile.current_balance)}
                                                     </span>
                                                 </div>
                                                 <div className="profiler-dashboard__list-item-meta">
@@ -273,7 +259,7 @@ const ProfilerDashboard: React.FC = () => {
                                                             {transaction.client_name}
                                                         </span>
                                                         <span className={`profiler-dashboard__list-item-amount ${isDeposit ? 'profiler-dashboard__list-item-amount--positive' : 'profiler-dashboard__list-item-amount--negative'}`}>
-                                                            {isDeposit ? '+' : '-'}{formatCurrency(Math.abs(transaction.amount))}
+                                                            {isDeposit ? '+' : '-'}{formatAmountAsCurrency(Math.abs(transaction.amount))}
                                                         </span>
                                                     </div>
                                                     <div className="profiler-dashboard__list-item-meta">

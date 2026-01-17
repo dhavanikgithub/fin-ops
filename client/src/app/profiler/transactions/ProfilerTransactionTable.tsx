@@ -9,6 +9,7 @@ import DeleteProfilerTransactionModal from './DeleteProfilerTransactionModal';
 import './ProfilerTransactionTable.scss';
 import toast from 'react-hot-toast';
 import logger from '@/utils/logger';
+import { formatAmountAsCurrency, formatDate } from '@/utils/helperFunctions';
 
 interface ProfilerTransactionTableProps {
     transactions: ProfilerTransaction[];
@@ -62,21 +63,6 @@ const ProfilerTransactionTable: React.FC<ProfilerTransactionTableProps> = ({
         }
     };
 
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
-
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
 
     return (
         <>
@@ -162,7 +148,7 @@ const ProfilerTransactionTable: React.FC<ProfilerTransactionTableProps> = ({
                                         </td>
                                         <td className="profiler-transaction-table__td profiler-transaction-table__td--right">
                                             <span className="profiler-transaction-table__amount">
-                                                {formatCurrency(transaction.amount)}
+                                                {formatAmountAsCurrency(transaction.amount)}
                                             </span>
                                         </td>
                                         <td className="profiler-transaction-table__td profiler-transaction-table__td--right">
@@ -172,7 +158,7 @@ const ProfilerTransactionTable: React.FC<ProfilerTransactionTableProps> = ({
                                         </td>
                                         <td className="profiler-transaction-table__td profiler-transaction-table__td--right">
                                             <span className={`profiler-transaction-table__amount profiler-transaction-table__amount--${isDeposit ? 'positive' : 'negative'}`}>
-                                                {formatCurrency(adjustedAmount)}
+                                                {formatAmountAsCurrency(adjustedAmount)}
                                             </span>
                                         </td>
                                         <td className="profiler-transaction-table__td profiler-transaction-table__td--actions">

@@ -56,7 +56,7 @@ const AddClientErrorFallback: React.FC<{
                             <h2 className="ac__error-boundary-title">Something went wrong</h2>
                             <p className="ac__error-boundary-message">
                                 We encountered an unexpected error while setting up the client creation form. 
-                                Don't worry, no data has been lost. You can try again or go back to the clients list.
+                                Don&apos;t worry, no data has been lost. You can try again or go back to the clients list.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
                                 <details className="ac__error-boundary-details">

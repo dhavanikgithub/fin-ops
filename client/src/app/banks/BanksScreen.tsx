@@ -26,7 +26,7 @@ const BanksScreenErrorFallback: React.FC<{
                             <h2 className="bs__error-boundary-title">Something went wrong</h2>
                             <p className="bs__error-boundary-message">
                                 We encountered an unexpected error in the banks section. 
-                                Don't worry, your bank data is safe. You can try again or go back to the main dashboard.
+                                Don&apos;t worry, your bank data is safe. You can try again or go back to the main dashboard.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
                                 <details className="bs__error-boundary-details">

@@ -4,6 +4,7 @@ import { ProfilerTransaction } from '@/services/profilerTransactionService';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/FormInputs';
 import './DeleteProfileTransactionModal.scss';
+import { formatAmountAsCurrency, formatDateTime } from '@/utils/helperFunctions';
 
 interface DeleteProfileTransactionModalProps {
     transaction: ProfilerTransaction;
@@ -16,23 +17,6 @@ const DeleteProfileTransactionModal: React.FC<DeleteProfileTransactionModalProps
     onConfirm,
     onCancel
 }) => {
-    const formatCurrency = (amount: number) => {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount);
-    };
-
-    const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    };
 
     return (
         <div className="delete-transaction-modal-overlay" onClick={onCancel}>
@@ -66,21 +50,21 @@ const DeleteProfileTransactionModal: React.FC<DeleteProfileTransactionModalProps
                         <div className="delete-transaction-modal__detail-row">
                             <span className="delete-transaction-modal__detail-label">Amount:</span>
                             <span className="delete-transaction-modal__detail-value">
-                                {formatCurrency(transaction.amount)}
+                                {formatAmountAsCurrency(transaction.amount)}
                             </span>
                         </div>
                         {transaction.withdraw_charges_amount && (
                             <div className="delete-transaction-modal__detail-row">
                                 <span className="delete-transaction-modal__detail-label">Charges:</span>
                                 <span className="delete-transaction-modal__detail-value">
-                                    {formatCurrency(transaction.withdraw_charges_amount)}
+                                    {formatAmountAsCurrency(transaction.withdraw_charges_amount)}
                                 </span>
                             </div>
                         )}
                         <div className="delete-transaction-modal__detail-row">
                             <span className="delete-transaction-modal__detail-label">Date:</span>
                             <span className="delete-transaction-modal__detail-value">
-                                {formatDate(transaction.created_at)}
+                                {formatDateTime(transaction.created_at)}
                             </span>
                         </div>
                         {transaction.notes && (

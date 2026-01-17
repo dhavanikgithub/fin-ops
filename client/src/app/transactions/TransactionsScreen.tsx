@@ -27,7 +27,7 @@ const TransactionScreenErrorFallback: React.FC<{
                             <h2 className="ts__error-boundary-title">Something went wrong</h2>
                             <p className="ts__error-boundary-message">
                                 We encountered an unexpected error in the transactions section. 
-                                Don't worry, your data is safe. You can try again or go back to the main dashboard.
+                                Don&apos;t worry, your data is safe. You can try again or go back to the main dashboard.
                             </p>
                             {process.env.NODE_ENV === 'development' && (
                                 <details className="ts__error-boundary-details">
