@@ -742,7 +742,7 @@ const CalculatorScreenContent: React.FC = () => {
                 </header>
 
                 <div className="main__content">
-                    <div className="main__view">
+                    <div className="main__view calculator-container">
 
                         {showPresetManager && (
                             <div className="panel preset-manager">

@@ -374,7 +374,7 @@ const FinkedaScreenContent: React.FC<FinkedaScreenProps> = ({ initialSettings })
                 </header>
 
                 <div className="main__content">
-                    <div className="main__view">
+                    <div className="main__view finkeda-container">
 
                         <div className="finkeda-two-col">
                             <div className="finkeda-card">

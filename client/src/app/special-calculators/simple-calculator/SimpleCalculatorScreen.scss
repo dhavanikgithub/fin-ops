@@ -1,5 +1,30 @@
 @use '../../../styles/Main.scss';
 
+.calculator-container {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+}
+
 .calculator-two-col {
     display: grid;
     grid-template-columns: 1.2fr 1fr;
@@ -179,7 +204,7 @@
 
     .calculator-grid-3 {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 12px;
 
         .panel {
@@ -291,13 +316,90 @@ select.control.preset-select {
     }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 1024px) {
     .calculator-two-col {
         grid-template-columns: 1fr;
+        gap: 12px;
 
         .panel {
             .inputs-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    }
+
+    .calculator-grid-3 {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)) !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .calculator-container {
+        max-height: calc(100vh - 180px);
+        padding-right: 4px;
+    }
+
+    .calculator-two-col {
+        gap: 12px;
+        margin-bottom: 16px;
+
+        .panel {
+            padding: 12px;
+
+            .inputs-grid {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .section-title {
+                font-size: 15px;
+            }
+        }
+    }
+
+    .calculator-grid-3 {
+        grid-template-columns: 1fr !important;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calculator-container {
+        max-height: calc(100vh - 160px);
+    }
+
+    .calculator-two-col {
+        gap: 10px;
+        margin-bottom: 12px;
+
+        .panel {
+            padding: 10px;
+
+            .section-title {
+                font-size: 14px;
+            }
+
+            .summary,
+            .breakdown {
+                padding: 10px;
+
+                .line {
+                    font-size: 13px;
+                }
+            }
+
+            .total {
+                padding: 10px;
+                font-size: 15px;
+            }
+
+            .badges {
+                gap: 6px;
+
+                .badge {
+                    padding: 5px 8px;
+                    font-size: 11px;
+                }
             }
         }
     }

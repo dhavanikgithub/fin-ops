@@ -1,5 +1,30 @@
 @use '../../../styles/Main.scss';
 
+.finkeda-container {
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 8px;
+
+    /* Custom scrollbar */
+    &::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: var(--muted);
+        border-radius: 3px;
+
+        &:hover {
+            background: var(--muted-foreground);
+        }
+    }
+}
+
 .finkeda-two-col {
     display: grid;
     grid-template-columns: 1.1fr 0.9fr;
@@ -322,21 +347,67 @@ input[type="number"].finkeda-control::-webkit-inner-spin-button {
     margin: 0;
 }
 
-// Responsive design
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
     .finkeda-two-col {
         grid-template-columns: 1fr;
+        gap: 12px;
+    }
+
+    .finkeda-form-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .finkeda-table-wrap {
+        overflow-x: auto;
+    }
+}
+
+@media (max-width: 768px) {
+    .finkeda-container {
+        max-height: calc(100vh - 180px);
+        padding-right: 4px;
+    }
+
+    .finkeda-two-col {
+        grid-template-columns: 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+
+    .finkeda-card {
+        padding: 12px;
+
+        &__title {
+            font-size: 15px;
+        }
     }
 
     .finkeda-form-row {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
 
     .finkeda-actions {
         justify-content: stretch;
+        flex-wrap: wrap;
 
         button {
             flex: 1;
+            min-width: 120px;
+        }
+
+        .pill {
+            width: 100%;
+            text-align: center;
+        }
+    }
+
+    .finkeda-summary {
+        gap: 8px;
+
+        &__row {
+            padding: 8px 10px;
+            font-size: 13px;
         }
     }
 
@@ -348,6 +419,57 @@ input[type="number"].finkeda-control::-webkit-inner-spin-button {
 
     .finkeda-table-wrap {
         overflow-x: auto;
+    }
+
+    .finkeda-table {
+        th,
+        td {
+            padding: 10px 8px;
+            font-size: 13px;
+            white-space: nowrap;
+        }
+    }
+}
+
+@media (max-width: 480px) {
+    .finkeda-container {
+        max-height: calc(100vh - 160px);
+    }
+
+    .finkeda-card {
+        padding: 10px;
+        gap: 10px;
+
+        &__title {
+            font-size: 14px;
+        }
+    }
+
+    .finkeda-actions {
+        gap: 6px;
+
+        button {
+            min-width: 100px;
+            font-size: 13px;
+            padding: 8px 10px;
+        }
+    }
+
+    .finkeda-summary {
+        &__row {
+            padding: 6px 8px;
+            font-size: 12px;
+        }
+    }
+
+    .finkeda-pills {
+        flex-direction: column;
+        gap: 8px;
+
+        .finkeda-pill-checkbox {
+            width: 100%;
+            justify-content: center;
+        }
     }
 }
 
