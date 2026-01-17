@@ -1,6 +1,4 @@
-import App from "@/components/App";
 import FinkedaScreen from "./FinkedaScreen";
-import { navItemsObject } from "@/components/NavbarItems";
 import finkedaSettingsService, { FinkedaSettings } from "@/services/finkedaSettingsService";
 import logger from "@/utils/logger";
 import toast from "react-hot-toast";
@@ -22,8 +20,6 @@ export default async function Finkeda() {
   const initialSettings = await getInitialSettings();
 
   return (
-      <App activeHref={navItemsObject.SpecialCalculators?.subItems?.Finkeda.href || ''}>
-        <FinkedaScreen initialSettings={initialSettings} />
-      </App>
+    <FinkedaScreen initialSettings={initialSettings} />
   );
 }
