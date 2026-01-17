@@ -172,8 +172,6 @@ const ProfileTransactionList: React.FC<ProfileTransactionListProps> = ({ onAddTr
             <div className="main__content">
                 <div className="main__view">
                     <div className="profile-transaction-header__info-wrapper">
-
-
                         <div className="main__title-row">
                             <div>
                                 <h1 className="main__title">Profile Transactions</h1>

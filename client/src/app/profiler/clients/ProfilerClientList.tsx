@@ -8,8 +8,8 @@ import {
     sortProfilerClients
 } from '@/store/actions/profilerClientActions';
 import { setSearchQuery, clearProfilerClients } from '@/store/slices/profilerClientSlice';
-import { Search, UserPlus, Loader2 } from 'lucide-react';
-import { TextInput, Button } from '@/components/FormInputs';
+import { UserPlus, Loader2 } from 'lucide-react';
+import { Button, SearchInput } from '@/components/FormInputs';
 import ProfilerClientTable from './ProfilerClientTable';
 import './ProfilerClientList.scss';
 import logger from '@/utils/logger';
@@ -111,16 +111,6 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
                 </div>
 
                 <div className="main__header-right">
-                    <div className="profiler-client-list__search">
-                        <TextInput
-                            type="text"
-                            placeholder="Search by name, email, mobile, or aadhaar..."
-                            value={searchQuery}
-                            onChange={(value: string) => handleSearch(value)}
-                            icon={<Search size={18} />}
-                        />
-                    </div>
-
                     <Button
                         variant="primary"
                         icon={<UserPlus size={18} />}
@@ -133,7 +123,13 @@ const ProfilerClientList: React.FC<ProfilerClientListProps> = ({ onNewClient }) 
 
             <div className="main__content">
                 <div className="main__view">
-
+                    <div className="profiler-client-list__search">
+                        <SearchInput
+                            placeholder="Search by name, email, mobile, or aadhaar..."
+                            value={searchQuery}
+                            onChange={(value: string) => handleSearch(value)}
+                        />
+                    </div>
 
                     {loading && clients.length === 0 ? (
                         <div className="profiler-client-list__loading">

@@ -8,8 +8,8 @@ import {
     sortProfilerBanks 
 } from '@/store/actions/profilerBankActions';
 import { setSearchQuery, clearProfilerBanks } from '@/store/slices/profilerBankSlice';
-import { Search, Building2, Loader2 } from 'lucide-react';
-import { TextInput, Button } from '@/components/FormInputs';
+import { Building2, Loader2 } from 'lucide-react';
+import { Button, SearchInput } from '@/components/FormInputs';
 import ProfilerBankTable from './ProfilerBankTable';
 import './ProfilerBankList.scss';
 import logger from '@/utils/logger';
@@ -111,16 +111,6 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
                 </div>
                 
                 <div className="main__header-right">
-                    <div className="profiler-bank-list__search">
-                        <TextInput
-                            type="text"
-                            placeholder="Search by bank name..."
-                            value={searchQuery}
-                            onChange={(value: string) => handleSearch(value)}
-                            icon={<Search size={18} />}
-                        />
-                    </div>
-                    
                     <Button
                         variant="primary"
                         icon={<Building2 size={18} />}
@@ -133,7 +123,13 @@ const ProfilerBankList: React.FC<ProfilerBankListProps> = ({ onNewBank }) => {
 
             <div className="main__content">
                 <div className="main__view">
-                    
+                    <div className="profiler-bank-list__search">
+                        <SearchInput
+                            placeholder="Search by bank name..."
+                            value={searchQuery}
+                            onChange={(value: string) => handleSearch(value)}
+                        />
+                    </div>
 
                     {loading && banks.length === 0 ? (
                         <div className="profiler-bank-list__loading">

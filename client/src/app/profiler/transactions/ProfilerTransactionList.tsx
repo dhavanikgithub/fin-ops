@@ -8,8 +8,8 @@ import {
     sortProfilerTransactions
 } from '@/store/actions/profilerTransactionActions';
 import { setSearchQuery, clearProfilerTransactions } from '@/store/slices/profilerTransactionSlice';
-import { Search, ArrowDownCircle, ArrowUpCircle, Loader2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
-import { TextInput, Button } from '@/components/FormInputs';
+import { ArrowDownCircle, ArrowUpCircle, Loader2, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { Button, SearchInput } from '@/components/FormInputs';
 import ProfilerTransactionTable from './ProfilerTransactionTable';
 import './ProfilerTransactionList.scss';
 import logger from '@/utils/logger';
@@ -106,16 +106,6 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
                 </div>
 
                 <div className="main__header-right">
-                    <div className="profiler-transaction-list__search">
-                        <TextInput
-                            type="text"
-                            placeholder="Search by client, bank, or remarks..."
-                            value={searchQuery}
-                            onChange={(value: string) => handleSearch(value)}
-                            icon={<Search size={18} />}
-                        />
-                    </div>
-
                     <Button
                         variant="primary"
                         icon={<ArrowDownLeft size={18} />}
@@ -136,7 +126,13 @@ const ProfilerTransactionList: React.FC<ProfilerTransactionListProps> = ({ onNew
 
             <div className="main__content">
                 <div className="main__view">
-
+                    <div className="profiler-transaction-list__search">
+                        <SearchInput
+                            placeholder="Search by client, bank, or remarks..."
+                            value={searchQuery}
+                            onChange={(value: string) => handleSearch(value)}
+                        />
+                    </div>
 
                     {loading && transactions.length === 0 ? (
                         <div className="profiler-transaction-list__loading">

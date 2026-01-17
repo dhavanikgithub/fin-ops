@@ -8,8 +8,8 @@ import {
     sortProfilerProfiles 
 } from '@/store/actions/profilerProfileActions';
 import { setSearchQuery, clearProfilerProfiles } from '@/store/slices/profilerProfileSlice';
-import { Search, FileText, Loader2 } from 'lucide-react';
-import { TextInput, Button } from '@/components/FormInputs';
+import { FileText, Loader2 } from 'lucide-react';
+import { Button, SearchInput } from '@/components/FormInputs';
 import ProfilerProfileTable from './ProfilerProfileTable';
 import './ProfilerProfileList.scss';
 import logger from '@/utils/logger';
@@ -105,16 +105,6 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
                 </div>
                 
                 <div className="main__header-right">
-                    <div className="profiler-profile-list__search">
-                        <TextInput
-                            type="text"
-                            placeholder="Search by client, bank, or remarks..."
-                            value={searchQuery}
-                            onChange={(value: string) => handleSearch(value)}
-                            icon={<Search size={18} />}
-                        />
-                    </div>
-                    
                     <Button
                         variant="primary"
                         icon={<FileText size={18} />}
@@ -127,7 +117,13 @@ const ProfilerProfileList: React.FC<ProfilerProfileListProps> = ({ onNewProfile 
 
             <div className="main__content">
                 <div className="main__view">
-                    
+                    <div className="profiler-profile-list__search">
+                        <SearchInput
+                            placeholder="Search by client, bank, or remarks..."
+                            value={searchQuery}
+                            onChange={(value: string) => handleSearch(value)}
+                        />
+                    </div>
 
                     {loading && profiles.length === 0 ? (
                         <div className="profiler-profile-list__loading">
