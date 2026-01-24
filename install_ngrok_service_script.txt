@@ -5,15 +5,15 @@ setlocal
 :: 1. CONFIGURATION (EDIT THESE)
 :: ========================================================
 :: The name you want for the Windows Service
-set SERVICE_NAME=[YOUR_SERVICE_NAME]
+set SERVICE_NAME=FinOpsNgrokTunnel
 echo [INFO] Service Name set to %SERVICE_NAME%
 
 :: The full path to your project directory
-set PROJECT_DIR=[PROJECT_ABSOLUTE_PATH]
+set PROJECT_DIR=%~dp0
 echo [INFO] Project Directory set to %PROJECT_DIR%
 
 :: The full path to your ngrok executable
-set NGROK_EXE=%PROJECT_DIR%\ngrok.exe
+set NGROK_EXE=%PROJECT_DIR%ngrok.exe
 echo [INFO] Ngrok Executable Path set to %NGROK_EXE%
 
 :: Your Static Domain (e.g., foo.ngrok-free.app)
@@ -25,7 +25,7 @@ set PORT=3000
 echo [INFO] Local Port set to %PORT%
 
 :: Path to NSSM executable
-set NSSM_PATH=%PROJECT_DIR%\nssm-2.24\win64\nssm.exe
+set NSSM_PATH=%PROJECT_DIR%nssm-2.24\win64\nssm.exe
 echo [INFO] NSSM Executable Path set to %NSSM_PATH%
 
 :: The full path to your ngrok.yml (This is CRITICAL for the auth token)
@@ -62,16 +62,16 @@ echo [INFO] Setting service description...
 
 :: D. Setup Logging (Highly recommended for debugging services)
 echo [INFO] Setting up logging...
-if not exist "%PROJECT_DIR%\logs" (
-    mkdir "%PROJECT_DIR%\logs"
+if not exist "%PROJECT_DIR%logs" (
+    mkdir "%PROJECT_DIR%logs"
 )
-echo [INFO] Logs will be stored in %PROJECT_DIR%\logs
+echo [INFO] Logs will be stored in %PROJECT_DIR%logs
 
-echo [INFO] Output logs will be stored in %PROJECT_DIR%\logs\ngrok_service.log
-%NSSM_PATH% set %SERVICE_NAME% AppStdout %PROJECT_DIR%\logs\ngrok_service.log
+echo [INFO] Output logs will be stored in %PROJECT_DIR%logs\ngrok_service.log
+%NSSM_PATH% set %SERVICE_NAME% AppStdout %PROJECT_DIR%logs\ngrok_service.log
 
-echo [INFO] Error logs will be stored in %PROJECT_DIR%\logs\ngrok_error.log
-%NSSM_PATH% set %SERVICE_NAME% AppStderr %PROJECT_DIR%\logs\ngrok_error.log
+echo [INFO] Error logs will be stored in %PROJECT_DIR%logs\ngrok_error.log
+%NSSM_PATH% set %SERVICE_NAME% AppStderr %PROJECT_DIR%logs\ngrok_error.log
 
 :: E. Start the Service
 echo [INFO] Starting Service...
@@ -79,5 +79,5 @@ echo [INFO] Starting Service...
 
 echo.
 echo [SUCCESS] Service installed and started!
-echo Check %PROJECT_DIR%\logs\ngrok_error.log if connection fails.
+echo Check %PROJECT_DIR%logs\ngrok_error.log if connection fails.
 pause

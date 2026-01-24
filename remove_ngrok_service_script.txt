@@ -5,14 +5,14 @@ setlocal
 :: 1. CONFIGURATION (EDIT THESE)
 :: ========================================================
 :: The name of the Windows Service to stop and delete
-set SERVICE_NAME=[YOUR_SERVICE_NAME]
+set SERVICE_NAME=FinOpsNgrokTunnel
 echo [INFO] Service Name set to %SERVICE_NAME%
 
 :: Path to NSSM executable
-set PROJECT_DIR=[PROJECT_ABSOLUTE_PATH]
+set PROJECT_DIR=%~dp0
 echo [INFO] Project Directory set to %PROJECT_DIR%
 
-set NSSM_PATH="%PROJECT_DIR%\nssm-2.24\win64\nssm.exe"
+set NSSM_PATH="%PROJECT_DIR%nssm-2.24\win64\nssm.exe"
 echo [INFO] NSSM Executable Path set to %NSSM_PATH%
 
 :: ========================================================
