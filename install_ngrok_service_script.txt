@@ -1,0 +1,83 @@
+@echo off
+setlocal
+
+:: ========================================================
+:: 1. CONFIGURATION (EDIT THESE)
+:: ========================================================
+:: The name you want for the Windows Service
+set SERVICE_NAME=[YOUR_SERVICE_NAME]
+echo [INFO] Service Name set to %SERVICE_NAME%
+
+:: The full path to your project directory
+set PROJECT_DIR=[PROJECT_ABSOLUTE_PATH]
+echo [INFO] Project Directory set to %PROJECT_DIR%
+
+:: The full path to your ngrok executable
+set NGROK_EXE=%PROJECT_DIR%\ngrok.exe
+echo [INFO] Ngrok Executable Path set to %NGROK_EXE%
+
+:: Your Static Domain (e.g., foo.ngrok-free.app)
+set DOMAIN=[YOUR_NGROK_DOMAIN]
+echo [INFO] Ngrok Domain set to %DOMAIN%
+
+:: The Local Port you want to expose
+set PORT=3000
+echo [INFO] Local Port set to %PORT%
+
+:: Path to NSSM executable
+set NSSM_PATH=%PROJECT_DIR%\nssm-2.24\win64\nssm.exe
+echo [INFO] NSSM Executable Path set to %NSSM_PATH%
+
+:: The full path to your ngrok.yml (This is CRITICAL for the auth token)
+set CONFIG_PATH=%LOCALAPPDATA%\ngrok\ngrok.yml
+echo [INFO] Ngrok Config Path set to %CONFIG_PATH%
+
+:: ========================================================
+:: 2. ADMIN CHECK
+:: ========================================================
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo [ERROR] This script requires Administrator privileges.
+    echo Right-click and select "Run as Administrator".
+    pause
+    exit /b
+)
+
+:: ========================================================
+:: 3. INSTALLATION LOGIC
+:: ========================================================
+echo [INFO] Installing %SERVICE_NAME%...
+
+:: A. Install the service pointing to ngrok
+%NSSM_PATH% install %SERVICE_NAME% %NGROK_EXE%
+
+:: B. Set the arguments (http mode, domain, config file, and port)
+:: We explicitly pass --config so the SYSTEM user finds your auth token.
+echo [INFO] Configuring service parameters...
+%NSSM_PATH% set %SERVICE_NAME% AppParameters "http --domain=%DOMAIN% --config=\"%CONFIG_PATH%\" %PORT%"
+
+:: C. Set Description
+echo [INFO] Setting service description...
+%NSSM_PATH% set %SERVICE_NAME% Description "Ngrok Tunnel for %DOMAIN% on port %PORT%"
+
+:: D. Setup Logging (Highly recommended for debugging services)
+echo [INFO] Setting up logging...
+if not exist "%PROJECT_DIR%\logs" (
+    mkdir "%PROJECT_DIR%\logs"
+)
+echo [INFO] Logs will be stored in %PROJECT_DIR%\logs
+
+echo [INFO] Output logs will be stored in %PROJECT_DIR%\logs\ngrok_service.log
+%NSSM_PATH% set %SERVICE_NAME% AppStdout %PROJECT_DIR%\logs\ngrok_service.log
+
+echo [INFO] Error logs will be stored in %PROJECT_DIR%\logs\ngrok_error.log
+%NSSM_PATH% set %SERVICE_NAME% AppStderr %PROJECT_DIR%\logs\ngrok_error.log
+
+:: E. Start the Service
+echo [INFO] Starting Service...
+%NSSM_PATH% start %SERVICE_NAME%
+
+echo.
+echo [SUCCESS] Service installed and started!
+echo Check %PROJECT_DIR%\logs\ngrok_error.log if connection fails.
+pause

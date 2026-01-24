@@ -1,0 +1,4 @@
+"[PATH OF NGROK]\ngrok.exe" config add-authtoken [YOUR-AUTH-TOKEN]
+
+"[PATH OF NGROK]\ngrok.exe" http --domain=[YOUR-DOMAIN] 3000
+

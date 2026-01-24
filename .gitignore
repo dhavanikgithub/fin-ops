@@ -1,1 +1,8 @@
 .vscode/
+node_modules/
+ngrok-auth-command.txt
+.DS_Store
+.env
+logs/
+install_ngrok_service.bat
+remove_ngrok_service.bat
