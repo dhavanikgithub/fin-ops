@@ -97,7 +97,7 @@ fun FinkedaSettingsContent(
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { paddingValues ->
+    ) { _ ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()

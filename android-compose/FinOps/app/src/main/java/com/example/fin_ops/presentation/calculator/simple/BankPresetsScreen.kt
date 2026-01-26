@@ -57,7 +57,7 @@ fun BankPresetsScreen(
                 )
             }
         }
-    ) { paddingValues ->
+    ) { _ ->
         if (presets.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),

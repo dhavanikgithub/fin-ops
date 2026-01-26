@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.profiles
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,6 +45,7 @@ enum class ProfileTab(val title: String, val status: String?) {
 
 // --- Main Screen Component ---
 @OptIn(ExperimentalFoundationApi::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -76,12 +78,11 @@ fun ProfileScreen(
                 )
             }
         }
-    ) { paddingValues ->
+    ) { _ ->
         ProfileScreenContent(
             state = state,
             onEvent = viewModel::onEvent,
             navController,
-            modifier = Modifier.padding(paddingValues)
         )
     }
 

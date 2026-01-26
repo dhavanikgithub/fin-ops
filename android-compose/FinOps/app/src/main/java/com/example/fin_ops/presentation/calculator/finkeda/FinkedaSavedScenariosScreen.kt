@@ -60,7 +60,7 @@ fun FinkedaSavedScenariosContent(
     var scenarioToDelete by remember { mutableStateOf<FinkedaSavedScenario?>(null) }
     var showClearAllDialog by remember { mutableStateOf(false) }
 
-    Scaffold { paddingValues ->
+    Scaffold { _ ->
         if (savedScenarios.isEmpty()) {
             Box(
                 modifier = Modifier.fillMaxSize(),

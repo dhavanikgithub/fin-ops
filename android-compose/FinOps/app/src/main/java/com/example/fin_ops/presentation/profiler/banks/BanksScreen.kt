@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.banks
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -72,6 +73,7 @@ import kotlinx.coroutines.launch
 
 
 // --- Main Screen Component ---
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun BanksScreen(
     viewModel: BanksViewModel = hiltViewModel()
@@ -104,11 +106,10 @@ fun BanksScreen(
                 )
             }
         }
-    ) { paddingValues ->
+    ) { _ ->
         BanksScreenContent(
             state = state,
             onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(paddingValues)
         )
     }
 

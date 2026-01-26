@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.transactions
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -35,6 +36,7 @@ import okhttp3.internal.toLongOrDefault
 import java.util.Locale
 
 // --- Main Screen Component ---
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun TransactionsScreen(
     viewModel: TransactionsViewModel = hiltViewModel()
@@ -87,11 +89,10 @@ fun TransactionsScreen(
                 }
             }
         }
-    ) { paddingValues ->
+    ) { _ ->
         TransactionsScreenContent(
             state = state,
             onEvent = viewModel::onEvent,
-            modifier = Modifier.padding(paddingValues)
         )
     }
 
