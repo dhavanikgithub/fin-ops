@@ -12,6 +12,7 @@ object Routes {
 
     // Profiler's Quick Action screens (nested routes)
     const val PF_PROFILES = "pf_profiles_screen"
+    const val PF_PROFILES_DETAIL = "pf_profile_detail"
     const val PF_TRANSACTIONS = "pf_transactions_screen"
     const val PF_CLIENTS = "pf_clients_screen"
     const val PF_BANKS = "pf_banks_screen"

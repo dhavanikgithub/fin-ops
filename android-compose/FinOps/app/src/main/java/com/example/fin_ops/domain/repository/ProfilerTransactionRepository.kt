@@ -10,8 +10,13 @@ import okhttp3.ResponseBody
 interface ProfilerTransactionRepository {
 
     suspend fun getTransactions(
-        page: Int, limit: Int, search: String?,
-        transactionType: String?, sortBy: String, sortOrder: String
+        page: Int,
+        limit: Int,
+        search: String?,
+        transactionType: String?,
+        sortBy: String,
+        sortOrder: String,
+        profileId: Int? = null
     ): TransactionData
 
     suspend fun createDeposit(request: CreateDepositRequest): ProfilerTransactionDto

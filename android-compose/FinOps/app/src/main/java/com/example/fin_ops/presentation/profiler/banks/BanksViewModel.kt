@@ -33,26 +33,101 @@ class BanksViewModel @Inject constructor(
     fun onEvent(event: BanksEvent) {
         when (event) {
             is BanksEvent.LoadBanks -> loadBanks(event.page)
+
             is BanksEvent.Search -> {
                 _state.value = _state.value.copy(searchQuery = event.query)
                 searchDebounced(event.query)
             }
-            is BanksEvent.SaveBank -> {
-                if (state.value.editingBank != null) {
-                    updateBank(state.value.editingBank!!.id, event.name)
-                } else {
-                    createBank(event.name)
-                }
+
+            is BanksEvent.SaveBank -> saveBank()
+
+            is BanksEvent.DeleteBank -> confirmDelete(event.bank)
+
+            is BanksEvent.ConfirmDelete -> deleteBank()
+
+            is BanksEvent.CancelDelete -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = false,
+                    bankToDelete = null
+                )
             }
-            is BanksEvent.DeleteBank -> deleteBank(event.id)
+
             is BanksEvent.OpenForm -> {
                 _state.value = _state.value.copy(
                     isFormVisible = true,
-                    editingBank = event.bankToEdit // null for create
+                    editingBank = event.bankToEdit,
+                    formBankName = event.bankToEdit?.bankName ?: "",
+                    formError = null
                 )
             }
+
             is BanksEvent.CloseForm -> {
-                _state.value = _state.value.copy(isFormVisible = false, editingBank = null)
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingBank = null,
+                    formBankName = "",
+                    formError = null
+                )
+            }
+
+            is BanksEvent.UpdateFormBankName -> {
+                _state.value = _state.value.copy(
+                    formBankName = event.name,
+                    formError = null
+                )
+            }
+
+            is BanksEvent.ChangeSortBy -> {
+                val newSortBy = event.sortBy
+                val newSortOrder = if (_state.value.sortBy == newSortBy) {
+                    // Toggle order if same field
+                    if (_state.value.sortOrder == "asc") "desc" else "asc"
+                } else {
+                    // Default to asc for new field
+                    "asc"
+                }
+                _state.value = _state.value.copy(
+                    sortBy = newSortBy,
+                    sortOrder = newSortOrder,
+                    showSortDialog = false
+                )
+                loadBanks(1)
+            }
+
+            is BanksEvent.ToggleSortOrder -> {
+                _state.value = _state.value.copy(
+                    sortOrder = if (_state.value.sortOrder == "asc") "desc" else "asc"
+                )
+                loadBanks(1)
+            }
+
+            is BanksEvent.ApplyFilter -> {
+                _state.value = _state.value.copy(
+                    hasProfilesFilter = event.hasProfiles,
+                    showFilterDialog = false
+                )
+                loadBanks(1)
+            }
+
+            is BanksEvent.ClearFilters -> {
+                _state.value = _state.value.copy(
+                    hasProfilesFilter = null,
+                    showFilterDialog = false
+                )
+                loadBanks(1)
+            }
+
+            is BanksEvent.ShowSortDialog -> {
+                _state.value = _state.value.copy(showSortDialog = event.show)
+            }
+
+            is BanksEvent.ShowFilterDialog -> {
+                _state.value = _state.value.copy(showFilterDialog = event.show)
+            }
+
+            is BanksEvent.RefreshBanks -> {
+                _state.value = _state.value.copy(searchQuery = "")
+                loadBanks(1)
             }
         }
     }
@@ -61,14 +136,24 @@ class BanksViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
-                val result = getBanksUseCase(page, _state.value.searchQuery.ifBlank { null })
+                val result = getBanksUseCase(
+                    page = page,
+                    search = _state.value.searchQuery.ifBlank { null },
+                    sortBy = _state.value.sortBy,
+                    sortOrder = _state.value.sortOrder,
+                    hasProfiles = _state.value.hasProfilesFilter
+                )
                 _state.value = _state.value.copy(
                     isLoading = false,
                     banks = result.data,
-                    pagination = result.pagination
+                    pagination = result.pagination,
+                    error = null
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load banks"
+                )
             }
         }
     }
@@ -83,53 +168,95 @@ class BanksViewModel @Inject constructor(
                 return@launch
             }
 
-            // Parallel: Refresh list AND get autocomplete suggestions
-            launch { loadBanks(1) }
-            launch {
-                try {
-                    val suggestions = searchBanksUseCase(query)
-                    _state.value = _state.value.copy(autocompleteSuggestions = suggestions)
-                } catch (e: Exception) {
-                    // Handle error silently for autocomplete
+            // Load banks with search
+            loadBanks(1)
+
+            // Get autocomplete suggestions
+            try {
+                val suggestions = searchBanksUseCase(query)
+                _state.value = _state.value.copy(autocompleteSuggestions = suggestions)
+            } catch (e: Exception) {
+                // Handle error silently for autocomplete
+                _state.value = _state.value.copy(autocompleteSuggestions = emptyList())
+            }
+        }
+    }
+
+    private fun saveBank() {
+        val name = _state.value.formBankName.trim()
+
+        // Validation
+        if (name.isBlank()) {
+            _state.value = _state.value.copy(formError = "Bank name cannot be empty")
+            return
+        }
+
+        if (name.length < 2) {
+            _state.value = _state.value.copy(formError = "Bank name must be at least 2 characters")
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, formError = null)
+            try {
+                val editingBank = _state.value.editingBank
+                if (editingBank != null) {
+                    // Update existing bank
+                    updateBankUseCase(editingBank.id, name)
+                } else {
+                    // Create new bank
+                    createBankUseCase(name)
                 }
-            }
-        }
-    }
 
-    private fun createBank(name: String) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            try {
-                createBankUseCase(name)
-                _state.value = _state.value.copy(isFormVisible = false)
-                loadBanks(1) // Refresh list
-            } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
-            }
-        }
-    }
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingBank = null,
+                    formBankName = "",
+                    formError = null
+                )
 
-    private fun updateBank(id: Int, name: String) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            try {
-                updateBankUseCase(id, name)
-                _state.value = _state.value.copy(isFormVisible = false, editingBank = null)
+                // Refresh list
                 loadBanks(_state.value.pagination?.currentPage ?: 1)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    formError = e.message ?: "Failed to save bank"
+                )
             }
         }
     }
 
-    private fun deleteBank(id: Int) {
+    private fun confirmDelete(bank: ProfilerBankDto) {
+        _state.value = _state.value.copy(
+            showDeleteDialog = true,
+            bankToDelete = bank
+        )
+    }
+
+    private fun deleteBank() {
+        val bankToDelete = _state.value.bankToDelete ?: return
+
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
+            _state.value = _state.value.copy(
+                isLoading = true,
+                showDeleteDialog = false
+            )
             try {
-                deleteBankUseCase(id)
+                deleteBankUseCase(bankToDelete.id)
+
+                _state.value = _state.value.copy(
+                    bankToDelete = null
+                )
+
+                // Refresh list
                 loadBanks(_state.value.pagination?.currentPage ?: 1)
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to delete bank",
+                    showDeleteDialog = false,
+                    bankToDelete = null
+                )
             }
         }
     }
@@ -139,8 +266,18 @@ class BanksViewModel @Inject constructor(
 sealed class BanksEvent {
     data class LoadBanks(val page: Int) : BanksEvent()
     data class Search(val query: String) : BanksEvent()
-    data class SaveBank(val name: String) : BanksEvent() // Used for Create or Update based on state
-    data class DeleteBank(val id: Int) : BanksEvent()
+    object SaveBank : BanksEvent()
+    data class DeleteBank(val bank: ProfilerBankDto) : BanksEvent()
+    object ConfirmDelete : BanksEvent()
+    object CancelDelete : BanksEvent()
     data class OpenForm(val bankToEdit: ProfilerBankDto? = null) : BanksEvent()
     object CloseForm : BanksEvent()
+    data class UpdateFormBankName(val name: String) : BanksEvent()
+    data class ChangeSortBy(val sortBy: String) : BanksEvent()
+    object ToggleSortOrder : BanksEvent()
+    data class ApplyFilter(val hasProfiles: Boolean?) : BanksEvent()
+    object ClearFilters : BanksEvent()
+    data class ShowSortDialog(val show: Boolean) : BanksEvent()
+    data class ShowFilterDialog(val show: Boolean) : BanksEvent()
+    object RefreshBanks : BanksEvent()
 }

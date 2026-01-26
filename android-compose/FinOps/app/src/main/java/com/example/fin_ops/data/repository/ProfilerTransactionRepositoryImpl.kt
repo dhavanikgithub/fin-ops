@@ -11,12 +11,22 @@ class ProfilerTransactionRepositoryImpl @Inject constructor(
 ) : ProfilerTransactionRepository {
 
     override suspend fun getTransactions(
-        page: Int, limit: Int, search: String?,
-        transactionType: String?, sortBy: String, sortOrder: String
+        page: Int,
+        limit: Int,
+        search: String?,
+        transactionType: String?,
+        sortBy: String,
+        sortOrder: String,
+        profileId: Int?
     ): TransactionData {
         return apiService.getProfilerTransactions(
-            page = page, limit = limit, search = search,
-            transactionType = transactionType, sortBy = sortBy, sortOrder = sortOrder
+            page = page,
+            limit = limit,
+            search = search,
+            profileId = profileId?.toString(),
+            transactionType = transactionType,
+            sortBy = sortBy,
+            sortOrder = sortOrder
         ).data
     }
 

@@ -7,8 +7,13 @@ import com.example.fin_ops.domain.repository.ProfilerBankRepository
 import javax.inject.Inject
 
 class GetBanksUseCase @Inject constructor(private val repository: ProfilerBankRepository) {
-    suspend operator fun invoke(page: Int, search: String? = null): ProfilerBankData =
-        repository.getBanks(page, search)
+    suspend operator fun invoke(
+        page: Int,
+        search: String? = null,
+        sortBy: String = "bank_name",
+        sortOrder: String = "asc",
+        hasProfiles: Boolean? = null
+    ): ProfilerBankData = repository.getBanks(page, search, sortBy, sortOrder, hasProfiles)
 }
 
 class CreateBankUseCase @Inject constructor(private val repository: ProfilerBankRepository) {

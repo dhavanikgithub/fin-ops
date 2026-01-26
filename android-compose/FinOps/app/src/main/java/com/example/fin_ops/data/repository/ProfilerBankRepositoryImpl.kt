@@ -9,8 +9,20 @@ class ProfilerBankRepositoryImpl @Inject constructor(
     private val apiService: ApiService
 ) : ProfilerBankRepository {
 
-    override suspend fun getBanks(page: Int, search: String?): ProfilerBankData {
-        return apiService.getProfilerBanks(page = page, search = search).data
+    override suspend fun getBanks(
+        page: Int,
+        search: String?,
+        sortBy: String,
+        sortOrder: String,
+        hasProfiles: Boolean?
+    ): ProfilerBankData {
+        return apiService.getProfilerBanks(
+            page = page,
+            search = search,
+            sortBy = sortBy,
+            sortOrder = sortOrder,
+            hasProfiles = hasProfiles
+        ).data
     }
 
     override suspend fun createBank(name: String): ProfilerBankDto {

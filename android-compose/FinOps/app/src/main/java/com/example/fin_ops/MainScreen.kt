@@ -10,10 +10,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.fin_ops.presentation.calculator.CalculatorScreen
 import com.example.fin_ops.presentation.calculator.finkeda.FinkedaSavedScenariosScreen
 import com.example.fin_ops.presentation.calculator.finkeda.FinkedaSettingsScreen
@@ -35,6 +37,7 @@ import com.example.fin_ops.presentation.profiler.ProfilerState
 import com.example.fin_ops.presentation.profiler.TransactionState
 import com.example.fin_ops.presentation.profiler.banks.BanksScreen
 import com.example.fin_ops.presentation.profiler.clients.ClientsScreen
+import com.example.fin_ops.presentation.profiler.profile_detail.ProfileDetailScreen
 import com.example.fin_ops.presentation.profiler.profiles.ProfileScreen
 import com.example.fin_ops.presentation.profiler.transactions.TransactionsScreen
 import com.example.fin_ops.presentation.settings.SettingsScreen
@@ -84,7 +87,7 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route) {
+            if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route && currentRoute?.startsWith(Routes.PF_PROFILES_DETAIL) == false ) {
                 FinOpsTopAppBar(
                     title = title,
                     navController = navController,
@@ -147,7 +150,17 @@ fun MainScreen(
                 ) { CalculatorScreen(navController) }
 
                 // Nested Screens from Profiler (will use the default slide animations)
-                composable(Routes.PF_PROFILES) { ProfileScreen() }
+                composable(Routes.PF_PROFILES) { ProfileScreen(navController) }
+                composable(
+                    route = "${Routes.PF_PROFILES_DETAIL}/{profileId}",
+                    arguments = listOf(
+                        navArgument("profileId") { type = NavType.IntType }
+                    )
+                ) {
+                    ProfileDetailScreen(
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
                 composable(Routes.PF_TRANSACTIONS) { TransactionsScreen() }
                 composable(Routes.PF_CLIENTS) { ClientsScreen() }
                 composable(Routes.PF_BANKS) { BanksScreen() }
