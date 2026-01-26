@@ -78,6 +78,7 @@ fun MainScreen(
         Routes.LEDGER_BANK -> "Banks"
         Routes.LEDGER_CLIENTS -> "Clients"
         Routes.LEDGER_TRANSACTIONS -> "Transactions"
+       "${Routes.PF_PROFILES_DETAIL}/{profileId}" -> "Profile Details"
         else -> "FinOps"
     }
 
@@ -87,7 +88,7 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route && currentRoute?.startsWith(Routes.PF_PROFILES_DETAIL) == false ) {
+            if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route ) {
                 FinOpsTopAppBar(
                     title = title,
                     navController = navController,

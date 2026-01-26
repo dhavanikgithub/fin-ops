@@ -273,7 +273,7 @@ fun SearchBar(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChange,
-        placeholder = { Text("Search transactions...", fontSize = 12.sp) },
+        placeholder = { Text("Search transactions...") },
         leadingIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.search),
@@ -1089,7 +1089,7 @@ fun AutocompleteProfileField(
             OutlinedTextField(
                 value = state.profileSearchQuery,
                 onValueChange = { onEvent(TransactionsEvent.SearchProfile(it)) },
-                placeholder = { Text("Search profile by client or bank...", fontSize = 13.sp) },
+                placeholder = { Text("Search profile by client or bank...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 singleLine = true,

@@ -965,7 +965,7 @@ fun AutocompleteClientField(
             OutlinedTextField(
                 value = state.clientSearchQuery,
                 onValueChange = { onEvent(ProfilesEvent.SearchClient(it)) },
-                placeholder = { Text("Search client...", fontSize = 13.sp) },
+                placeholder = { Text("Search client...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 singleLine = true,
@@ -1066,7 +1066,7 @@ fun AutocompleteBankField(
             OutlinedTextField(
                 value = state.bankSearchQuery,
                 onValueChange = { onEvent(ProfilesEvent.SearchBank(it)) },
-                placeholder = { Text("Search bank...", fontSize = 13.sp) },
+                placeholder = { Text("Search bank...") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(10.dp),
                 singleLine = true,

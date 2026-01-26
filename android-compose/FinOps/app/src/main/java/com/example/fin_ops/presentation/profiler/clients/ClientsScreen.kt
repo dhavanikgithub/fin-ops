@@ -164,7 +164,7 @@ fun SearchAndFilter(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            placeholder = { Text("Search clients...", fontSize = 12.sp) },
+            placeholder = { Text("Search clients...") },
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.search),

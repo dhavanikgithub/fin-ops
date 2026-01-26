@@ -64,7 +64,7 @@ fun FinkedaSettingsScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(MaterialTheme.colorScheme.background),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(12.dp, 16.dp, 12.dp, 80.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Info Card
@@ -314,7 +314,7 @@ fun FinkedaSettingsScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.Top) {
                             Icon(
-                                painter = painterResource(R.drawable.circle_user),
+                                painter = painterResource(R.drawable.info),
                                 contentDescription = null,
                                 tint = Color(0xFF0B99FF),
                                 modifier = Modifier.size(20.dp)

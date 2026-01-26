@@ -96,7 +96,7 @@ fun SimpleCalculatorContent(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 80.dp),
+        contentPadding = PaddingValues(12.dp, 16.dp, 12.dp, 80.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Quick Actions Card
@@ -157,9 +157,8 @@ fun SimpleCalculatorContent(
                     containerColor = MaterialTheme.colorScheme.surface
                 ),
                 shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(2.dp)
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(5.dp)) {
                     InputField(
                         label = "Amount (₹)",
                         value = amount,

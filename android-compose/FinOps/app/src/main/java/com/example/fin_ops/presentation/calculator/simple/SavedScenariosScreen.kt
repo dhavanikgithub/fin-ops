@@ -124,7 +124,7 @@ fun SavedScenariosScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(12.dp, 16.dp, 12.dp, 80.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(savedScenarios) { scenario ->

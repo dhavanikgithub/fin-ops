@@ -149,7 +149,7 @@ fun SearchCards() {
         OutlinedTextField(
             value = "",
             onValueChange = {},
-            label = { Text("Search...", fontSize = 12.sp) },
+            label = { Text("Search...") },
             leadingIcon = {
                 Icon(
                     painter = painterResource(id = R.drawable.search),

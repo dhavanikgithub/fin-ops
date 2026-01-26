@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.profile_detail
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -64,17 +65,9 @@ fun ProfileDetailContent(
             }
         }
     }
-
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
-        topBar = {
-            ProfileDetailTopBar(
-                profileName = state.profile?.clientName ?: "Loading...",
-                onNavigateBack = onNavigateBack,
-                onExportPDF = { onEvent(ProfileDetailEvent.ExportPDF) },
-                isExporting = state.isExporting
-            )
-        },
         floatingActionButton = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -109,11 +102,10 @@ fun ProfileDetailContent(
                 }
             }
         }
-    ) { paddingValues ->
+    ) {  _ ->
         ProfileDetailContent(
             state = state,
-            onEvent = onEvent,
-            modifier = Modifier.padding(paddingValues)
+            onEvent = onEvent
         )
     }
 
@@ -322,7 +314,7 @@ fun ProfileDetailContent(
 
 // --- Profile Header Card ---
 @Composable
-fun ProfileHeaderCard(profile: com.example.fin_ops.data.remote.dto.ProfilerProfileDto) {
+fun ProfileHeaderCard(profile: ProfilerProfileDto) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),

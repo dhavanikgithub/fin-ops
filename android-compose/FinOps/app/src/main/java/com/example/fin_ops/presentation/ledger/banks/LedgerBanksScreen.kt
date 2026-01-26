@@ -48,7 +48,7 @@ fun LedgerBanksScreenContent(
         OutlinedTextField(
             value = state.searchQuery,
             onValueChange = { onEvent(LedgerBanksEvent.Search(it)) },
-            label = { Text("Search...", fontSize = 12.sp) },
+            label = { Text("Search...") },
             leadingIcon = { Icon(painterResource(id = R.drawable.search), "Search", Modifier.size(18.dp)) },
             modifier = Modifier
                 .fillMaxWidth()

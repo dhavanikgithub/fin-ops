@@ -88,7 +88,6 @@ fun CalculatorScreenContent(
         HorizontalPager(
             state = pagerState,
             modifier = Modifier.fillMaxSize(),
-            userScrollEnabled = true
         ) { page ->
             when (page) {
                 0 -> {
