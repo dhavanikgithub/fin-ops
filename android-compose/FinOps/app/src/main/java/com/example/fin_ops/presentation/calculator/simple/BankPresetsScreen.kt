@@ -12,75 +12,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
+import com.example.fin_ops.data.local.CalculatorStorage
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatPresetDate
 import java.util.*
 
-data class BankChargePreset(
-    val id: String,
-    val name: String,
-    val percentage: Double,
-    val createdAt: Long = System.currentTimeMillis()
-)
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun BankPresetsScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: CalculatorViewModel = hiltViewModel()
 ) {
-    var presets by remember {
-        mutableStateOf(
-            listOf(
-                BankChargePreset("1", "HDFC Bank", 2.5),
-                BankChargePreset("2", "ICICI Bank", 2.8),
-                BankChargePreset("3", "SBI", 2.0),
-                BankChargePreset("4", "Axis Bank", 2.3)
-            )
-        )
-    }
+    val presets by viewModel.bankPresets.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingPreset by remember { mutableStateOf<BankChargePreset?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var presetToDelete by remember { mutableStateOf<BankChargePreset?>(null) }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            "Bank Charge Presets",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Text(
-//                            "${presets.size} presets configured",
-//                            fontSize = 12.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.chevron_left),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -99,8 +60,7 @@ fun BankPresetsScreen(
     ) { paddingValues ->
         if (presets.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -160,20 +120,11 @@ fun BankPresetsScreen(
             onDismiss = { showAddDialog = false },
             onSave = { name, percentage ->
                 if (editingPreset != null) {
-                    // Edit existing
-                    presets = presets.map {
-                        if (it.id == editingPreset!!.id) {
-                            it.copy(name = name, percentage = percentage)
-                        } else it
-                    }
-                } else {
-                    // Add new
-                    val newPreset = BankChargePreset(
-                        id = UUID.randomUUID().toString(),
-                        name = name,
-                        percentage = percentage
+                    viewModel.updateBankPreset(
+                        editingPreset!!.copy(name = name, percentage = percentage)
                     )
-                    presets = presets + newPreset
+                } else {
+                    viewModel.addBankPreset(name, percentage)
                 }
                 showAddDialog = false
             }
@@ -189,7 +140,7 @@ fun BankPresetsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        presets = presets.filter { it.id != presetToDelete?.id }
+                        presetToDelete?.let { viewModel.deleteBankPreset(it.id) }
                         showDeleteDialog = false
                         presetToDelete = null
                     }
@@ -345,6 +296,6 @@ fun AddEditBankPresetDialog(
 @Composable
 fun BankPresetsScreenPreview() {
     FinOpsTheme {
-        BankPresetsScreen()
+        BankPresetsScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }

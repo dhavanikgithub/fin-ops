@@ -11,12 +11,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
+import com.example.fin_ops.data.local.CalculatorStorage
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.calculateReceivable
 import com.example.fin_ops.utils.formatCurrency
@@ -31,67 +34,22 @@ data class SavedScenario(
     val gst: Double = 18.0,
     val savedAt: Long = System.currentTimeMillis()
 )
-
-@OptIn(ExperimentalMaterial3Api::class)
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun SavedScenariosScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: CalculatorViewModel = hiltViewModel()
 ) {
-    // Mock data - replace with actual data from ViewModel
-    var savedScenarios by remember {
-        mutableStateOf(
-            listOf(
-                SavedScenario("1", 50000.0, 3.5, 2.5, 50.0),
-                SavedScenario("2", 100000.0, 4.0, 2.8, 100.0),
-                SavedScenario("3", 75000.0, 3.0, 2.0, 50.0)
-            )
-        )
-    }
+    val savedScenarios by viewModel.savedScenarios.collectAsState()
+
     var showDeleteDialog by remember { mutableStateOf(false) }
     var scenarioToDelete by remember { mutableStateOf<SavedScenario?>(null) }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            "Saved Scenarios",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Text(
-//                            "${savedScenarios.size} saved calculations",
-//                            fontSize = 12.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.chevron_left),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                },
-//                actions = {
-//                    if (savedScenarios.isNotEmpty()) {
-//                        TextButton(onClick = { savedScenarios = emptyList() }) {
-//                            Text("Clear All", color = Color(0xFFDC2626), fontSize = 13.sp)
-//                        }
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        }
-    ) { paddingValues ->
+    var showClearAllDialog by remember { mutableStateOf(false) }
+
+    Scaffold {  paddingValues ->
         if (savedScenarios.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -99,7 +57,7 @@ fun SavedScenariosScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.circle_user),
+                        painter = painterResource(R.drawable.history),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
@@ -120,24 +78,54 @@ fun SavedScenariosScreen(
                 }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(12.dp, 16.dp, 12.dp, 80.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(savedScenarios) { scenario ->
-                    ScenarioCard(
-                        scenario = scenario,
-                        onApply = {
-                            // Handle apply - navigate back with data
-                        },
-                        onDelete = {
-                            scenarioToDelete = scenario
-                            showDeleteDialog = true
-                        }
-                    )
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header with Clear All button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            "Saved Scenarios",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "${savedScenarios.size} saved calculations",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    TextButton(onClick = { showClearAllDialog = true }) {
+                        Text("Clear All", color = Color(0xFFDC2626), fontSize = 13.sp)
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
+                    contentPadding = PaddingValues(12.dp, 8.dp, 12.dp, 80.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(savedScenarios) { scenario ->
+                        ScenarioCard(
+                            scenario = scenario,
+                            onApply = {
+                                // Apply scenario and navigate back
+                                viewModel.applyScenario(scenario)
+                                onNavigateBack()
+                            },
+                            onDelete = {
+                                scenarioToDelete = scenario
+                                showDeleteDialog = true
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -152,7 +140,7 @@ fun SavedScenariosScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        savedScenarios = savedScenarios.filter { it.id != scenarioToDelete?.id }
+                        scenarioToDelete?.let { viewModel.deleteScenario(it.id) }
                         showDeleteDialog = false
                         scenarioToDelete = null
                     }
@@ -162,6 +150,30 @@ fun SavedScenariosScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Clear All Confirmation Dialog
+    if (showClearAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearAllDialog = false },
+            title = { Text("Clear All Scenarios?") },
+            text = { Text("Are you sure you want to delete all ${savedScenarios.size} saved calculations? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.clearAllScenarios()
+                        showClearAllDialog = false
+                    }
+                ) {
+                    Text("Clear All", color = Color(0xFFDC2626))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearAllDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -213,7 +225,7 @@ fun ScenarioCard(
                     Icon(
                         painter = painterResource(R.drawable.trash_2),
                         contentDescription = "Delete",
-                        tint = Color(0xFF0B99FF),
+                        tint = Color(0xFFDC2626),
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -283,6 +295,12 @@ fun ScenarioCard(
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
+                    Icon(
+                        painter = painterResource(R.drawable.check),
+                        contentDescription = "Apply",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Apply", fontSize = 13.sp)
                 }
             }
@@ -309,6 +327,6 @@ fun calculateProfit(scenario: SavedScenario): Double {
 @Composable
 fun SavedScenariosScreenPreview() {
     FinOpsTheme {
-        SavedScenariosScreen()
+        SavedScenariosScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }

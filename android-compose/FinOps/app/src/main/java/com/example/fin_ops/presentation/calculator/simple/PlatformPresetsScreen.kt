@@ -12,75 +12,36 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
+import com.example.fin_ops.data.local.CalculatorStorage
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatPresetDate
 import java.util.*
 
-data class PlatformChargePreset(
-    val id: String,
-    val name: String,
-    val amount: Double,
-    val createdAt: Long = System.currentTimeMillis()
-)
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun PlatformPresetsScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: CalculatorViewModel = hiltViewModel()
 ) {
-    var presets by remember {
-        mutableStateOf(
-            listOf(
-                PlatformChargePreset("1", "Standard Fee", 50.0),
-                PlatformChargePreset("2", "Premium Fee", 100.0),
-                PlatformChargePreset("3", "Enterprise Fee", 200.0),
-                PlatformChargePreset("4", "Basic Fee", 25.0)
-            )
-        )
-    }
+    val presets by viewModel.platformPresets.collectAsState()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var editingPreset by remember { mutableStateOf<PlatformChargePreset?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var presetToDelete by remember { mutableStateOf<PlatformChargePreset?>(null) }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            "Platform Charge Presets",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Text(
-//                            "${presets.size} presets configured",
-//                            fontSize = 12.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.chevron_left),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -99,8 +60,7 @@ fun PlatformPresetsScreen(
     ) { paddingValues ->
         if (presets.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -160,20 +120,11 @@ fun PlatformPresetsScreen(
             onDismiss = { showAddDialog = false },
             onSave = { name, amount ->
                 if (editingPreset != null) {
-                    // Edit existing
-                    presets = presets.map {
-                        if (it.id == editingPreset!!.id) {
-                            it.copy(name = name, amount = amount)
-                        } else it
-                    }
-                } else {
-                    // Add new
-                    val newPreset = PlatformChargePreset(
-                        id = UUID.randomUUID().toString(),
-                        name = name,
-                        amount = amount
+                    viewModel.updatePlatformPreset(
+                        editingPreset!!.copy(name = name, amount = amount)
                     )
-                    presets = presets + newPreset
+                } else {
+                    viewModel.addPlatformPreset(name, amount)
                 }
                 showAddDialog = false
             }
@@ -189,7 +140,7 @@ fun PlatformPresetsScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        presets = presets.filter { it.id != presetToDelete?.id }
+                        presetToDelete?.let { viewModel.deletePlatformPreset(it.id) }
                         showDeleteDialog = false
                         presetToDelete = null
                     }
@@ -340,12 +291,10 @@ fun AddEditPlatformPresetDialog(
     )
 }
 
-
-
 @Preview(showBackground = true)
 @Composable
 fun PlatformPresetsScreenPreview() {
     FinOpsTheme {
-        PlatformPresetsScreen()
+        PlatformPresetsScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }
