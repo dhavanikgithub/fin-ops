@@ -1,0 +1,841 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Fin-Ops API - Transaction Module",
+        "version": "1.0.0",
+        "description": "API documentation for the Fin-Ops banking application. This specification details the Transaction management module, including creation, legacy retrieval, advanced pagination with filtering, and PDF report generation.",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/transactions": {
+            "get": {
+                "summary": "Get all transactions (Legacy)",
+                "description": "Retrieve a list of all transactions with details. Note: This endpoint does not support pagination.",
+                "tags": [
+                    "Transactions"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transactions retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "TRANSACTIONS_RETRIEVED"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Transaction"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new transaction",
+                "tags": [
+                    "Transactions"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Transaction created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "TRANSACTION_CREATED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Transaction"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an existing transaction",
+                "tags": [
+                    "Transactions"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/TransactionUpdateInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "TRANSACTION_UPDATED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Transaction"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a transaction",
+                "description": "Delete a transaction by ID. Note: This endpoint expects the ID in the request BODY.",
+                "tags": [
+                    "Transactions"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteTransactionInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "TRANSACTION_DELETED"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/paginated": {
+            "get": {
+                "summary": "Get paginated transactions",
+                "description": "Retrieve transactions with pagination, comprehensive filtering, search, and sorting.",
+                "tags": [
+                    "Transactions"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "description": "Page number"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100
+                        },
+                        "description": "Records per page"
+                    },
+                    {
+                        "name": "transaction_type",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "enum": [
+                                0,
+                                1
+                            ]
+                        },
+                        "description": "1 (Deposit) or 0 (Withdraw)"
+                    },
+                    {
+                        "name": "min_amount",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "description": "Minimum transaction amount"
+                    },
+                    {
+                        "name": "max_amount",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        },
+                        "description": "Maximum transaction amount"
+                    },
+                    {
+                        "name": "start_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Filter by start date (YYYY-MM-DD)"
+                    },
+                    {
+                        "name": "end_date",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        },
+                        "description": "Filter by end date (YYYY-MM-DD)"
+                    },
+                    {
+                        "name": "bank_ids",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "description": "Filter by specific banks"
+                    },
+                    {
+                        "name": "card_ids",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "description": "Filter by specific cards"
+                    },
+                    {
+                        "name": "client_ids",
+                        "in": "query",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "integer"
+                            }
+                        },
+                        "description": "Filter by specific clients"
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search in client name, bank name, card name, or remarks"
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "create_date",
+                                "transaction_amount",
+                                "client_name",
+                                "bank_name",
+                                "card_name"
+                            ],
+                            "default": "create_date"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "desc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated transactions retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "data": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Transaction"
+                                                            }
+                                                        },
+                                                        "pagination": {
+                                                            "$ref": "#/components/schemas/PaginatedMeta"
+                                                        },
+                                                        "filters_applied": {
+                                                            "type": "object"
+                                                        },
+                                                        "sort_applied": {
+                                                            "type": "object"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/report": {
+            "post": {
+                "summary": "Generate transaction report",
+                "description": "Generates a PDF report for transactions within a date range.",
+                "tags": [
+                    "Transactions"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReportRequestBody"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Report generated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "REPORT_GENERATED_SUCCESS"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/ReportResponse"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/{id}": {
+            "get": {
+                "summary": "Get transaction by ID",
+                "tags": [
+                    "Transactions"
+                ],
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        },
+                        "description": "Transaction ID"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "TRANSACTIONS_RETRIEVED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Transaction"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid ID format",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Transaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 501
+                    },
+                    "client_id": {
+                        "type": "integer",
+                        "example": 205
+                    },
+                    "transaction_type": {
+                        "type": "integer",
+                        "description": "1 for Deposit, 0 for Withdraw",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 0
+                    },
+                    "widthdraw_charges": {
+                        "type": "number",
+                        "description": "Percentage of withdrawal charges (0-100)",
+                        "example": 2.5
+                    },
+                    "transaction_amount": {
+                        "type": "number",
+                        "example": 5000
+                    },
+                    "client_name": {
+                        "type": "string",
+                        "example": "John Doe"
+                    },
+                    "bank_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "example": 10
+                    },
+                    "bank_name": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "HDFC Bank"
+                    },
+                    "card_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "example": 5
+                    },
+                    "card_name": {
+                        "type": "string",
+                        "nullable": true,
+                        "example": "Visa Platinum"
+                    },
+                    "remark": {
+                        "type": "string",
+                        "example": "Office expenses"
+                    },
+                    "create_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "create_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    },
+                    "modify_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "modify_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    }
+                }
+            },
+            "TransactionInput": {
+                "type": "object",
+                "required": [
+                    "client_id",
+                    "transaction_type",
+                    "widthdraw_charges",
+                    "transaction_amount"
+                ],
+                "properties": {
+                    "client_id": {
+                        "type": "integer",
+                        "description": "ID of the client",
+                        "example": 205
+                    },
+                    "transaction_type": {
+                        "type": "integer",
+                        "description": "1 for Deposit, 0 for Withdraw",
+                        "enum": [
+                            0,
+                            1
+                        ],
+                        "example": 0
+                    },
+                    "widthdraw_charges": {
+                        "type": "number",
+                        "description": "Withdrawal charge percentage (0-100)",
+                        "minimum": 0,
+                        "maximum": 100,
+                        "example": 1.5
+                    },
+                    "transaction_amount": {
+                        "type": "number",
+                        "description": "Amount greater than 0",
+                        "minimum": 0.01,
+                        "example": 10000
+                    },
+                    "bank_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Optional Bank ID",
+                        "example": 10
+                    },
+                    "card_id": {
+                        "type": "integer",
+                        "nullable": true,
+                        "description": "Optional Card ID",
+                        "example": 5
+                    },
+                    "remark": {
+                        "type": "string",
+                        "description": "Optional remark",
+                        "example": "Monthly rent"
+                    }
+                }
+            },
+            "TransactionUpdateInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 501
+                    },
+                    "client_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "transaction_type": {
+                        "type": "integer",
+                        "enum": [
+                            0,
+                            1
+                        ]
+                    },
+                    "widthdraw_charges": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                    },
+                    "transaction_amount": {
+                        "type": "number",
+                        "minimum": 0.01
+                    },
+                    "bank_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "card_id": {
+                        "type": "integer",
+                        "nullable": true
+                    },
+                    "remark": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DeleteTransactionInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 501
+                    }
+                }
+            },
+            "ReportRequestBody": {
+                "type": "object",
+                "required": [
+                    "startDate",
+                    "endDate"
+                ],
+                "properties": {
+                    "startDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "Start date in YYYY-MM-DD format",
+                        "example": "2023-01-01"
+                    },
+                    "endDate": {
+                        "type": "string",
+                        "format": "date",
+                        "description": "End date in YYYY-MM-DD format",
+                        "example": "2023-01-31"
+                    },
+                    "clientId": {
+                        "type": "string",
+                        "nullable": true,
+                        "description": "Optional Client ID to filter report",
+                        "example": "205"
+                    }
+                }
+            },
+            "ReportResponse": {
+                "type": "object",
+                "properties": {
+                    "pdfContent": {
+                        "type": "string",
+                        "description": "Base64 encoded PDF string"
+                    },
+                    "filename": {
+                        "type": "string",
+                        "example": "transaction_report_01012023_to_31012023_123456.pdf"
+                    }
+                }
+            },
+            "StandardResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    },
+                    "successCode": {
+                        "type": "string",
+                        "example": "OPERATION_SUCCESS"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "example": 200
+                    }
+                }
+            },
+            "PaginatedMeta": {
+                "type": "object",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 50
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "example": 150
+                    },
+                    "total_pages": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "has_next_page": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "has_previous_page": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer",
+                                "example": 400
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Validation failed"
+                            },
+                            "errorCode": {
+                                "type": "string",
+                                "example": "VALIDATION_ERROR"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

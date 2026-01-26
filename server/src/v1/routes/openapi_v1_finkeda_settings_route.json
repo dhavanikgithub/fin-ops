@@ -1,0 +1,347 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Fin-Ops API - Settings Module",
+        "version": "1.0.0",
+        "description": "API documentation for the Fin-Ops banking application. This specification details the Settings management module, allowing configuration of global charge amounts.",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/finkeda-settings": {
+            "get": {
+                "summary": "Get latest settings",
+                "description": "Retrieve the current active configuration for card charges.",
+                "tags": [
+                    "Finkeda Settings"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Latest settings retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "DATA_RETRIEVED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/FinkedaSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "No settings found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "NOT_FOUND"
+                                                },
+                                                "data": {
+                                                    "nullable": true
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update or create settings",
+                "description": "Update the card charge amounts. This operation automatically logs the previous values into the history table.",
+                "tags": [
+                    "Finkeda Settings"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/FinkedaSettingsInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Settings updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "RESOURCE_UPDATED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/FinkedaSettings"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error (e.g. non-numeric input)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/finkeda-settings/history": {
+            "get": {
+                "summary": "Get settings history",
+                "description": "Retrieve a list of all historical changes made to the settings.",
+                "tags": [
+                    "Finkeda Settings"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Settings history retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "DATA_RETRIEVED"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/FinkedaSettingsHistory"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "FinkedaSettings": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "rupay_card_charge_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Charge amount for Rupay cards",
+                        "example": 1.5
+                    },
+                    "master_card_charge_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "Charge amount for Master cards",
+                        "example": 2.0
+                    },
+                    "create_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "create_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    },
+                    "modify_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "modify_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    }
+                }
+            },
+            "FinkedaSettingsHistory": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 10
+                    },
+                    "calculator_settings_id": {
+                        "type": "integer",
+                        "description": "Foreign key to the main settings table",
+                        "example": 1
+                    },
+                    "previous_rupay_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1.2
+                    },
+                    "previous_master_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1.8
+                    },
+                    "new_rupay_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 1.5
+                    },
+                    "new_master_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "example": 2.0
+                    },
+                    "create_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "create_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    }
+                }
+            },
+            "FinkedaSettingsInput": {
+                "type": "object",
+                "required": [
+                    "rupay_card_charge_amount",
+                    "master_card_charge_amount"
+                ],
+                "properties": {
+                    "rupay_card_charge_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "New charge amount for Rupay cards",
+                        "example": 1.5
+                    },
+                    "master_card_charge_amount": {
+                        "type": "number",
+                        "format": "float",
+                        "description": "New charge amount for Master cards",
+                        "example": 2.0
+                    }
+                }
+            },
+            "StandardResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    },
+                    "successCode": {
+                        "type": "string",
+                        "example": "OPERATION_SUCCESS"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "example": 200
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer",
+                                "example": 400
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Validation failed"
+                            },
+                            "errorCode": {
+                                "type": "string",
+                                "example": "VALIDATION_ERROR"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
