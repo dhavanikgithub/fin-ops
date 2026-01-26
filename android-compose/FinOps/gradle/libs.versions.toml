@@ -1,0 +1,61 @@
+[versions]
+# --- Core Plugin Versions (Aligned to Kotlin 2.0.21) ---
+agp = "8.7.3"                # Downgraded from 8.13 (Requires Kotlin 2.1+)
+kotlin = "2.0.21"            # Your fixed version
+ksp = "2.0.21-1.0.28"        # Bumped to latest patch for 2.0.21
+hilt = "2.52"                # Downgraded from 2.59 to stable 2.0.x era
+
+# --- AndroidX & Compose ---
+coreKtx = "1.15.0"           # Downgraded from 1.17.0 (Future version)
+lifecycleRuntimeKtx = "2.8.7"# Downgraded from 2.10.0
+activityCompose = "1.9.3"    # Downgraded from 1.12.2
+composeBom = "2024.10.01"    # Updated to late 2024 stable BOM
+navigationCompose = "2.8.4"  # Upgrade to 2.8.x for Type Safety / Kotlin 2.0 support
+
+# --- Third Party ---
+retrofit = "2.11.0"          # Upgrade to 2.11 for better Kotlin 2 support
+converterGson = "2.11.0"
+loggingInterceptor = "4.12.0"# Use stable 4.x instead of eternal 5.x alpha
+junit = "4.13.2"
+junitVersion = "1.2.1"
+espressoCore = "3.6.1"
+desugarJdkLibs = "2.1.5"
+
+[libraries]
+# --- AndroidX ---
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
+
+# --- Compose (Using BOM) ---
+androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
+androidx-compose-ui = { group = "androidx.compose.ui", name = "ui" }
+androidx-compose-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
+androidx-compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
+androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
+androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+
+# --- Testing ---
+androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
+androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+junit = { group = "junit", name = "junit", version.ref = "junit" }
+androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
+androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+
+# --- DI & Networking ---
+hilt-android = { module = "com.google.dagger:hilt-android", version.ref = "hilt" }
+hilt-compiler = { module = "com.google.dagger:hilt-compiler", version.ref = "hilt" }
+androidx-hilt-navigation-compose = { module = "androidx.hilt:hilt-navigation-compose", version = "1.2.0" } # Note: Version usually hardcoded or separate
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugarJdkLibs" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
+ksp-android = { id = "com.google.devtools.ksp", version.ref = "ksp" }
