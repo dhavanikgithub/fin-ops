@@ -30,6 +30,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
 import com.example.fin_ops.presentation.navigation.Routes
+import com.example.fin_ops.utils.formatAmount
+import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
 
@@ -1274,28 +1276,6 @@ fun FilterDialog(
             }
         }
     }
-}
-
-// --- Utility Functions ---
-fun maskCardNumber(cardNumber: String): String {
-    return if (cardNumber.length >= 4) {
-        "**** ${cardNumber.takeLast(4)}"
-    } else {
-        cardNumber
-    }
-}
-
-fun formatAmount(amount: String): String {
-    return try {
-        val value = amount.toDoubleOrNull() ?: return amount
-        String.format("%,.0f", value)
-    } catch (e: Exception) {
-        amount
-    }
-}
-
-fun String.capitalize(): String {
-    return this.replaceFirstChar { it.uppercase() }
 }
 
 // --- Previews ---

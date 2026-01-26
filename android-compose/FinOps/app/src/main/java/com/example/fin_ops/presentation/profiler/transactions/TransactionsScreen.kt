@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,9 +25,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
+import com.example.fin_ops.utils.formatAmount
+import com.example.fin_ops.utils.formatDoubleAmount
+import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import com.example.fin_ops.utils.toCustomDateTimeString
 import kotlinx.coroutines.launch
+import okhttp3.internal.toLongOrDefault
+import java.util.Locale
 
 // --- Main Screen Component ---
 @Composable
@@ -483,14 +489,14 @@ fun TransactionItem(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "₹${formatAmount(transaction.amount.toLongOrNull() ?: 0)}",
+                            text = "₹${formatAmount(transaction.amount)}",
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             color = iconTint
                         )
                         if (transaction.withdrawChargesAmount != null) {
                             Text(
-                                text = "Charges: ₹${formatAmount(transaction.withdrawChargesAmount.toLongOrNull() ?: 0)}",
+                                text = "Charges: ₹${formatAmount(transaction.withdrawChargesAmount)}",
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -723,10 +729,7 @@ fun PaginationInfo(
     }
 }
 
-// Utility function
-fun formatAmount(amount: Long): String {
-    return String.format("%,d", amount)
-}
+
 
 // --- Previews ---
 @Preview(name = "Loading State", showBackground = true)
@@ -1062,7 +1065,7 @@ fun AutocompleteProfileField(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Balance: ₹${String.format("%,.0f", state.selectedProfile.remainingBalance)}",
+                            text = "Balance: ₹${formatDoubleAmount(state.selectedProfile.remainingBalance)}",
                             fontSize = 10.sp,
                             color = Color(0xFF16A34A),
                             fontWeight = FontWeight.Medium
@@ -1129,7 +1132,7 @@ fun AutocompleteProfileField(
                                         modifier = Modifier.padding(top = 4.dp)
                                     ) {
                                         Text(
-                                            text = "Balance: ₹${String.format("%,.0f", profile.remainingBalance)}",
+                                            text = "Balance: ₹${formatDoubleAmount(profile.remainingBalance)}",
                                             fontSize = 10.sp,
                                             color = Color(0xFF16A34A),
                                             fontWeight = FontWeight.Medium
@@ -1185,7 +1188,7 @@ fun DeleteConfirmationDialog(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Amount: ₹${formatAmount(transaction.amount.toLongOrNull() ?: 0)}",
+                    text = "Amount: ₹${formatAmount(transaction.amount)}",
                     color = MaterialTheme.colorScheme.error
                 )
             }
@@ -1294,14 +1297,5 @@ fun FilterDialog(
                 }
             }
         }
-    }
-}
-
-// --- Utility Functions ---
-fun maskCardNumber(cardNumber: String): String {
-    return if (cardNumber.length >= 4) {
-        "**** ${cardNumber.takeLast(4)}"
-    } else {
-        cardNumber
     }
 }

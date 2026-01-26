@@ -66,6 +66,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerBankDto
+import com.example.fin_ops.utils.formatDate
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
 
@@ -1009,16 +1010,6 @@ fun FilterOption(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(label)
-    }
-}
-
-// --- Utility Functions ---
-fun formatDate(dateString: String): String {
-    // Simple date formatter - you might want to use a proper date library
-    return try {
-        dateString.split("T").firstOrNull() ?: dateString
-    } catch (e: Exception) {
-        dateString
     }
 }
 

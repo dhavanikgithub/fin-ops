@@ -28,6 +28,9 @@ import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
 import com.example.fin_ops.data.remote.dto.TransactionSummary
 import com.example.fin_ops.presentation.profiler.profiles.profile_detail.ProfileDetailState
 import com.example.fin_ops.ui.theme.FinOpsTheme
+import com.example.fin_ops.utils.formatAmount
+import com.example.fin_ops.utils.formatLongAmount
+import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import com.example.fin_ops.utils.toCustomDateTimeString
 import kotlinx.coroutines.launch
@@ -1225,27 +1228,7 @@ fun DeleteConfirmationDialog(
     )
 }
 
-// --- Utility Functions ---
-fun formatAmount(amount: String): String {
-    return try {
-        val value = amount.toDoubleOrNull() ?: return amount
-        String.format("%,.0f", value)
-    } catch (e: Exception) {
-        amount
-    }
-}
 
-fun formatLongAmount(amount: Long): String {
-    return String.format("%,d", amount)
-}
-
-fun maskCardNumber(cardNumber: String): String {
-    return if (cardNumber.length >= 4) {
-        "**** ${cardNumber.takeLast(4)}"
-    } else {
-        cardNumber
-    }
-}
 
 // --- PREVIEW COMPOSABLES ---
 

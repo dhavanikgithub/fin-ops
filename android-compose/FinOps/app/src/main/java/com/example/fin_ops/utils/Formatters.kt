@@ -1,5 +1,5 @@
-
 package com.example.fin_ops.utils
+
 import java.util.Locale
 import android.icu.text.DateFormat
 import com.example.fin_ops.presentation.calculator.simple.SavedScenario
@@ -34,9 +34,9 @@ fun Long.toTimerString(): String {
     val seconds = TimeUnit.MILLISECONDS.toSeconds(this) % 60
 
     return if (hours > 0) {
-        String.format(Locale.getDefault(),"%02d:%02d:%02d", hours, minutes, seconds)
+        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     } else {
-        String.format(Locale.getDefault(),"%02d:%02d", minutes, seconds)
+        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
     }
 }
 
@@ -111,4 +111,47 @@ fun formatPresetDate(timestamp: Long): String {
     val date = Date(timestamp)
     val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     return "Added ${dateFormat.format(date)}"
+}
+
+fun formatDate(dateString: String): String {
+    // Simple date formatter - you might want to use a proper date library
+    return try {
+        dateString.split("T").firstOrNull() ?: dateString
+    } catch (e: Exception) {
+        dateString
+    }
+}
+
+
+fun formatAmount(amount: String): String {
+    return try {
+        val value = amount.toDoubleOrNull() ?: return amount
+        String.format(Locale.getDefault(), "%,.0f", value)
+    } catch (e: Exception) {
+        amount
+    }
+}
+
+fun formatAmount(amount: Long): String {
+    return String.format(Locale.getDefault(), "%,d", amount)
+}
+
+fun formatDoubleAmount(amount: Double): String {
+    return String.format(Locale.getDefault(), "%,.0f", amount)
+}
+
+fun formatLongAmount(amount: Long): String {
+    return String.format(Locale.getDefault(), "%,d", amount)
+}
+
+fun maskCardNumber(cardNumber: String): String {
+    return if (cardNumber.length >= 4) {
+        "**** ${cardNumber.takeLast(4)}"
+    } else {
+        cardNumber
+    }
+}
+
+fun String.capitalize(): String {
+    return this.replaceFirstChar { it.uppercase() }
 }
