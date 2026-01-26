@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.example.fin_ops.presentation.calculator.finkeda.FinkedaSavedScenario
 import com.example.fin_ops.presentation.calculator.simple.BankChargePreset
 import com.example.fin_ops.presentation.calculator.simple.PlatformChargePreset
 import com.example.fin_ops.presentation.calculator.simple.SavedScenario
@@ -29,6 +30,7 @@ class CalculatorStorage @Inject constructor(
     private val BANK_PRESETS_KEY = stringPreferencesKey("bank_presets")
     private val PLATFORM_PRESETS_KEY = stringPreferencesKey("platform_presets")
     private val SAVED_SCENARIOS_KEY = stringPreferencesKey("saved_scenarios")
+    private val FINKEDA_SAVED_SCENARIOS_KEY = stringPreferencesKey("finkeda_saved_scenarios")
 
     // ===== BANK PRESETS =====
 
@@ -130,7 +132,7 @@ class CalculatorStorage @Inject constructor(
         }
     }
 
-    // ===== SAVED SCENARIOS (CALCULATION HISTORY) =====
+    // ===== SIMPLE CALCULATOR - SAVED SCENARIOS =====
 
     val savedScenarios: Flow<List<SavedScenario>> = context.calculatorDataStore.data
         .map { preferences ->
@@ -148,7 +150,6 @@ class CalculatorStorage @Inject constructor(
             val currentJson = preferences[SAVED_SCENARIOS_KEY] ?: "[]"
             val type = object : TypeToken<List<SavedScenario>>() {}.type
             val currentList = gson.fromJson<List<SavedScenario>>(currentJson, type) ?: emptyList()
-            // Add new scenario at the beginning (most recent first)
             val updatedList = listOf(scenario) + currentList
             preferences[SAVED_SCENARIOS_KEY] = gson.toJson(updatedList)
         }
@@ -167,6 +168,45 @@ class CalculatorStorage @Inject constructor(
     suspend fun clearAllScenarios() {
         context.calculatorDataStore.edit { preferences ->
             preferences[SAVED_SCENARIOS_KEY] = "[]"
+        }
+    }
+
+    // ===== FINKEDA CALCULATOR - SAVED SCENARIOS =====
+
+    val finkedaSavedScenarios: Flow<List<FinkedaSavedScenario>> = context.calculatorDataStore.data
+        .map { preferences ->
+            val json = preferences[FINKEDA_SAVED_SCENARIOS_KEY] ?: return@map emptyList()
+            try {
+                val type = object : TypeToken<List<FinkedaSavedScenario>>() {}.type
+                gson.fromJson<List<FinkedaSavedScenario>>(json, type) ?: emptyList()
+            } catch (e: Exception) {
+                emptyList()
+            }
+        }
+
+    suspend fun addFinkedaScenario(scenario: FinkedaSavedScenario) {
+        context.calculatorDataStore.edit { preferences ->
+            val currentJson = preferences[FINKEDA_SAVED_SCENARIOS_KEY] ?: "[]"
+            val type = object : TypeToken<List<FinkedaSavedScenario>>() {}.type
+            val currentList = gson.fromJson<List<FinkedaSavedScenario>>(currentJson, type) ?: emptyList()
+            val updatedList = listOf(scenario) + currentList
+            preferences[FINKEDA_SAVED_SCENARIOS_KEY] = gson.toJson(updatedList)
+        }
+    }
+
+    suspend fun deleteFinkedaScenario(scenarioId: String) {
+        context.calculatorDataStore.edit { preferences ->
+            val currentJson = preferences[FINKEDA_SAVED_SCENARIOS_KEY] ?: "[]"
+            val type = object : TypeToken<List<FinkedaSavedScenario>>() {}.type
+            val currentList = gson.fromJson<List<FinkedaSavedScenario>>(currentJson, type) ?: emptyList()
+            val updatedList = currentList.filter { it.id != scenarioId }
+            preferences[FINKEDA_SAVED_SCENARIOS_KEY] = gson.toJson(updatedList)
+        }
+    }
+
+    suspend fun clearAllFinkedaScenarios() {
+        context.calculatorDataStore.edit { preferences ->
+            preferences[FINKEDA_SAVED_SCENARIOS_KEY] = "[]"
         }
     }
 }

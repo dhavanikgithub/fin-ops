@@ -16,81 +16,54 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatCurrency
 import com.example.fin_ops.utils.formatTimestamp
 
-data class FinkedaSavedScenario(
-    val id: String,
-    val amount: Double,
-    val myCharges: Double,
-    val bankCharge: Double,
-    val cardType: CardType,
-    val platformChargePercent: Double,
-    val savedAt: Long = System.currentTimeMillis()
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
+// --- 1. Stateful Composable (Connects to ViewModel) ---
 @Composable
 fun FinkedaSavedScenariosScreen(
+    viewModel: FinkedaViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    var savedScenarios by remember {
-        mutableStateOf(
-            listOf(
-                FinkedaSavedScenario("1", 100000.0, 4.0, 2.5, CardType.RUPAY, 0.2),
-                FinkedaSavedScenario("2", 50000.0, 3.5, 2.0, CardType.MASTER, 0.4),
-                FinkedaSavedScenario("3", 75000.0, 4.5, 2.8, CardType.RUPAY, 0.2)
-            )
-        )
-    }
+    val savedScenarios by viewModel.savedScenarios.collectAsState()
 
+    FinkedaSavedScenariosContent(
+        savedScenarios = savedScenarios,
+        onApply = { scenario ->
+            viewModel.applyScenario(scenario)
+            onNavigateBack()
+        },
+        onDelete = { scenarioId ->
+            viewModel.deleteScenario(scenarioId)
+        },
+        onClearAll = {
+            viewModel.clearAllScenarios()
+        },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+// --- 2. Stateless Composable (The UI - Pure & Previewable) ---
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun FinkedaSavedScenariosContent(
+    savedScenarios: List<FinkedaSavedScenario>,
+    onApply: (FinkedaSavedScenario) -> Unit,
+    onDelete: (String) -> Unit,
+    onClearAll: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var scenarioToDelete by remember { mutableStateOf<FinkedaSavedScenario?>(null) }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            "Finkeda Saved Scenarios",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Text(
-//                            "${savedScenarios.size} saved calculations",
-//                            fontSize = 12.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.chevron_left),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                },
-//                actions = {
-//                    if (savedScenarios.isNotEmpty()) {
-//                        TextButton(onClick = { savedScenarios = emptyList() }) {
-//                            Text("Clear All", color = Color(0xFFDC2626), fontSize = 13.sp)
-//                        }
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        }
-    ) { paddingValues ->
+    var showClearAllDialog by remember { mutableStateOf(false) }
+
+    Scaffold { paddingValues ->
         if (savedScenarios.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
@@ -98,7 +71,7 @@ fun FinkedaSavedScenariosScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.circle_user),
+                        painter = painterResource(R.drawable.history),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
@@ -119,24 +92,50 @@ fun FinkedaSavedScenariosScreen(
                 }
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background),
-                contentPadding = PaddingValues(12.dp, 16.dp, 12.dp, 80.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(savedScenarios) { scenario ->
-                    FinkedaScenarioCard(
-                        scenario = scenario,
-                        onApply = {
-                            // Handle apply
-                        },
-                        onDelete = {
-                            scenarioToDelete = scenario
-                            showDeleteDialog = true
-                        }
-                    )
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header with Clear All button
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            "Finkeda Saved Scenarios",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            "${savedScenarios.size} saved calculations",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    TextButton(onClick = { showClearAllDialog = true }) {
+                        Text("Clear All", color = Color(0xFFDC2626), fontSize = 13.sp)
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.background),
+                    contentPadding = PaddingValues(12.dp, 8.dp, 12.dp, 80.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(savedScenarios) { scenario ->
+                        FinkedaScenarioCard(
+                            scenario = scenario,
+                            onApply = { onApply(scenario) },
+                            onDelete = {
+                                scenarioToDelete = scenario
+                                showDeleteDialog = true
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -151,7 +150,7 @@ fun FinkedaSavedScenariosScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        savedScenarios = savedScenarios.filter { it.id != scenarioToDelete?.id }
+                        scenarioToDelete?.let { onDelete(it.id) }
                         showDeleteDialog = false
                         scenarioToDelete = null
                     }
@@ -161,6 +160,32 @@ fun FinkedaSavedScenariosScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Clear All Confirmation Dialog
+    if (showClearAllDialog) {
+        AlertDialog(
+            onDismissRequest = { showClearAllDialog = false },
+            title = { Text("Clear All Scenarios?") },
+            text = {
+                Text("Are you sure you want to delete all ${savedScenarios.size} saved Finkeda calculations? This action cannot be undone.")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onClearAll()
+                        showClearAllDialog = false
+                    }
+                ) {
+                    Text("Clear All", color = Color(0xFFDC2626))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showClearAllDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -282,12 +307,20 @@ fun FinkedaScenarioCard(
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
+                    Icon(
+                        painter = painterResource(R.drawable.check),
+                        contentDescription = "Apply",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text("Apply", fontSize = 13.sp)
                 }
             }
         }
     }
 }
+
+// --- Helper Functions & Data Classes ---
 
 fun calculateFinkedaProfit(scenario: FinkedaSavedScenario): Double {
     val myChargesDecimal = scenario.myCharges / 100
@@ -309,10 +342,76 @@ fun calculateFinkedaPayout(scenario: FinkedaSavedScenario): Double {
     return scenario.amount * (1 - markupDecimal)
 }
 
-@Preview(showBackground = true)
+// --- Previews ---
+@Preview(showBackground = true, name = "Populated List")
 @Composable
 fun FinkedaSavedScenariosScreenPreview() {
+    val dummyScenarios = listOf(
+        FinkedaSavedScenario(
+            id = "1",
+            amount = 50000.0,
+            myCharges = 2.0,
+            bankCharge = 1.0,
+            cardType = CardType.MASTER,
+            platformChargePercent = 0.5,
+            savedAt = System.currentTimeMillis()
+        ),
+        FinkedaSavedScenario(
+            id = "2",
+            amount = 12500.0,
+            myCharges = 1.8,
+            bankCharge = 0.5,
+            cardType = CardType.RUPAY,
+            platformChargePercent = 0.0,
+            savedAt = System.currentTimeMillis() - 86400000 // Yesterday
+        )
+    )
+
     FinOpsTheme {
-        FinkedaSavedScenariosScreen()
+        FinkedaSavedScenariosContent(
+            savedScenarios = dummyScenarios,
+            onApply = {},
+            onDelete = {},
+            onClearAll = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Empty State")
+@Composable
+fun FinkedaSavedScenariosEmptyPreview() {
+    FinOpsTheme {
+        FinkedaSavedScenariosContent(
+            savedScenarios = emptyList(),
+            onApply = {},
+            onDelete = {},
+            onClearAll = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Single Card")
+@Composable
+fun FinkedaScenarioCardPreview() {
+    val scenario = FinkedaSavedScenario(
+        id = "1",
+        amount = 75000.0,
+        myCharges = 2.5,
+        bankCharge = 1.2,
+        cardType = CardType.MASTER,
+        platformChargePercent = 0.5,
+        savedAt = System.currentTimeMillis()
+    )
+
+    FinOpsTheme {
+        Box(modifier = Modifier.padding(16.dp)) {
+            FinkedaScenarioCard(
+                scenario = scenario,
+                onApply = {},
+                onDelete = {}
+            )
+        }
     }
 }

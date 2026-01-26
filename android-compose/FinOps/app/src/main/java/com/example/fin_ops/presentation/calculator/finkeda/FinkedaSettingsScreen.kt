@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -17,48 +18,85 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
+import com.example.fin_ops.data.remote.dto.FinkedaSettingsDto
+import com.example.fin_ops.data.remote.dto.FinkedaSettingsHistoryDto
 import com.example.fin_ops.ui.theme.FinOpsTheme
+import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+// --- 1. Stateful Composable (Connects to ViewModel) ---
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun FinkedaSettingsScreen(
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
+    viewModel: FinkedaViewModel = hiltViewModel()
 ) {
-    var rupayCharge by remember { mutableStateOf("0.2") }
-    var masterCharge by remember { mutableStateOf("0.4") }
+    val settingsState by viewModel.settingsState.collectAsState()
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Load settings on init
+    LaunchedEffect(Unit) {
+        viewModel.loadSettings()
+    }
+
+    // Show success message
+    LaunchedEffect(settingsState.successMessage) {
+        settingsState.successMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSuccessMessage()
+            }
+        }
+    }
+
+    // Show error message
+    LaunchedEffect(settingsState.error) {
+        settingsState.error?.let { error ->
+            scope.launch {
+                snackbarHostState.showSnackbar(error)
+            }
+        }
+    }
+
+    FinkedaSettingsContent(
+        settingsState = settingsState,
+        snackbarHostState = snackbarHostState,
+        onUpdateSettings = { rupay, master ->
+            viewModel.updateSettings(rupay, master)
+        },
+        onLoadHistory = {
+            viewModel.loadSettingsHistory()
+        },
+        onNavigateBack = onNavigateBack
+    )
+}
+
+// --- 2. Stateless Composable (The UI - Pure & Previewable) ---
+@Composable
+fun FinkedaSettingsContent(
+    settingsState: FinkedaSettingsState,
+    snackbarHostState: SnackbarHostState,
+    onUpdateSettings: (Float, Float) -> Unit,
+    onLoadHistory: () -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    var rupayCharge by remember { mutableStateOf("") }
+    var masterCharge by remember { mutableStateOf("") }
     var showSaveConfirmation by remember { mutableStateOf(false) }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    var showHistory by remember { mutableStateOf(false) }
+
+    // Update local state when settings come from props (e.g. initial load)
+    LaunchedEffect(settingsState.settings) {
+        settingsState.settings?.let { settings ->
+            if (rupayCharge.isEmpty()) rupayCharge = settings.rupayCardChargeAmount.toString()
+            if (masterCharge.isEmpty()) masterCharge = settings.masterCardChargeAmount.toString()
+        }
+    }
+
     Scaffold(
-//        topBar = {
-//            TopAppBar(
-//                title = {
-//                    Column {
-//                        Text(
-//                            "Finkeda Settings",
-//                            fontSize = 18.sp,
-//                            fontWeight = FontWeight.Bold
-//                        )
-//                        Text(
-//                            "Configure card charges",
-//                            fontSize = 12.sp,
-//                            color = MaterialTheme.colorScheme.onSurfaceVariant
-//                        )
-//                    }
-//                },
-//                navigationIcon = {
-//                    IconButton(onClick = onNavigateBack) {
-//                        Icon(
-//                            painter = painterResource(R.drawable.chevron_left),
-//                            contentDescription = "Back"
-//                        )
-//                    }
-//                },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.surface
-//                )
-//            )
-//        }
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -105,7 +143,7 @@ fun FinkedaSettingsScreen(
                 }
             }
 
-            // Card Charges Settings
+            // Settings Card
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -116,139 +154,91 @@ fun FinkedaSettingsScreen(
                     elevation = CardDefaults.cardElevation(2.dp)
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
-                        Text(
-                            "Card Charges Configuration",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Card Charges Configuration",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            if (settingsState.isLoading || settingsState.isSaving) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            }
+                        }
 
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Rupay Card Charge
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Rupay Card Charge (%)",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Surface(
-                                    color = Color(0xFF6366F1).copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(6.dp)
-                                ) {
-                                    Text(
-                                        "Current: ${rupayCharge}%",
-                                        fontSize = 11.sp,
-                                        color = Color(0xFF6366F1),
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = rupayCharge,
-                                onValueChange = { rupayCharge = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("e.g., 0.2", fontSize = 13.sp) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(8.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    unfocusedBorderColor = Color.Transparent,
-                                    focusedBorderColor = Color(0xFF0B99FF)
-                                ),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                supportingText = {
-                                    Text(
-                                        "This percentage will be applied to all Rupay card transactions",
-                                        fontSize = 11.sp
-                                    )
-                                }
-                            )
-                        }
+                        SettingsInputField(
+                            label = "Rupay Card Charge (%)",
+                            value = rupayCharge,
+                            onValueChange = { rupayCharge = it },
+                            currentValue = settingsState.settings?.rupayCardChargeAmount?.toString() ?: "0.0",
+                            color = Color(0xFF6366F1)
+                        )
 
                         Spacer(modifier = Modifier.height(20.dp))
 
                         // Master Card Charge
-                        Column {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    "Master Card Charge (%)",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
-                                Surface(
-                                    color = Color(0xFFF97316).copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(6.dp)
-                                ) {
-                                    Text(
-                                        "Current: ${masterCharge}%",
-                                        fontSize = 11.sp,
-                                        color = Color(0xFFF97316),
-                                        fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                                    )
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            OutlinedTextField(
-                                value = masterCharge,
-                                onValueChange = { masterCharge = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("e.g., 0.4", fontSize = 13.sp) },
-                                singleLine = true,
-                                shape = RoundedCornerShape(8.dp),
-                                colors = OutlinedTextFieldDefaults.colors(
-                                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
-                                    unfocusedBorderColor = Color.Transparent,
-                                    focusedBorderColor = Color(0xFF0B99FF)
-                                ),
-                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                                supportingText = {
-                                    Text(
-                                        "This percentage will be applied to all Master card transactions",
-                                        fontSize = 11.sp
-                                    )
-                                }
-                            )
-                        }
+                        SettingsInputField(
+                            label = "Master Card Charge (%)",
+                            value = masterCharge,
+                            onValueChange = { masterCharge = it },
+                            currentValue = settingsState.settings?.masterCardChargeAmount?.toString() ?: "0.0",
+                            color = Color(0xFFF97316)
+                        )
 
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Save Button
-                        Button(
-                            onClick = { showSaveConfirmation = true },
+                        // Action Buttons
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF10B981)
-                            ),
-                            shape = RoundedCornerShape(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                painter = painterResource(R.drawable.save),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                "Save Settings",
-                                fontSize = 15.sp,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            OutlinedButton(
+                                onClick = {
+                                    showHistory = !showHistory
+                                    if (showHistory) {
+                                        onLoadHistory()
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.history),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("History", fontSize = 13.sp)
+                            }
+
+                            Button(
+                                onClick = { showSaveConfirmation = true },
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Color(0xFF10B981)
+                                ),
+                                shape = RoundedCornerShape(8.dp),
+                                enabled = !settingsState.isSaving
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.save),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Save", fontSize = 13.sp)
+                            }
                         }
                     }
                 }
@@ -299,6 +289,22 @@ fun FinkedaSettingsScreen(
                             }
                         }
                     }
+                }
+            }
+
+            // History Section
+            if (showHistory && settingsState.history.isNotEmpty()) {
+                item {
+                    Text(
+                        "Change History",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(vertical = 8.dp)
+                    )
+                }
+
+                items(settingsState.history.take(10)) { historyItem ->
+                    HistoryCard(historyItem)
                 }
             }
 
@@ -353,7 +359,9 @@ fun FinkedaSettingsScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // Save settings logic
+                        val rupay = rupayCharge.toFloatOrNull() ?: 0f
+                        val master = masterCharge.toFloatOrNull() ?: 0f
+                        onUpdateSettings(rupay, master)
                         showSaveConfirmation = false
                     },
                     colors = ButtonDefaults.buttonColors(
@@ -369,6 +377,107 @@ fun FinkedaSettingsScreen(
                 }
             }
         )
+    }
+}
+
+// --- Components ---
+
+@Composable
+fun SettingsInputField(
+    label: String,
+    value: String,
+    onValueChange: (String) -> Unit,
+    currentValue: String,
+    color: Color
+) {
+    Column {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                label,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Surface(
+                color = color.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(6.dp)
+            ) {
+                Text(
+                    "Current: ${currentValue}%",
+                    fontSize = 11.sp,
+                    color = color,
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("e.g., 0.2", fontSize = 13.sp) },
+            singleLine = true,
+            shape = RoundedCornerShape(8.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                unfocusedBorderColor = Color.Transparent,
+                focusedBorderColor = Color(0xFF0B99FF)
+            ),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+            supportingText = {
+                Text(
+                    "This percentage will be applied to all ${if (label.contains("Rupay")) "Rupay" else "Master"} card transactions",
+                    fontSize = 11.sp
+                )
+            }
+        )
+    }
+}
+
+@Composable
+fun HistoryCard(historyItem: FinkedaSettingsHistoryDto) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        shape = RoundedCornerShape(10.dp),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Rupay: ${historyItem.previousRupayAmount}% → ${historyItem.newRupayAmount}%",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Text(
+                        "Master: ${historyItem.previousMasterAmount}% → ${historyItem.newMasterAmount}%",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+
+                // Handling potential parsing issues safely for Preview
+                val timestampString = "${historyItem.createDate ?: ""} ${historyItem.createTime ?: ""}".trim()
+                // You might need a more robust parser here depending on your date format
+                Text(
+                    timestampString,
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -394,10 +503,52 @@ fun PreviewRow(label: String, value: String) {
     }
 }
 
-@Preview(showBackground = true)
+// --- Previews ---
+
+@Preview(showBackground = true, name = "Standard View")
 @Composable
 fun FinkedaSettingsScreenPreview() {
+    val dummySettings = FinkedaSettingsDto(
+        id = 1,
+        rupayCardChargeAmount = 0.5f,
+        masterCardChargeAmount = 1.2f,
+        createDate = "2024-01-01",
+        createTime = "10:00:00",
+        modifyDate = null,
+        modifyTime = null
+    )
+
+    val dummyState = FinkedaSettingsState(
+        settings = dummySettings,
+        isLoading = false,
+        isSaving = false
+    )
+
     FinOpsTheme {
-        FinkedaSettingsScreen()
+        FinkedaSettingsContent(
+            settingsState = dummyState,
+            snackbarHostState = SnackbarHostState(),
+            onUpdateSettings = { _, _ -> },
+            onLoadHistory = {},
+            onNavigateBack = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "Loading State")
+@Composable
+fun FinkedaSettingsLoadingPreview() {
+    val dummyState = FinkedaSettingsState(
+        isLoading = true
+    )
+
+    FinOpsTheme {
+        FinkedaSettingsContent(
+            settingsState = dummyState,
+            snackbarHostState = SnackbarHostState(),
+            onUpdateSettings = { _, _ -> },
+            onLoadHistory = {},
+            onNavigateBack = {}
+        )
     }
 }

@@ -20,11 +20,6 @@ import com.example.fin_ops.R
 import com.example.fin_ops.presentation.navigation.Routes
 import com.example.fin_ops.utils.formatCurrency
 
-enum class CardType(val displayName: String, val defaultCharge: Double) {
-    RUPAY("Rupay", 0.2),
-    MASTER("Master", 0.4)
-}
-
 @Composable
 fun FinkedaCalculatorScreen(
     navController: NavController
