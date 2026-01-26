@@ -1,6 +1,7 @@
 
 package com.example.fin_ops.di
 
+import com.example.fin_ops.BuildConfig
 import com.example.fin_ops.data.remote.ApiService
 import dagger.Module
 import dagger.Provides
@@ -34,7 +35,7 @@ object AppModule {
     @Singleton
     fun provideRetrofit(okHttpClient: OkHttpClient): Retrofit {
         return Retrofit.Builder()
-            .baseUrl("https://audra-unresting-jenee.ngrok-free.dev/")
+            .baseUrl(BuildConfig.BASE_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .client(okHttpClient)
             .build()

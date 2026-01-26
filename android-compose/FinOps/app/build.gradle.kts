@@ -1,3 +1,6 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,6 +9,12 @@ plugins {
     alias(libs.plugins.hilt.android) // ✅ FIX 1: Use the alias from libs.versions.toml
 }
 
+// Load local.properties
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
 android {
     namespace = "com.example.fin_ops"
     compileSdk = 36 // ✅ FIX 2: Simplified standard syntax
@@ -27,6 +36,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // It's good practice to also define buildConfigFields for release,
+            // even if they are empty or point to a production URL.
+            buildConfigField("String", "BASE_URL", "\"\"")
+        }
+        debug {
+            // Expose the BASE_URL as a build configuration field
+            buildConfigField("String", "BASE_URL", localProperties.getProperty("BASE_URL") ?: "\"\"")
         }
     }
     compileOptions {
@@ -40,6 +56,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
