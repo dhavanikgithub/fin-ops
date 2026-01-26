@@ -51,8 +51,7 @@ fun LedgerBanksScreenContent(
             label = { Text("Search...") },
             leadingIcon = { Icon(painterResource(id = R.drawable.search), "Search", Modifier.size(18.dp)) },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,

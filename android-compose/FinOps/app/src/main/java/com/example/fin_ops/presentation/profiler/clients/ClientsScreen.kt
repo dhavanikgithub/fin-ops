@@ -187,8 +187,7 @@ fun SearchAndFilter(
                 }
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .height(50.dp),
+                .fillMaxWidth(),
             shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = MaterialTheme.colorScheme.surface,
