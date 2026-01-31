@@ -70,6 +70,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerBankDto
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatDate
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.flow.collectLatest
@@ -608,26 +609,81 @@ fun PreviewBanksScreenLoaded() {
         ProfilerBankDto(2, "ICICI Bank", 98, "2024-01-18T14:20:00Z", "2024-01-18T14:20:00Z"),
         ProfilerBankDto(3, "State Bank of India", 203, "2024-01-20T09:15:00Z", "2024-01-20T09:15:00Z")
     )
-    BanksScreenContent(
-        state = BanksState(banks = dummyBanks, isLoading = false),
-        onEvent = {}
-    )
+    FinOpsTheme() {
+        BanksScreenContent(
+            state = BanksState(banks = dummyBanks, isLoading = false),
+            onEvent = {}
+        )
+    }
 }
 
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 fun PreviewBanksScreenLoading() {
-    BanksScreenContent(
-        state = BanksState(isLoading = true),
-        onEvent = {}
-    )
+    FinOpsTheme() {
+        BanksScreenContent(
+            state = BanksState(isLoading = true),
+            onEvent = {}
+        )
+    }
 }
 
 @Preview(showBackground = true, name = "Empty State")
 @Composable
 fun PreviewBanksScreenEmpty() {
-    BanksScreenContent(
-        state = BanksState(banks = emptyList(), isLoading = false),
-        onEvent = {}
+    FinOpsTheme() {
+        BanksScreenContent(
+            state = BanksState(banks = emptyList(), isLoading = false),
+            onEvent = {}
+        )
+        
+    }
+}
+
+
+// --- Dark Theme Previews ---
+
+@Preview(showBackground = false, name = "Banks Screen Loaded Dark")
+@Composable
+fun PreviewBanksScreenLoadedDark() {
+    val dummyBanks = listOf(
+        ProfilerBankDto(1, "HDFC Bank", 145, "2024-01-15T10:30:00Z", "2024-01-15T10:30:00Z"),
+        ProfilerBankDto(2, "ICICI Bank", 98, "2024-01-18T14:20:00Z", "2024-01-18T14:20:00Z"),
+        ProfilerBankDto(3, "State Bank of India", 203, "2024-01-20T09:15:00Z", "2024-01-20T09:15:00Z")
     )
+    FinOpsTheme(darkTheme = true) {
+        // Surface provides the dark background color for the preview
+        Surface(color = MaterialTheme.colorScheme.background) {
+            BanksScreenContent(
+                state = BanksState(banks = dummyBanks, isLoading = false),
+                onEvent = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Loading State Dark")
+@Composable
+fun PreviewBanksScreenLoadingDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            BanksScreenContent(
+                state = BanksState(isLoading = true),
+                onEvent = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Empty State Dark")
+@Composable
+fun PreviewBanksScreenEmptyDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            BanksScreenContent(
+                state = BanksState(banks = emptyList(), isLoading = false),
+                onEvent = {}
+            )
+        }
+    }
 }

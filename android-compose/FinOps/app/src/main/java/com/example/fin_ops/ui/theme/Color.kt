@@ -136,3 +136,21 @@ val Pink80 = Color(0xFFEFB8C8)
 val Purple40 = Color(0xFF6650a4)
 val PurpleGrey40 = Color(0xFF625b71)
 val Pink40 = Color(0xFF7D5260)
+
+// Deposit (Green-ish)
+val DepositBgLight = Color(0xFFF0FDF4)
+val DepositContentLight = Color(0xFF166534)
+val DepositIconLight = Color(0xFF10B981)
+
+val DepositBgDark = Color(0xFF1c1c1c) // Darker green background for dark mode
+val DepositContentDark = Color(0xFFECFDF5) // Light text for dark mode
+val DepositIconDark = Color(0xFF34D399)
+
+// Withdrawal (Red-ish)
+val WithdrawBgLight = Color(0xFFFEF2F2)
+val WithdrawContentLight = Color(0xFF991B1B)
+val WithdrawIconLight = Color(0xFFEF4444)
+
+val WithdrawBgDark = Color(0xFF1c1c1c) // Darker red background for dark mode
+val WithdrawContentDark = Color(0xFFFEF2F2) // Light text for dark mode
+val WithdrawIconDark = Color(0xFFF87171)

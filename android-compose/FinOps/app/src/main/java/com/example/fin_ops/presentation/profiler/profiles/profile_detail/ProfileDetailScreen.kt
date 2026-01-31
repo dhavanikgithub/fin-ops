@@ -1365,3 +1365,84 @@ fun ProfileDetailScreenWithdrawFormPreview() {
         ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
     }
 }
+
+// --- Dark Theme Previews ---
+
+@Preview(name = "Default View Dark", showBackground = false)
+@Composable
+fun ProfileDetailScreenPreviewDark() {
+    val state = ProfileDetailState(
+        profile = createMockProfile(),
+        transactions = createMockTransactions(),
+        summary = createMockSummary()
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        }
+    }
+}
+
+@Preview(name = "Loading State Dark", showBackground = false)
+@Composable
+fun ProfileDetailScreenLoadingPreviewDark() {
+    val state = ProfileDetailState(
+        isLoadingProfile = true,
+        isLoadingTransactions = true,
+        isLoadingSummary = true
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        }
+    }
+}
+
+@Preview(name = "Error State Dark", showBackground = false)
+@Composable
+fun ProfileDetailScreenErrorPreviewDark() {
+    val state = ProfileDetailState(
+        profileError = "Failed to load profile details.",
+        transactionsError = "Could not fetch transactions."
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        }
+    }
+}
+
+@Preview(name = "Deposit Form Visible Dark", showBackground = false)
+@Composable
+fun ProfileDetailScreenDepositFormPreviewDark() {
+    val state = ProfileDetailState(
+        profile = createMockProfile(),
+        transactions = createMockTransactions(),
+        summary = createMockSummary(),
+        isDepositFormVisible = true,
+        depositFormAmount = "100.00"
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        }
+    }
+}
+
+@Preview(name = "Withdraw Form Visible Dark", showBackground = false)
+@Composable
+fun ProfileDetailScreenWithdrawFormPreviewDark() {
+    val state = ProfileDetailState(
+        profile = createMockProfile(),
+        transactions = createMockTransactions(),
+        summary = createMockSummary(),
+        isWithdrawFormVisible = true,
+        withdrawFormAmount = "250.00",
+        withdrawFormChargesPercentage = "2.0"
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        }
+    }
+}

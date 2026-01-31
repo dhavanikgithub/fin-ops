@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatCurrency
 
 @Composable
@@ -242,12 +243,40 @@ private fun ResultRow(
 @Preview(name = "Result Dialog Light")
 @Composable
 fun ResultDialogPreview() {
-    MaterialTheme {
+    FinOpsTheme {
         // Mocking the Dialog behavior for preview by putting it on a background
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.5f)),
+                .fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            ResultDialog(
+                amount = 10000.00,
+                payableAmount = 9800.00,
+                netProfit = 150.50,
+                netReceivable = 9850.00,
+                bankRate = 1.50,
+                gstOnBank = 0.27,
+                totalBankWithGst = 1.77,
+                ourCharge = 2.00,
+                markup = 0.23,
+                earned = 23.00,
+                platformCharge = 50.00,
+                onDismiss = {},
+                onSave = {}
+            )
+        }
+    }
+}
+
+@Preview(name = "Result Dialog Dark", showBackground = false)
+@Composable
+fun ResultDialogPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        // Mocking the Dialog behavior for preview
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
             contentAlignment = Alignment.Center
         ) {
             ResultDialog(

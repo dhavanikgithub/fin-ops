@@ -30,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerClientDto
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.collectLatest
@@ -718,7 +719,7 @@ fun DeleteConfirmationDialog(
 @Preview(showBackground = true, name = "Loading State")
 @Composable
 fun PreviewClientsScreenLoading() {
-    MaterialTheme {
+    FinOpsTheme {
         ClientsScreenContent(
             state = ClientsState(isLoading = true),
             onEvent = {}
@@ -755,10 +756,64 @@ fun PreviewClientsScreenLoaded() {
             profileCount = 5
         )
     )
-    MaterialTheme {
+    FinOpsTheme {
         ClientsScreenContent(
             state = ClientsState(isLoading = false, clients = dummyData),
             onEvent = {}
         )
+    }
+}
+
+// --- Dark Theme Previews ---
+
+@Preview(showBackground = false, name = "Loading State Dark")
+@Composable
+fun PreviewClientsScreenLoadingDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ClientsScreenContent(
+                state = ClientsState(isLoading = true),
+                onEvent = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Data Loaded Dark")
+@Composable
+fun PreviewClientsScreenLoadedDark() {
+    val dummyData = listOf(
+        ProfilerClientDto(
+            1,
+            "John Doe",
+            "john.doe@example.com",
+            "+91 98765 43210",
+            "123456789012",
+            null,
+            "",
+            "2024-01-15T10:30:00Z",
+            "2024-01-15T10:30:00Z",
+            profileCount = 10
+        ),
+        ProfilerClientDto(
+            2,
+            "Jane Smith",
+            "jane.smith@example.com",
+            "+91 98765 43211",
+            "123456789013",
+            null,
+            "",
+            "2024-01-16T11:20:00Z",
+            "2024-01-16T11:20:00Z",
+            profileCount = 5
+        )
+    )
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ClientsScreenContent(
+                state = ClientsState(isLoading = false, clients = dummyData),
+                onEvent = {}
+            )
+        }
     }
 }

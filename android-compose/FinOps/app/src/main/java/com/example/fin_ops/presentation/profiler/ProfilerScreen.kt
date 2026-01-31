@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
 import com.example.fin_ops.presentation.navigation.Routes
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.shimmerEffect
 
 // Define a fixed height for the collapsed state.
@@ -852,4 +853,71 @@ fun PreviewProfilerScreen() {
         state = dummyProfileState,
         transactionsState = dummyTransactionState
     )
+}
+
+
+// --- Dark Theme Previews ---
+
+@Composable
+@Preview(
+    showBackground = false,
+    widthDp = 411,
+    heightDp = 914,
+    name = "Profiler Loading Dark"
+)
+fun PreviewProfilerScreenLoadingDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            // 1. Create Mock/Dummy Data for the preview
+            val dummyProfileState = ProfilerState(
+                isLoading = true,
+                error = "",
+                profiles = emptyList()
+            )
+
+            val dummyTransactionState = TransactionState(
+                isLoading = true,
+                transactions = null
+            )
+
+            // 2. Call the CONTENT composable
+            ProfilerScreenContent(
+                navController = rememberNavController(),
+                state = dummyProfileState,
+                transactionsState = dummyTransactionState
+            )
+        }
+    }
+}
+
+@Composable
+@Preview(
+    showBackground = false,
+    widthDp = 411,
+    heightDp = 914,
+    name = "Profiler Screen Dark"
+)
+fun PreviewProfilerScreenDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            // 1. Create Mock/Dummy Data for the preview
+            val dummyProfileState = ProfilerState(
+                isLoading = false,
+                error = "",
+                profiles = emptyList()
+            )
+
+            val dummyTransactionState = TransactionState(
+                isLoading = false,
+                transactions = null
+            )
+
+            // 2. Call the CONTENT composable
+            ProfilerScreenContent(
+                navController = rememberNavController(),
+                state = dummyProfileState,
+                transactionsState = dummyTransactionState
+            )
+        }
+    }
 }

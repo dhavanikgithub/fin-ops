@@ -9,7 +9,10 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -113,6 +116,40 @@ private val DarkColorScheme = darkColorScheme(
     surfaceContainerHighest = SurfaceContainerHighestDark,
 )
 
+// 1. Define a CompositionLocal key
+val LocalCustomColors = staticCompositionLocalOf {
+    CustomColors(
+        success = SuccessLight,
+        successContainer = SuccessLightContainer,
+        onSuccess = OnSuccessLight,
+        onSuccessContainer = OnSuccessLightContainer,
+        warning = WarningLight,
+        warningContainer = WarningLightContainer,
+        onWarning = OnWarningLight,
+        onWarningContainer = OnWarningLightContainer,
+        accentBlue = AccentBlue,
+        accentBlueBg = AccentBlueBg,
+        accentPurple = AccentPurple,
+        accentPurpleBg = AccentPurpleBg,
+        accentGreen = AccentGreen,
+        accentGreenBg = AccentGreenBg,
+        accentOrange = AccentOrange,
+        accentOrangeBg = AccentOrangeBg,
+        accentIndigo = AccentIndigo,
+        accentIndigoBg = AccentIndigoBg,
+        accentRed = AccentRed,
+        accentRedBg = AccentRedBg,
+        accentPink = AccentPink,
+        accentPinkBg = AccentPinkBg,
+        depositContainer = DepositBgLight,
+        onDepositContainer = DepositContentLight,
+        depositIcon = DepositIconLight,
+        withdrawContainer = WithdrawBgLight,
+        onWithdrawContainer = WithdrawContentLight,
+        withdrawIcon = WithdrawIconLight
+    )
+}
+
 @Composable
 fun FinOpsTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -130,26 +167,8 @@ fun FinOpsTheme(
         else -> LightColorScheme
     }
 
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.background.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
-        }
-    }
-
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
-}
-
-// Extension properties for custom colors
-val MaterialTheme.customColors: CustomColors
-    @Composable
-    get() = if (isSystemInDarkTheme()) {
+    // 2. Select the correct CustomColors instance based on the 'darkTheme' parameter
+    val customColors = if (darkTheme) {
         CustomColors(
             success = SuccessDark,
             successContainer = SuccessDarkContainer,
@@ -172,7 +191,13 @@ val MaterialTheme.customColors: CustomColors
             accentRed = AccentRed,
             accentRedBg = AccentRedBg,
             accentPink = AccentPink,
-            accentPinkBg = AccentPinkBg
+            accentPinkBg = AccentPinkBg,
+            depositContainer = DepositBgDark,
+            onDepositContainer = DepositContentDark,
+            depositIcon = DepositIconDark,
+            withdrawContainer = WithdrawBgDark,
+            onWithdrawContainer = WithdrawContentDark,
+            withdrawIcon = WithdrawIconDark
         )
     } else {
         CustomColors(
@@ -197,9 +222,40 @@ val MaterialTheme.customColors: CustomColors
             accentRed = AccentRed,
             accentRedBg = AccentRedBg,
             accentPink = AccentPink,
-            accentPinkBg = AccentPinkBg
+            accentPinkBg = AccentPinkBg,
+            depositContainer = DepositBgLight,
+            onDepositContainer = DepositContentLight,
+            depositIcon = DepositIconLight,
+            withdrawContainer = WithdrawBgLight,
+            onWithdrawContainer = WithdrawContentLight,
+            withdrawIcon = WithdrawIconLight
         )
     }
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = colorScheme.background.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+        }
+    }
+
+    // 3. Provide the custom colors to the tree
+    CompositionLocalProvider(LocalCustomColors provides customColors) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
+}
+
+// 4. Accessor Extension
+val MaterialTheme.customColors: CustomColors
+    @Composable
+    @ReadOnlyComposable
+    get() = LocalCustomColors.current
 
 data class CustomColors(
     val success: androidx.compose.ui.graphics.Color,
@@ -223,5 +279,13 @@ data class CustomColors(
     val accentRed: androidx.compose.ui.graphics.Color,
     val accentRedBg: androidx.compose.ui.graphics.Color,
     val accentPink: androidx.compose.ui.graphics.Color,
-    val accentPinkBg: androidx.compose.ui.graphics.Color
+    val accentPinkBg: androidx.compose.ui.graphics.Color,
+    // --- ADD THESE NEW VARIABLES ---
+    val depositContainer: androidx.compose.ui.graphics.Color,
+    val onDepositContainer: androidx.compose.ui.graphics.Color,
+    val depositIcon: androidx.compose.ui.graphics.Color,
+
+    val withdrawContainer: androidx.compose.ui.graphics.Color,
+    val onWithdrawContainer: androidx.compose.ui.graphics.Color,
+    val withdrawIcon: androidx.compose.ui.graphics.Color
 )

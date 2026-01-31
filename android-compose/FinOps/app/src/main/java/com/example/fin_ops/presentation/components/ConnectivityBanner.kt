@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fin_ops.ConnectivityState
 import com.example.fin_ops.R
+import com.example.fin_ops.ui.theme.FinOpsTheme
 
 @Composable
 fun ConnectivityBanner(
@@ -92,31 +94,87 @@ fun ConnectivityBanner(
 @Preview(showBackground = true, widthDp = 360)
 @Composable
 fun ConnectivityBannerPreview() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        // Preview: No Internet State
-        Column {
-            Text("State: No Internet", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.padding(4.dp))
-            ConnectivityBanner(connectionState = ConnectivityState.NoInternet)
-        }
+    FinOpsTheme(darkTheme = false) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Preview: No Internet State
+                Column {
+                    Text("State: No Internet", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.NoInternet)
+                }
 
-        // Preview: Server Down State
-        Column {
-            Text("State: Server Offline", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.padding(4.dp))
-            ConnectivityBanner(connectionState = ConnectivityState.ServerDown)
-        }
+                // Preview: Server Down State
+                Column {
+                    Text("State: Server Offline", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.ServerDown)
+                }
 
-        // Preview: Connected (Should be invisible/empty space)
-        Column {
-            Text("State: Connected (Hidden)", fontSize = 14.sp, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.padding(4.dp))
-            ConnectivityBanner(connectionState = ConnectivityState.Connected)
+                // Preview: Connected (Should be invisible/empty space)
+                Column {
+                    Text("State: Connected (Hidden)", fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.Connected)
+                }
+            }
+        }
+    }
+
+}
+
+@Preview(showBackground = false, widthDp = 360, name = "Connectivity Banner Dark")
+@Composable
+fun ConnectivityBannerPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp)
+            ) {
+                // Preview: No Internet State
+                Column {
+                    Text(
+                        "State: No Internet",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.NoInternet)
+                }
+
+                // Preview: Server Down State
+                Column {
+                    Text(
+                        "State: Server Offline",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.ServerDown)
+                }
+
+                // Preview: Connected (Should be invisible/empty space)
+                Column {
+                    Text(
+                        "State: Connected (Hidden)",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    ConnectivityBanner(connectionState = ConnectivityState.Connected)
+                }
+            }
         }
     }
 }

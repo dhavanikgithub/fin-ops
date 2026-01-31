@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatCurrency
 
 @Composable
@@ -303,7 +304,7 @@ fun FinkedaResultDialogPreview() {
     val payoutToClient = amount - earned - platformAmount
 
     // 2. Theme Wrapper
-    MaterialTheme {
+    FinOpsTheme {
         // 3. Background Box to simulate Dialog dimming
         Box(
             modifier = Modifier
@@ -317,6 +318,49 @@ fun FinkedaResultDialogPreview() {
                 bankCharge = bankCharge,
                 // Assuming CardType is an Enum or Sealed class you defined elsewhere.
                 // Replace 'CardType.Signature' with a valid instance from your project.
+                cardType = CardType.MASTER,
+                platformChargePercent = platformChargePercent,
+                platformAmount = platformAmount,
+                portalAmount = portalAmount,
+                profit = profit,
+                payoutToClient = payoutToClient,
+                earned = earned,
+                onDismiss = {},
+                onSave = {}
+            )
+        }
+    }
+}
+
+@Preview(name = "Finkeda Result Dialog Dark", showBackground = false)
+@Composable
+fun FinkedaResultDialogPreviewDark() {
+    // 1. Mock Data Setup
+    val amount = 50000.00
+    val myCharges = 2.50
+    val bankCharge = 1.20
+    val platformChargePercent = 1.80
+
+    // Calculated values (simulated)
+    val platformAmount = amount * (platformChargePercent / 100)
+    val earned = amount * ((myCharges - bankCharge) / 100)
+    val portalAmount = amount - platformAmount
+    val profit = earned - (platformAmount * 0.1)
+    val payoutToClient = amount - earned - platformAmount
+
+    // 2. Theme Wrapper (Dark Mode Enabled)
+    FinOpsTheme(darkTheme = true) {
+        // 3. Background Box to simulate Dialog dimming
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.5f)),
+            contentAlignment = Alignment.Center
+        ) {
+            FinkedaResultDialog(
+                amount = amount,
+                myCharges = myCharges,
+                bankCharge = bankCharge,
                 cardType = CardType.MASTER,
                 platformChargePercent = platformChargePercent,
                 platformAmount = platformAmount,

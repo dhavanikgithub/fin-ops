@@ -299,3 +299,15 @@ fun BankPresetsScreenPreview() {
         BankPresetsScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }
+
+@Preview(showBackground = false, name = "Bank Presets Screen Dark")
+@Composable
+fun BankPresetsScreenPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            BankPresetsScreen(
+                viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current))
+            )
+        }
+    }
+}

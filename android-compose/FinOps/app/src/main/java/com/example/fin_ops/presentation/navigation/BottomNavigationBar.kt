@@ -7,6 +7,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,6 +20,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.fin_ops.ui.theme.FinOpsTheme
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {
@@ -73,7 +75,20 @@ fun BottomNavigationBarPreview() {
     val navController = rememberNavController()
 
     // 2. Wrap in MaterialTheme (or your app's specific FinOpsTheme)
-    MaterialTheme {
+    FinOpsTheme {
         BottomNavigationBar(navController = navController)
+    }
+}
+
+// --- Dark Theme Previews ---
+
+@Preview(showBackground = false, name = "Bottom Navigation Bar Dark")
+@Composable
+fun BottomNavigationBarPreviewDark() {
+    val navController = rememberNavController()
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            BottomNavigationBar(navController = navController)
+        }
     }
 }

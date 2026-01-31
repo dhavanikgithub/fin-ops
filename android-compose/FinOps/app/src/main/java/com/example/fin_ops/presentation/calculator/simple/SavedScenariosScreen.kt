@@ -330,3 +330,15 @@ fun SavedScenariosScreenPreview() {
         SavedScenariosScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }
+
+@Preview(showBackground = false, name = "Saved Scenarios Screen Dark")
+@Composable
+fun SavedScenariosScreenPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            SavedScenariosScreen(
+                viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current))
+            )
+        }
+    }
+}

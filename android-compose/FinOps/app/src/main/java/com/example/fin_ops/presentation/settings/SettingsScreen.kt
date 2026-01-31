@@ -27,6 +27,7 @@ import com.example.fin_ops.AppTheme
 import com.example.fin_ops.MainViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.local.ThemeStorage
+import com.example.fin_ops.ui.theme.FinOpsTheme
 
 data class SettingsItem(
     val icon: Int,
@@ -553,10 +554,32 @@ fun SettingsScreenPreview() {
         serverStatus = ServerStatus.CONNECTED,
         lastSuccessfulCheckTime = System.currentTimeMillis()
     )
+    FinOpsTheme() {
 
-    SettingsScreenContent(
-        currentTheme = AppTheme.SYSTEM,
-        settingsState = dummySettingsState,
-        onThemeChange = {}
+        SettingsScreenContent(
+            currentTheme = AppTheme.SYSTEM,
+            settingsState = dummySettingsState,
+            onThemeChange = {}
+        )
+    }
+}
+
+@Preview(showBackground = false, name = "Settings Screen Dark")
+@Composable
+fun SettingsScreenPreviewDark() {
+    // Dummy state for preview purposes
+    val dummySettingsState = SettingsState(
+        serverStatus = ServerStatus.CONNECTED,
+        lastSuccessfulCheckTime = System.currentTimeMillis()
     )
+
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            SettingsScreenContent(
+                currentTheme = AppTheme.DARK, // Visually explicitly Dark
+                settingsState = dummySettingsState,
+                onThemeChange = {}
+            )
+        }
+    }
 }

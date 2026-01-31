@@ -27,6 +27,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.LedgerBankDto
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -568,15 +569,48 @@ fun PreviewBankCard() {
         modifyTime = null,
         transactionCount = 25
     )
-    BankCard(bank = bank, onEdit = {}, onDelete = {})
+    FinOpsTheme() {
+        BankCard(bank = bank, onEdit = {}, onDelete = {})
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun PreviewBankCardDark() {
+    val bank = LedgerBankDto(
+        id = 1,
+        name = "Chase Bank",
+        createDate = "2024-05-20",
+        createTime = null,
+        modifyDate = null,
+        modifyTime = null,
+        transactionCount = 25
+    )
+    FinOpsTheme(darkTheme = true) {
+        BankCard(bank = bank, onEdit = {}, onDelete = {})
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun PreviewEmptyState() {
-    EmptyState(
-        message = "No banks yet",
-        description = "Tap the + button to add your first bank",
-        onAction = {}
-    )
+    FinOpsTheme() {
+        EmptyState(
+            message = "No banks yet",
+            description = "Tap the + button to add your first bank",
+            onAction = {}
+        )
+    }
+}
+
+@Preview(showBackground = false)
+@Composable
+fun PreviewEmptyStateDark() {
+    FinOpsTheme(darkTheme = true) {
+        EmptyState(
+            message = "No banks yet",
+            description = "Tap the + button to add your first bank",
+            onAction = {}
+        )
+    }
 }

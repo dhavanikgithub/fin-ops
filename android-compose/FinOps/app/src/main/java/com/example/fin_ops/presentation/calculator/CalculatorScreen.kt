@@ -102,11 +102,3 @@ fun CalculatorScreenContent(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun CalculatorScreenPreview() {
-    FinOpsTheme {
-        CalculatorScreenContent(navController = null)
-    }
-}

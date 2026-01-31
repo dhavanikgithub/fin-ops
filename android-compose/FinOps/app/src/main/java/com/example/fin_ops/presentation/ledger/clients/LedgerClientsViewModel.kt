@@ -15,25 +15,39 @@ import javax.inject.Inject
 data class LedgerClientsState(
     val clients: List<LedgerClientDto> = emptyList(),
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
     val error: String? = null,
     val pagination: LedgerClientPagination? = null,
-    val currentPage: Int = 1,
     val searchQuery: String = "",
-    val currentSortBy: String = "name",
-    val currentSortOrder: String = "asc",
+
+    // Form State
     val isFormVisible: Boolean = false,
-    val editingClient: LedgerClientDto? = null
+    val editingClient: LedgerClientDto? = null,
+    val formName: String = "",
+    val formEmail: String = "",
+    val formContact: String = "",
+    val formAddress: String = "",
+    val formError: String? = null,
+
+    // Delete Confirmation
+    val showDeleteDialog: Boolean = false,
+    val clientToDelete: LedgerClientDto? = null
 )
 
 sealed class LedgerClientsEvent {
-    data class LoadPage(val page: Int) : LedgerClientsEvent()
+    object LoadNextPage : LedgerClientsEvent()
     data class Search(val query: String) : LedgerClientsEvent()
-    data class ChangeSort(val sortBy: String) : LedgerClientsEvent()
-    data class DeleteClient(val id: Int) : LedgerClientsEvent()
-    data class SaveClient(val createReq: CreateLedgerClientRequest?, val updateReq: UpdateLedgerClientRequest?) : LedgerClientsEvent()
-    data class OpenForm(val client: LedgerClientDto? = null) : LedgerClientsEvent()
+    data class DeleteClient(val client: LedgerClientDto) : LedgerClientsEvent()
+    object ConfirmDelete : LedgerClientsEvent()
+    object CancelDelete : LedgerClientsEvent()
+    object SaveClient : LedgerClientsEvent()
+    data class OpenForm(val clientToEdit: LedgerClientDto? = null) : LedgerClientsEvent()
     object CloseForm : LedgerClientsEvent()
-    object Refresh : LedgerClientsEvent()
+    data class UpdateFormName(val name: String) : LedgerClientsEvent()
+    data class UpdateFormEmail(val email: String) : LedgerClientsEvent()
+    data class UpdateFormContact(val contact: String) : LedgerClientsEvent()
+    data class UpdateFormAddress(val address: String) : LedgerClientsEvent()
+    object RefreshClients : LedgerClientsEvent()
 }
 
 @HiltViewModel
@@ -54,57 +68,195 @@ class LedgerClientsViewModel @Inject constructor(
 
     fun onEvent(event: LedgerClientsEvent) {
         when (event) {
-            is LedgerClientsEvent.LoadPage -> loadClients(page = event.page)
-            is LedgerClientsEvent.Refresh -> loadClients()
+            is LedgerClientsEvent.LoadNextPage -> {
+                val pagination = state.value.pagination
+                if (pagination != null &&
+                    pagination.hasNextPage &&
+                    !state.value.isLoading &&
+                    !state.value.isLoadingMore
+                ) {
+                    loadClients(pagination.currentPage + 1, append = true)
+                }
+            }
+
             is LedgerClientsEvent.Search -> {
                 _state.value = _state.value.copy(searchQuery = event.query)
                 searchJob?.cancel()
-                searchJob = viewModelScope.launch { delay(500); loadClients(1) }
+                searchJob = viewModelScope.launch {
+                    delay(500) // Debounce
+                    loadClients(1)
+                }
             }
-            is LedgerClientsEvent.ChangeSort -> {
-                val newOrder = if (state.value.currentSortBy == event.sortBy) toggleOrder(state.value.currentSortOrder) else "asc"
-                _state.value = _state.value.copy(currentSortBy = event.sortBy, currentSortOrder = newOrder)
-                loadClients(1)
+
+            is LedgerClientsEvent.DeleteClient -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = true,
+                    clientToDelete = event.client
+                )
             }
-            is LedgerClientsEvent.DeleteClient -> performAction { deleteClientUseCase(event.id) }
-            is LedgerClientsEvent.SaveClient -> performAction {
-                if (event.updateReq != null) updateClientUseCase(event.updateReq)
-                else if (event.createReq != null) createClientUseCase(event.createReq)
-                _state.value = _state.value.copy(isFormVisible = false, editingClient = null)
+
+            is LedgerClientsEvent.ConfirmDelete -> {
+                state.value.clientToDelete?.let { client ->
+                    viewModelScope.launch {
+                        try {
+                            deleteClientUseCase(client.id)
+                            _state.value = _state.value.copy(
+                                showDeleteDialog = false,
+                                clientToDelete = null
+                            )
+                            loadClients()
+                        } catch (e: Exception) {
+                            _state.value = _state.value.copy(
+                                error = e.message,
+                                showDeleteDialog = false,
+                                clientToDelete = null
+                            )
+                        }
+                    }
+                }
             }
-            is LedgerClientsEvent.OpenForm -> _state.value = _state.value.copy(isFormVisible = true, editingClient = event.client)
-            is LedgerClientsEvent.CloseForm -> _state.value = _state.value.copy(isFormVisible = false, editingClient = null)
+
+            is LedgerClientsEvent.CancelDelete -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = false,
+                    clientToDelete = null
+                )
+            }
+
+            is LedgerClientsEvent.SaveClient -> {
+                val name = state.value.formName.trim()
+                val email = state.value.formEmail.trim()
+                val contact = state.value.formContact.trim()
+                val address = state.value.formAddress.trim()
+
+                // Validation
+                if (name.isBlank()) {
+                    _state.value = _state.value.copy(formError = "Client name cannot be empty")
+                    return
+                }
+
+                viewModelScope.launch {
+                    try {
+                        if (state.value.editingClient != null) {
+                            // Update existing client
+                            val updateReq = UpdateLedgerClientRequest(
+                                id = state.value.editingClient!!.id,
+                                name = name,
+                                email = email.ifBlank { null },
+                                contact = contact.ifBlank { null },
+                                address = address.ifBlank { null }
+                            )
+                            updateClientUseCase(updateReq)
+                        } else {
+                            // Create new client
+                            val createReq = CreateLedgerClientRequest(
+                                name = name,
+                                email = email.ifBlank { null },
+                                contact = contact.ifBlank { null },
+                                address = address.ifBlank { null }
+                            )
+                            createClientUseCase(createReq)
+                        }
+                        _state.value = _state.value.copy(
+                            isFormVisible = false,
+                            editingClient = null,
+                            formName = "",
+                            formEmail = "",
+                            formContact = "",
+                            formAddress = "",
+                            formError = null
+                        )
+                        loadClients()
+                    } catch (e: Exception) {
+                        _state.value = _state.value.copy(formError = e.message)
+                    }
+                }
+            }
+
+            is LedgerClientsEvent.OpenForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = true,
+                    editingClient = event.clientToEdit,
+                    formName = event.clientToEdit?.name ?: "",
+                    formEmail = event.clientToEdit?.email ?: "",
+                    formContact = event.clientToEdit?.contact ?: "",
+                    formAddress = event.clientToEdit?.address ?: "",
+                    formError = null
+                )
+            }
+
+            is LedgerClientsEvent.CloseForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingClient = null,
+                    formName = "",
+                    formEmail = "",
+                    formContact = "",
+                    formAddress = "",
+                    formError = null
+                )
+            }
+
+            is LedgerClientsEvent.UpdateFormName -> {
+                _state.value = _state.value.copy(
+                    formName = event.name,
+                    formError = null
+                )
+            }
+
+            is LedgerClientsEvent.UpdateFormEmail -> {
+                _state.value = _state.value.copy(formEmail = event.email)
+            }
+
+            is LedgerClientsEvent.UpdateFormContact -> {
+                _state.value = _state.value.copy(formContact = event.contact)
+            }
+
+            is LedgerClientsEvent.UpdateFormAddress -> {
+                _state.value = _state.value.copy(formAddress = event.address)
+            }
+
+            is LedgerClientsEvent.RefreshClients -> loadClients()
         }
     }
 
-    private fun loadClients(page: Int = _state.value.currentPage) {
+    private fun loadClients(page: Int = 1, append: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null, currentPage = page)
+            // Show appropriate loading indicator
+            if (append) {
+                _state.value = _state.value.copy(isLoadingMore = true, error = null)
+            } else {
+                _state.value = _state.value.copy(isLoading = true, error = null)
+            }
+
             try {
                 val result = getClientsUseCase(
                     page = page,
                     search = _state.value.searchQuery.ifBlank { null },
-                    sortBy = _state.value.currentSortBy,
-                    sortOrder = _state.value.currentSortOrder
+                    sortBy = "name",
+                    sortOrder = "asc"
                 )
+
+                val newClients = if (append) {
+                    _state.value.clients + result.data
+                } else {
+                    result.data
+                }
+
                 _state.value = _state.value.copy(
-                    clients = result.data,
+                    clients = newClients,
                     pagination = result.pagination,
-                    isLoading = false
+                    isLoading = false,
+                    isLoadingMore = false,
+                    error = null
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    error = e.message
+                )
             }
         }
     }
-
-    private fun performAction(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            try { action(); loadClients() }
-            catch (e: Exception) { _state.value = _state.value.copy(isLoading = false, error = e.message) }
-        }
-    }
-
-    private fun toggleOrder(order: String) = if (order == "asc") "desc" else "asc"
 }

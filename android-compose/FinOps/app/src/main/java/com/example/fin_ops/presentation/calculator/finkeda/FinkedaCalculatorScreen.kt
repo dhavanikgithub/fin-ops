@@ -18,6 +18,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.fin_ops.R
 import com.example.fin_ops.presentation.navigation.Routes
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatCurrency
 
 @Composable
@@ -452,10 +453,21 @@ fun FinkedaSummaryRow(
 }
 
 
-@Preview(
-    showBackground = true
-)
+@Preview(showBackground = true)
 @Composable
 fun FinkedaCalculatorPhonePreview() {
-    FinkedaCalculatorContent()
+    FinOpsTheme() {
+        FinkedaCalculatorContent()
+    }
+}
+
+@Preview(showBackground = false, name = "Finkeda Calculator Dark")
+@Composable
+fun FinkedaCalculatorPhonePreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        // Surface ensures the dark background color is applied
+        Surface(color = MaterialTheme.colorScheme.background) {
+            FinkedaCalculatorContent()
+        }
+    }
 }

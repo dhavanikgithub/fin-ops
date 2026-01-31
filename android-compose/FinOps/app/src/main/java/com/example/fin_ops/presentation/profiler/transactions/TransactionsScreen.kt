@@ -26,6 +26,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatAmount
 import com.example.fin_ops.utils.formatDoubleAmount
 import com.example.fin_ops.utils.maskCardNumber
@@ -577,39 +578,6 @@ fun EmptyStateView(
     }
 }
 
-
-
-// --- Previews ---
-@Preview(name = "Loading State", showBackground = true)
-@Composable
-fun PreviewTransactionsScreenLoading() {
-    MaterialTheme {
-        TransactionsScreenContent(
-            state = TransactionsState(isLoading = true),
-            onEvent = {}
-        )
-    }
-}
-
-@Preview(name = "Data Loaded", showBackground = true)
-@Composable
-fun PreviewTransactionsScreenLoaded() {
-    val dummy = listOf(
-        ProfilerTransactionDto(
-            1, 1, "deposit", "50000", "1.2", "100", "",
-            "2024-01-18", "2024-01-18", "John Doe", "HDFC Bank",
-            "1234 5678 9012 3456", "pending"
-        )
-    )
-    MaterialTheme {
-        TransactionsScreenContent(
-            state = TransactionsState(isLoading = false, transactions = dummy),
-            onEvent = {}
-        )
-    }
-}
-// Continuation of TransactionsScreen.kt - Form Dialogs and Autocomplete Components
-
 // --- Deposit Form Dialog ---
 @Composable
 fun DepositFormDialog(
@@ -1059,3 +1027,62 @@ fun DeleteConfirmationDialog(
     )
 }
 
+
+// --- Previews ---
+@Preview(name = "Loading State", showBackground = true)
+@Composable
+fun PreviewTransactionsScreenLoading() {
+    FinOpsTheme {
+        TransactionsScreenContent(
+            state = TransactionsState(isLoading = true),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "Loading State Dark", showBackground = false)
+@Composable
+fun PreviewTransactionsScreenLoadingDark() {
+    FinOpsTheme(darkTheme = true) {
+        TransactionsScreenContent(
+            state = TransactionsState(isLoading = true),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "Data Loaded", showBackground = true)
+@Composable
+fun PreviewTransactionsScreenLoaded() {
+    val dummy = listOf(
+        ProfilerTransactionDto(
+            1, 1, "deposit", "50000", "1.2", "100", "",
+            "2024-01-18", "2024-01-18", "John Doe", "HDFC Bank",
+            "1234 5678 9012 3456", "pending"
+        )
+    )
+    FinOpsTheme {
+        TransactionsScreenContent(
+            state = TransactionsState(isLoading = false, transactions = dummy),
+            onEvent = {}
+        )
+    }
+}
+
+@Preview(name = "Data Loaded Dark", showBackground = false)
+@Composable
+fun PreviewTransactionsScreenLoadedDark() {
+    val dummy = listOf(
+        ProfilerTransactionDto(
+            1, 1, "deposit", "50000", "1.2", "100", "",
+            "2024-01-18", "2024-01-18", "John Doe", "HDFC Bank",
+            "1234 5678 9012 3456", "pending"
+        )
+    )
+    FinOpsTheme(darkTheme = true) {
+        TransactionsScreenContent(
+            state = TransactionsState(isLoading = false, transactions = dummy),
+            onEvent = {}
+        )
+    }
+}

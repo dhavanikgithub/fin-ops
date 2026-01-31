@@ -415,3 +415,84 @@ fun FinkedaScenarioCardPreview() {
         }
     }
 }
+
+// --- Dark Theme Previews ---
+
+@Preview(showBackground = false, name = "Populated List Dark")
+@Composable
+fun FinkedaSavedScenariosScreenPreviewDark() {
+    val dummyScenarios = listOf(
+        FinkedaSavedScenario(
+            id = "1",
+            amount = 50000.0,
+            myCharges = 2.0,
+            bankCharge = 1.0,
+            cardType = CardType.MASTER,
+            platformChargePercent = 0.5,
+            savedAt = System.currentTimeMillis()
+        ),
+        FinkedaSavedScenario(
+            id = "2",
+            amount = 12500.0,
+            myCharges = 1.8,
+            bankCharge = 0.5,
+            cardType = CardType.RUPAY,
+            platformChargePercent = 0.0,
+            savedAt = System.currentTimeMillis() - 86400000 // Yesterday
+        )
+    )
+
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            FinkedaSavedScenariosContent(
+                savedScenarios = dummyScenarios,
+                onApply = {},
+                onDelete = {},
+                onClearAll = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Empty State Dark")
+@Composable
+fun FinkedaSavedScenariosEmptyPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            FinkedaSavedScenariosContent(
+                savedScenarios = emptyList(),
+                onApply = {},
+                onDelete = {},
+                onClearAll = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Single Card Dark")
+@Composable
+fun FinkedaScenarioCardPreviewDark() {
+    val scenario = FinkedaSavedScenario(
+        id = "1",
+        amount = 75000.0,
+        myCharges = 2.5,
+        bankCharge = 1.2,
+        cardType = CardType.MASTER,
+        platformChargePercent = 0.5,
+        savedAt = System.currentTimeMillis()
+    )
+
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Box(modifier = Modifier.padding(16.dp)) {
+                FinkedaScenarioCard(
+                    scenario = scenario,
+                    onApply = {},
+                    onDelete = {}
+                )
+            }
+        }
+    }
+}

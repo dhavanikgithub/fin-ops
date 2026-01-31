@@ -24,6 +24,7 @@ import androidx.navigation.NavController
 import com.example.fin_ops.R
 import com.example.fin_ops.data.local.CalculatorStorage
 import com.example.fin_ops.presentation.navigation.Routes
+import com.example.fin_ops.ui.theme.FinOpsTheme
 
 // 1. The Stateful Component
 @Composable
@@ -353,7 +354,19 @@ fun SimpleCalculatorContent(
 @Preview(showBackground = true)
 @Composable
 fun SimpleCalculatorScreenPreview() {
-    MaterialTheme {
+    FinOpsTheme {
         SimpleCalculatorContent(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
+    }
+}
+
+@Preview(showBackground = false, name = "Simple Calculator Screen Dark")
+@Composable
+fun SimpleCalculatorScreenPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            SimpleCalculatorContent(
+                viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current))
+            )
+        }
     }
 }

@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
 import com.example.fin_ops.presentation.navigation.Routes
+import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.utils.formatAmount
 import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
@@ -1254,11 +1255,26 @@ fun FilterDialog(
 @Preview(showBackground = true)
 @Composable
 fun PreviewProfileScreen() {
-    MaterialTheme {
+    FinOpsTheme {
         ProfileScreenContent(
             state = ProfilesState(isLoading = false),
             onEvent = {},
             rememberNavController()
         )
+    }
+}
+
+@Preview(showBackground = false, name = "Profile Screen Dark")
+@Composable
+fun PreviewProfileScreenDark() {
+    FinOpsTheme(darkTheme = true) {
+        // Surface provides the dark background color
+        Surface(color = MaterialTheme.colorScheme.background) {
+            ProfileScreenContent(
+                state = ProfilesState(isLoading = false),
+                onEvent = {},
+                navController = rememberNavController()
+            )
+        }
     }
 }

@@ -552,3 +552,57 @@ fun FinkedaSettingsLoadingPreview() {
         )
     }
 }
+
+// --- Dark Theme Previews ---
+
+@Preview(showBackground = false, name = "Standard View Dark")
+@Composable
+fun FinkedaSettingsScreenPreviewDark() {
+    val dummySettings = FinkedaSettingsDto(
+        id = 1,
+        rupayCardChargeAmount = 0.5f,
+        masterCardChargeAmount = 1.2f,
+        createDate = "2024-01-01",
+        createTime = "10:00:00",
+        modifyDate = null,
+        modifyTime = null
+    )
+
+    val dummyState = FinkedaSettingsState(
+        settings = dummySettings,
+        isLoading = false,
+        isSaving = false
+    )
+
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            FinkedaSettingsContent(
+                settingsState = dummyState,
+                snackbarHostState = SnackbarHostState(),
+                onUpdateSettings = { _, _ -> },
+                onLoadHistory = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Loading State Dark")
+@Composable
+fun FinkedaSettingsLoadingPreviewDark() {
+    val dummyState = FinkedaSettingsState(
+        isLoading = true
+    )
+
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            FinkedaSettingsContent(
+                settingsState = dummyState,
+                snackbarHostState = SnackbarHostState(),
+                onUpdateSettings = { _, _ -> },
+                onLoadHistory = {},
+                onNavigateBack = {}
+            )
+        }
+    }
+}

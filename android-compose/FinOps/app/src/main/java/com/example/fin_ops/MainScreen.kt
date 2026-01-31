@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.windowInsetsTopHeight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -76,8 +77,8 @@ fun MainScreen(
 
     // Configure the Title
     val title = when (currentRoute) {
-        BottomNavItem.Profiler.route -> "Profiler"
-        BottomNavItem.Ledger.route -> "Ledger"
+        BottomNavItem.Profiler.route -> "Profiler Dashboard"
+        BottomNavItem.Ledger.route -> "Ledger Dashboard"
         BottomNavItem.Calculator.route -> "Calculator"
         BottomNavItem.Settings.route -> "Settings"
         Routes.PF_PROFILES -> "Profiles"
@@ -129,7 +130,7 @@ fun MainScreen(
 
                 // 3. The App Bar
                 // We pass 0 insets because the Spacer at #1 already reserved the top space
-                if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route ) {
+                if (currentRoute != BottomNavItem.Profiler.route) {
                     FinOpsTopAppBar(
                         title = title,
                         navController = navController,
@@ -265,6 +266,49 @@ fun MainScreenPreview() {
                     state = dummyProfileState,
                     transactionsState = dummyTransactionState
                 )
+            }
+        }
+    }
+}
+
+@Preview(showBackground = false, name = "Main Screen Dark")
+@Composable
+fun MainScreenPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        // Surface ensures the dark background is applied behind the Scaffold
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Scaffold(
+                topBar = {
+                    FinOpsTopAppBar(
+                        title = "Preview",
+                        navController = rememberNavController(),
+                        showBackButton = false
+                    )
+                },
+                bottomBar = {
+                    BottomNavigationBar(navController = rememberNavController())
+                }
+            ) { innerPadding ->
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    // 1. Create Mock/Dummy Data for the preview
+                    val dummyProfileState = ProfilerState(
+                        isLoading = false,
+                        error = "",
+                        profiles = emptyList()
+                    )
+
+                    val dummyTransactionState = TransactionState(
+                        isLoading = false,
+                        transactions = null
+                    )
+
+                    // 2. Call the CONTENT composable
+                    ProfilerScreenContent(
+                        navController = rememberNavController(),
+                        state = dummyProfileState,
+                        transactionsState = dummyTransactionState
+                    )
+                }
             }
         }
     }

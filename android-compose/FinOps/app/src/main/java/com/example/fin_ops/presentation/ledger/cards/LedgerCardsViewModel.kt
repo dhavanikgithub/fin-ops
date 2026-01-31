@@ -16,26 +16,33 @@ import javax.inject.Inject
 data class LedgerCardsState(
     val cards: List<LedgerCardDto> = emptyList(),
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false,
     val error: String? = null,
     val pagination: LedgerCardPagination? = null,
-    val currentPage: Int = 1,
     val searchQuery: String = "",
-    val currentSortBy: String = "name",
-    val currentSortOrder: String = "asc",
+
     // Form State
     val isFormVisible: Boolean = false,
-    val editingCard: LedgerCardDto? = null // Null for Create, Object for Edit
+    val editingCard: LedgerCardDto? = null,
+    val formCardName: String = "",
+    val formError: String? = null,
+
+    // Delete Confirmation
+    val showDeleteDialog: Boolean = false,
+    val cardToDelete: LedgerCardDto? = null
 )
 
 sealed class LedgerCardsEvent {
-    data class LoadPage(val page: Int) : LedgerCardsEvent()
+    object LoadNextPage : LedgerCardsEvent()
     data class Search(val query: String) : LedgerCardsEvent()
-    data class ChangeSort(val sortBy: String) : LedgerCardsEvent()
-    data class DeleteCard(val id: Int) : LedgerCardsEvent()
-    data class SaveCard(val name: String) : LedgerCardsEvent() // Create or Update based on state
-    data class OpenForm(val card: LedgerCardDto? = null) : LedgerCardsEvent()
+    data class DeleteCard(val card: LedgerCardDto) : LedgerCardsEvent()
+    object ConfirmDelete : LedgerCardsEvent()
+    object CancelDelete : LedgerCardsEvent()
+    object SaveCard : LedgerCardsEvent()
+    data class OpenForm(val cardToEdit: LedgerCardDto? = null) : LedgerCardsEvent()
     object CloseForm : LedgerCardsEvent()
-    object Refresh : LedgerCardsEvent()
+    data class UpdateFormCardName(val name: String) : LedgerCardsEvent()
+    object RefreshCards : LedgerCardsEvent()
 }
 
 @HiltViewModel
@@ -56,60 +63,156 @@ class LedgerCardsViewModel @Inject constructor(
 
     fun onEvent(event: LedgerCardsEvent) {
         when (event) {
-            is LedgerCardsEvent.LoadPage -> loadCards(page = event.page)
-            is LedgerCardsEvent.Refresh -> loadCards()
+            is LedgerCardsEvent.LoadNextPage -> {
+                val pagination = state.value.pagination
+                if (pagination != null &&
+                    pagination.hasNextPage &&
+                    !state.value.isLoading &&
+                    !state.value.isLoadingMore
+                ) {
+                    loadCards(pagination.currentPage + 1, append = true)
+                }
+            }
+
             is LedgerCardsEvent.Search -> {
                 _state.value = _state.value.copy(searchQuery = event.query)
                 searchJob?.cancel()
-                searchJob = viewModelScope.launch { delay(500); loadCards(1) }
-            }
-            is LedgerCardsEvent.ChangeSort -> {
-                val newOrder = if (state.value.currentSortBy == event.sortBy) toggleOrder(state.value.currentSortOrder) else "asc"
-                _state.value = _state.value.copy(currentSortBy = event.sortBy, currentSortOrder = newOrder)
-                loadCards(1)
-            }
-            is LedgerCardsEvent.DeleteCard -> performAction { deleteCardUseCase(event.id) }
-            is LedgerCardsEvent.SaveCard -> performAction {
-                if (state.value.editingCard != null) {
-                    updateCardUseCase(state.value.editingCard!!.id, event.name)
-                } else {
-                    createCardUseCase(event.name)
+                searchJob = viewModelScope.launch {
+                    delay(500) // Debounce
+                    loadCards(1)
                 }
-                _state.value = _state.value.copy(isFormVisible = false, editingCard = null)
             }
-            is LedgerCardsEvent.OpenForm -> _state.value = _state.value.copy(isFormVisible = true, editingCard = event.card)
-            is LedgerCardsEvent.CloseForm -> _state.value = _state.value.copy(isFormVisible = false, editingCard = null)
+
+            is LedgerCardsEvent.DeleteCard -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = true,
+                    cardToDelete = event.card
+                )
+            }
+
+            is LedgerCardsEvent.ConfirmDelete -> {
+                state.value.cardToDelete?.let { card ->
+                    viewModelScope.launch {
+                        try {
+                            deleteCardUseCase(card.id)
+                            _state.value = _state.value.copy(
+                                showDeleteDialog = false,
+                                cardToDelete = null
+                            )
+                            loadCards()
+                        } catch (e: Exception) {
+                            _state.value = _state.value.copy(
+                                error = e.message,
+                                showDeleteDialog = false,
+                                cardToDelete = null
+                            )
+                        }
+                    }
+                }
+            }
+
+            is LedgerCardsEvent.CancelDelete -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = false,
+                    cardToDelete = null
+                )
+            }
+
+            is LedgerCardsEvent.SaveCard -> {
+                val cardName = state.value.formCardName.trim()
+                if (cardName.isBlank()) {
+                    _state.value = _state.value.copy(formError = "Card name cannot be empty")
+                    return
+                }
+
+                viewModelScope.launch {
+                    try {
+                        if (state.value.editingCard != null) {
+                            // Update existing card
+                            updateCardUseCase(state.value.editingCard!!.id, cardName)
+                        } else {
+                            // Create new card
+                            createCardUseCase(cardName)
+                        }
+                        _state.value = _state.value.copy(
+                            isFormVisible = false,
+                            editingCard = null,
+                            formCardName = "",
+                            formError = null
+                        )
+                        loadCards()
+                    } catch (e: Exception) {
+                        _state.value = _state.value.copy(formError = e.message)
+                    }
+                }
+            }
+
+            is LedgerCardsEvent.OpenForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = true,
+                    editingCard = event.cardToEdit,
+                    formCardName = event.cardToEdit?.name ?: "",
+                    formError = null
+                )
+            }
+
+            is LedgerCardsEvent.CloseForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingCard = null,
+                    formCardName = "",
+                    formError = null
+                )
+            }
+
+            is LedgerCardsEvent.UpdateFormCardName -> {
+                _state.value = _state.value.copy(
+                    formCardName = event.name,
+                    formError = null
+                )
+            }
+
+            is LedgerCardsEvent.RefreshCards -> loadCards()
         }
     }
 
-    private fun loadCards(page: Int = _state.value.currentPage) {
+    private fun loadCards(page: Int = 1, append: Boolean = false) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null, currentPage = page)
+            // Show appropriate loading indicator
+            if (append) {
+                _state.value = _state.value.copy(isLoadingMore = true, error = null)
+            } else {
+                _state.value = _state.value.copy(isLoading = true, error = null)
+            }
+
             try {
                 val result = getCardsUseCase(
                     page = page,
                     search = _state.value.searchQuery.ifBlank { null },
-                    sortBy = _state.value.currentSortBy,
-                    sortOrder = _state.value.currentSortOrder
+                    sortBy = "name",
+                    sortOrder = "asc"
                 )
+
+                val newCards = if (append) {
+                    _state.value.cards + result.data
+                } else {
+                    result.data
+                }
+
                 _state.value = _state.value.copy(
-                    cards = result.data,
+                    cards = newCards,
                     pagination = result.pagination,
-                    isLoading = false
+                    isLoading = false,
+                    isLoadingMore = false,
+                    error = null
                 )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(isLoading = false, error = e.message)
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    error = e.message
+                )
             }
         }
     }
-
-    private fun performAction(action: suspend () -> Unit) {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true)
-            try { action(); loadCards() }
-            catch (e: Exception) { _state.value = _state.value.copy(isLoading = false, error = e.message) }
-        }
-    }
-
-    private fun toggleOrder(order: String) = if (order == "asc") "desc" else "asc"
 }

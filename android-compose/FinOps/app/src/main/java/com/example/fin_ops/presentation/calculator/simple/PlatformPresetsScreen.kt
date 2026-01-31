@@ -298,3 +298,15 @@ fun PlatformPresetsScreenPreview() {
         PlatformPresetsScreen(viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current)))
     }
 }
+
+@Preview(showBackground = false, name = "Platform Presets Screen Dark")
+@Composable
+fun PlatformPresetsScreenPreviewDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            PlatformPresetsScreen(
+                viewModel = CalculatorViewModel(CalculatorStorage(LocalContext.current))
+            )
+        }
+    }
+}
