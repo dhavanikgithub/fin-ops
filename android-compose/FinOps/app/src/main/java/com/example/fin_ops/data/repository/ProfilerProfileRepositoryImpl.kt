@@ -10,9 +10,45 @@ class ProfilerProfileRepositoryImpl @Inject constructor(
 ) : ProfilerProfileRepository {
 
     override suspend fun getProfiles(
-        page: Int, limit: Int, search: String?, status: String?, sortBy: String, sortOrder: String
+        page: Int,
+        limit: Int,
+        search: String?,
+        clientId: String?,
+        bankId: String?,
+        status: String?,
+        carryForwardEnabled: Boolean?,
+        hasPositiveBalance: Boolean?,
+        hasNegativeBalance: Boolean?,
+        balanceGreaterThan: Double?,
+        balanceLessThan: Double?,
+        createdAtStart: String?,
+        createdAtEnd: String?,
+        prePlannedDepositAmount: Double?,
+        minDepositAmount: Double?,
+        maxDepositAmount: Double?,
+        sortBy: String,
+        sortOrder: String
     ): ProfilerProfileData {
-        return apiService.getProfilerProfiles(page, limit, search, status = status, sortBy = sortBy, sortOrder = sortOrder).data
+        return apiService.getProfilerProfiles(
+            page = page,
+            limit = limit,
+            search = search,
+            clientId = clientId,
+            bankId = bankId,
+            status = status,
+            carryForwardEnabled = carryForwardEnabled,
+            hasPositiveBalance = hasPositiveBalance,
+            hasNegativeBalance = hasNegativeBalance,
+            balanceGreaterThan = balanceGreaterThan,
+            balanceLessThan = balanceLessThan,
+            createdAtStart = createdAtStart,
+            createdAtEnd = createdAtEnd,
+            prePlannedDepositAmount = prePlannedDepositAmount,
+            minDepositAmount = minDepositAmount,
+            maxDepositAmount = maxDepositAmount,
+            sortBy = sortBy,
+            sortOrder = sortOrder
+        ).data
     }
 
     override suspend fun getDashboardProfiles(page: Int): ProfilerProfileData {

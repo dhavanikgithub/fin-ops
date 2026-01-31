@@ -76,6 +76,16 @@ interface ApiService {
         @Query("client_id") clientId: String? = null,
         @Query("bank_id") bankId: String? = null,
         @Query("status") status: String? = null,
+        @Query("carry_forward_enabled") carryForwardEnabled: Boolean? = null,
+        @Query("has_positive_balance") hasPositiveBalance: Boolean? = null,
+        @Query("has_negative_balance") hasNegativeBalance: Boolean? = null,
+        @Query("balance_greater_than") balanceGreaterThan: Double? = null,
+        @Query("balance_less_than") balanceLessThan: Double? = null,
+        @Query("created_at_start") createdAtStart: String? = null,
+        @Query("created_at_end") createdAtEnd: String? = null,
+        @Query("pre_planned_deposit_amount") prePlannedDepositAmount: Double? = null,
+        @Query("min_deposit_amount") minDepositAmount: Double? = null,
+        @Query("max_deposit_amount") maxDepositAmount: Double? = null,
         @Query("sort_by") sortBy: String = "created_at",
         @Query("sort_order") sortOrder: String = "desc"
     ): ProfilerProfileResponse

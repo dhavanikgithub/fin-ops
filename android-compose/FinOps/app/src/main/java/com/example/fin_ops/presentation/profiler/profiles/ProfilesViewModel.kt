@@ -47,6 +47,11 @@ class ProfilesViewModel @Inject constructor(
                 searchDebounced(event.query)
             }
 
+            is ProfilesEvent.SelectStatus -> {
+                _state.value = _state.value.copy(selectedStatus = event.status)
+                loadProfiles(1)
+            }
+
             is ProfilesEvent.ToggleDashboardMode -> {
                 _state.value = _state.value.copy(isDashboardMode = event.enabled)
                 loadProfiles(1)
@@ -208,7 +213,7 @@ class ProfilesViewModel @Inject constructor(
                         page = page,
                         limit = 50,
                         search = _state.value.searchQuery.ifBlank { null },
-                        status = "active",
+                        status = _state.value.selectedStatus, // Use selected status from state
                         sortBy = "created_at",
                         sortOrder = "desc"
                     )
@@ -448,6 +453,7 @@ class ProfilesViewModel @Inject constructor(
 sealed class ProfilesEvent {
     data class LoadProfiles(val page: Int) : ProfilesEvent()
     data class Search(val query: String) : ProfilesEvent()
+    data class SelectStatus(val status: String?) : ProfilesEvent() // null for All, "active", "done"
     data class ToggleDashboardMode(val enabled: Boolean) : ProfilesEvent()
     object SaveProfile : ProfilesEvent()
     data class DeleteProfile(val profile: ProfilerProfileDto) : ProfilesEvent()

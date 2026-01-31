@@ -121,7 +121,13 @@ fun ProfileScreenContent(
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf(ProfileTab.Active) }
+    // Convert status string to ProfileTab enum
+    val selectedTab = when (state.selectedStatus) {
+        null -> ProfileTab.All
+        "active" -> ProfileTab.Active
+        "done" -> ProfileTab.Completed
+        else -> ProfileTab.Active
+    }
 
     Column(
         modifier = modifier
@@ -189,7 +195,9 @@ fun ProfileScreenContent(
             stickyHeader {
                 ProfileTabRow(
                     selectedTab = selectedTab,
-                    onTabSelected = { selectedTab = it }
+                    onTabSelected = { tab ->
+                        onEvent(ProfilesEvent.SelectStatus(tab.status))
+                    }
                 )
             }
 

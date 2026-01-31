@@ -12,6 +12,9 @@ data class ProfilesState(
     val pagination: Pagination? = null,
     val searchQuery: String = "",
 
+    // Filter
+    val selectedStatus: String? = "active", // null for All, "active", "done"
+
     // Dashboard mode
     val isDashboardMode: Boolean = false,
 
