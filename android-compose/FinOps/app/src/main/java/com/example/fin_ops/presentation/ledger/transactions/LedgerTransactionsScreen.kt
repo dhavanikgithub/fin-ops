@@ -345,6 +345,23 @@ fun TransactionCard(
                         fontWeight = FontWeight.Bold,
                         color = contentColor // Matches the card theme (Green/Red)
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    // Date and Time
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.calendar),
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = formatDateTime(transaction.createDate, transaction.createTime),
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
 
                     // Bank Info
@@ -683,6 +700,51 @@ fun ExportSuccessDialog(
     )
 }
 
+// --- Helper Functions ---
+fun formatDateTime(date: String?, time: String?): String {
+    if (date == null && time == null) return "N/A"
+
+    // Format date
+    val formattedDate = if (date != null) {
+        try {
+            // Handle ISO datetime format (e.g., "2026-01-17T18:30:00.000Z")
+            val dateOnly = if (date.contains("T")) {
+                date.split("T")[0]
+            } else {
+                date
+            }
+
+            val parts = dateOnly.split("-")
+            if (parts.size == 3) {
+                "${parts[2]}/${parts[1]}/${parts[0].substring(2)}" // DD/MM/YY
+            } else {
+                dateOnly
+            }
+        } catch (e: Exception) {
+            date
+        }
+    } else ""
+
+    // Format time - extract HH:mm:ss and remove milliseconds/timezone
+    val formattedTime = if (time != null) {
+        try {
+            // Handle formats like "14:27:54.19779941+05:30" or "18:30:00.000Z"
+            val timeWithoutTz = time.split("+")[0].split("Z")[0]
+            val timeParts = timeWithoutTz.split(".")
+            timeParts[0] // Returns just HH:mm:ss
+        } catch (e: Exception) {
+            time
+        }
+    } else ""
+
+    return when {
+        formattedDate.isNotEmpty() && formattedTime.isNotEmpty() -> "$formattedDate • $formattedTime"
+        formattedDate.isNotEmpty() -> formattedDate
+        formattedTime.isNotEmpty() -> formattedTime
+        else -> "N/A"
+    }
+}
+
 // --- Previews ---
 @androidx.compose.ui.tooling.preview.Preview(name = "Transaction Card - Deposit", showBackground = true)
 @Composable
@@ -690,7 +752,7 @@ fun PreviewTransactionCardDeposit() {
     FinOpsTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             TransactionCard(
-                transaction = LedgerTransactionDto(1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC Bank", 1, "Visa Gold", "Monthly deposit", "2024-01-15", "10:00"),
+                transaction = LedgerTransactionDto(1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC Bank", 1, "Visa Gold", "Monthly deposit", "2024-01-15", "10:23:45"),
                 onEdit = {},
                 onDelete = {}
             )
@@ -704,7 +766,7 @@ fun PreviewTransactionCardWithdrawal() {
     FinOpsTheme {
         Box(modifier = Modifier.padding(16.dp)) {
             TransactionCard(
-                transaction = LedgerTransactionDto(2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI Bank", 2, "Mastercard", "ATM withdrawal", "2024-01-16", "11:00"),
+                transaction = LedgerTransactionDto(2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI Bank", 2, "Mastercard", "ATM withdrawal", "2024-01-16", "14:17:32"),
                 onEdit = {},
                 onDelete = {}
             )
@@ -731,8 +793,8 @@ fun PreviewContentLoaded() {
             state = LedgerTransactionsState(
                 isLoading = false,
                 transactions = listOf(
-                    LedgerTransactionDto(1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC", 1, "Visa", "Deposit", "2024-01-15", "10:00"),
-                    LedgerTransactionDto(2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI", 2, "Mastercard", "Withdrawal", "2024-01-16", "11:00")
+                    LedgerTransactionDto(1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC", 1, "Visa", "Deposit", "2024-01-15", "10:23:45"),
+                    LedgerTransactionDto(2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI", 2, "Mastercard", "Withdrawal", "2024-01-16", "14:17:32")
                 )
             ),
             onEvent = {}
@@ -761,7 +823,7 @@ fun PreviewTransactionCardDepositDark() {
             Box(modifier = Modifier.padding(16.dp)) {
                 TransactionCard(
                     transaction = LedgerTransactionDto(
-                        1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC Bank", 1, "Visa Gold", "Monthly deposit", "2024-01-15", "10:00"
+                        1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC Bank", 1, "Visa Gold", "Monthly deposit", "2024-01-15", "10:23:45"
                     ),
                     onEdit = {},
                     onDelete = {}
@@ -779,7 +841,7 @@ fun PreviewTransactionCardWithdrawalDark() {
             Box(modifier = Modifier.padding(16.dp)) {
                 TransactionCard(
                     transaction = LedgerTransactionDto(
-                        2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI Bank", 2, "Mastercard", "ATM withdrawal", "2024-01-16", "11:00"
+                        2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI Bank", 2, "Mastercard", "ATM withdrawal", "2024-01-16", "14:17:32"
                     ),
                     onEdit = {},
                     onDelete = {}
@@ -812,10 +874,10 @@ fun PreviewContentLoadedDark() {
                     isLoading = false,
                     transactions = listOf(
                         LedgerTransactionDto(
-                            1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC", 1, "Visa", "Deposit", "2024-01-15", "10:00"
+                            1, 101, 1, 0.0, 5000.0, "John Doe", 1, "HDFC", 1, "Visa", "Deposit", "2024-01-15", "10:23:45"
                         ),
                         LedgerTransactionDto(
-                            2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI", 2, "Mastercard", "Withdrawal", "2024-01-16", "11:00"
+                            2, 102, 0, 50.0, 2000.0, "Jane Smith", 2, "ICICI", 2, "Mastercard", "Withdrawal", "2024-01-16", "14:17:32"
                         )
                     )
                 ),
