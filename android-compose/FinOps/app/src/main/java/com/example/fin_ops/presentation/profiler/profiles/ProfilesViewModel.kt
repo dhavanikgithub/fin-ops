@@ -222,7 +222,7 @@ class ProfilesViewModel @Inject constructor(
                 // Calculate stats
                 val totalCount = result.pagination.totalCount
                 val activeCount = result.data.count { it.status == "active" }
-                val completedCount = result.data.count { it.status == "completed" }
+                val completedCount = result.data.count { it.status == "done" }
                 val transactionCount = result.data.sumOf { it.transactionCount.toIntOrNull() ?: 0 }
 
                 _state.value = _state.value.copy(
