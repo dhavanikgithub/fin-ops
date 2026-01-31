@@ -204,6 +204,12 @@ fun LedgerTransactionsScreenContent(
             onTabSelected = { onEvent(LedgerTransactionsEvent.SelectTab(it)) }
         )
 
+        // Transaction Type Filter
+        TransactionTypeFilterRow(
+            selectedType = state.selectedType,
+            onTypeSelected = { onEvent(LedgerTransactionsEvent.SelectType(it)) }
+        )
+
         // Loading or List
         if (state.isLoading && state.transactions.isEmpty()) {
             LazyColumn(
@@ -552,6 +558,59 @@ fun FilterTabsRow(
                 label = { Text(tab) },
                 colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = Color(0xFF2B7FFF),
+                    selectedLabelColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    selectedBorderColor = Color.Transparent,
+                    borderWidth = 1.dp
+                )
+            )
+        }
+    }
+}
+
+// --- Transaction Type Filter ---
+@Composable
+fun TransactionTypeFilterRow(
+    selectedType: String,
+    onTypeSelected: (String) -> Unit
+) {
+    val types = listOf("All", "Deposit", "Withdrawal")
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        types.forEach { type ->
+            val isSelected = selectedType == type
+            FilterChip(
+                selected = isSelected,
+                onClick = { onTypeSelected(type) },
+                label = { Text(type) },
+                leadingIcon = if (type != "All") {
+                    {
+                        Icon(
+                            painter = painterResource(
+                                id = if (type == "Deposit") R.drawable.trending_up else R.drawable.trending_down
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = when (type) {
+                        "Deposit" -> Color(0xFF10B981)
+                        "Withdrawal" -> Color(0xFFEF4444)
+                        else -> Color(0xFF6B7280)
+                    },
                     selectedLabelColor = Color.White,
                     containerColor = MaterialTheme.colorScheme.surface,
                     labelColor = MaterialTheme.colorScheme.onSurface
@@ -967,6 +1026,47 @@ fun PreviewFilterTabsDark() {
                 FilterTabsRow(
                     selectedTab = "This Week",
                     onTabSelected = {}
+                )
+            }
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Transaction Type Filter", showBackground = true)
+@Composable
+fun PreviewTransactionTypeFilter() {
+    FinOpsTheme {
+        Column {
+            TransactionTypeFilterRow(
+                selectedType = "All",
+                onTypeSelected = {}
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Transaction Type Filter - Deposit", showBackground = true)
+@Composable
+fun PreviewTransactionTypeFilterDeposit() {
+    FinOpsTheme {
+        Column {
+            TransactionTypeFilterRow(
+                selectedType = "Deposit",
+                onTypeSelected = {}
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Transaction Type Filter Dark", showBackground = false)
+@Composable
+fun PreviewTransactionTypeFilterDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column {
+                TransactionTypeFilterRow(
+                    selectedType = "Withdrawal",
+                    onTypeSelected = {}
                 )
             }
         }

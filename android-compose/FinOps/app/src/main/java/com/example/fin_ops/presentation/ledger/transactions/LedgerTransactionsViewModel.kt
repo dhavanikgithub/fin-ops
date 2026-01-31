@@ -22,6 +22,7 @@ data class LedgerTransactionsState(
 
     // Filter Tabs
     val selectedTab: String = "Today", // All, Today, Yesterday, This Week, This Month
+    val selectedType: String = "All", // All, Deposit, Withdrawal
 
     // Form State
     val isFormVisible: Boolean = false,
@@ -49,6 +50,7 @@ sealed class LedgerTransactionsEvent {
     object LoadNextPage : LedgerTransactionsEvent()
     data class Search(val query: String) : LedgerTransactionsEvent()
     data class SelectTab(val tab: String) : LedgerTransactionsEvent()
+    data class SelectType(val type: String) : LedgerTransactionsEvent()
     data class DeleteTransaction(val transaction: LedgerTransactionDto) : LedgerTransactionsEvent()
     object ConfirmDelete : LedgerTransactionsEvent()
     object CancelDelete : LedgerTransactionsEvent()
@@ -108,6 +110,11 @@ class LedgerTransactionsViewModel @Inject constructor(
 
             is LedgerTransactionsEvent.SelectTab -> {
                 _state.value = _state.value.copy(selectedTab = event.tab)
+                loadTransactions(1)
+            }
+
+            is LedgerTransactionsEvent.SelectType -> {
+                _state.value = _state.value.copy(selectedType = event.type)
                 loadTransactions(1)
             }
 
@@ -293,10 +300,17 @@ class LedgerTransactionsViewModel @Inject constructor(
                 // Calculate date range based on selected tab
                 val dateRange = getDateRangeForTab(_state.value.selectedTab)
 
+                // Get transaction type filter
+                val typeFilter = when (_state.value.selectedType) {
+                    "Deposit" -> 1
+                    "Withdrawal" -> 0
+                    else -> null // "All"
+                }
+
                 val result = getTransactionsUseCase(
                     page = page,
                     search = _state.value.searchQuery.ifBlank { null },
-                    type = null,
+                    type = typeFilter,
                     startDate = dateRange.first,
                     endDate = dateRange.second,
                     sortBy = "create_date",
