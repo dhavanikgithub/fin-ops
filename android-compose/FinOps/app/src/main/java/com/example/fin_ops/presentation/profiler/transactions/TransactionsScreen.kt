@@ -117,27 +117,6 @@ fun TransactionsScreen(
             onDismiss = { viewModel.onEvent(TransactionsEvent.CancelDelete) }
         )
     }
-
-    if (state.showSortDialog) {
-        SortDialog(
-            currentSortBy = state.sortBy,
-            currentSortOrder = state.sortOrder,
-            onSortChange = { sortBy ->
-                viewModel.onEvent(TransactionsEvent.ChangeSortBy(sortBy))
-            },
-            onDismiss = { viewModel.onEvent(TransactionsEvent.ShowSortDialog(false)) }
-        )
-    }
-
-    if (state.showFilterDialog) {
-        FilterDialog(
-            currentFilter = state.filterType,
-            onFilterChange = { type ->
-                viewModel.onEvent(TransactionsEvent.FilterByType(type))
-            },
-            onDismiss = { viewModel.onEvent(TransactionsEvent.ShowFilterDialog(false)) }
-        )
-    }
 }
 
 // --- Content Component ---
@@ -163,15 +142,6 @@ fun TransactionsScreenContent(
         SearchBar(
             searchQuery = state.searchQuery,
             onSearchChange = { onEvent(TransactionsEvent.Search(it)) }
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        // Filter Buttons
-        FilterButtonsRow(
-            currentFilter = state.filterType,
-            onFilterClick = { type -> onEvent(TransactionsEvent.FilterByType(type)) },
-            onSortClick = { onEvent(TransactionsEvent.ShowSortDialog(true)) }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -273,7 +243,7 @@ fun SearchBar(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChange,
-        placeholder = { Text("Search transactions...") },
+        placeholder = { Text("Search...") },
         leadingIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.search),
@@ -304,84 +274,6 @@ fun SearchBar(
         ),
         singleLine = true
     )
-}
-
-// --- Filter Buttons Row ---
-@Composable
-fun FilterButtonsRow(
-    currentFilter: String?,
-    onFilterClick: (String?) -> Unit,
-    onSortClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Button(
-            onClick = { onFilterClick(null) },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (currentFilter == null) Color(0xFF0B99FF) else MaterialTheme.colorScheme.surface,
-                contentColor = if (currentFilter == null) Color.White else MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Text("All", fontSize = 12.sp)
-        }
-
-        Button(
-            onClick = { onFilterClick("deposit") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (currentFilter == "deposit") Color(0xFF16A34A) else MaterialTheme.colorScheme.surface,
-                contentColor = if (currentFilter == "deposit") Color.White else MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.trending_up),
-                contentDescription = "Deposits",
-                modifier = Modifier.size(14.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Deposits", fontSize = 12.sp)
-        }
-
-        Button(
-            onClick = { onFilterClick("withdraw") },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = if (currentFilter == "withdraw") Color(0xFFDC2626) else MaterialTheme.colorScheme.surface,
-                contentColor = if (currentFilter == "withdraw") Color.White else MaterialTheme.colorScheme.onSurface
-            ),
-            shape = RoundedCornerShape(8.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp),
-            modifier = Modifier.height(32.dp)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.trending_down),
-                contentDescription = "Withdrawals",
-                modifier = Modifier.size(14.dp)
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text("Withdrawals", fontSize = 12.sp)
-        }
-
-        Spacer(modifier = Modifier.weight(1f))
-
-        IconButton(
-            onClick = onSortClick,
-            modifier = Modifier.size(32.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.arrow_up_down),
-                contentDescription = "Sort",
-                modifier = Modifier.size(18.dp)
-            )
-        }
-    }
 }
 
 // --- Transaction List ---
@@ -1167,91 +1059,3 @@ fun DeleteConfirmationDialog(
     )
 }
 
-// --- Sort Dialog ---
-@Composable
-fun SortDialog(
-    currentSortBy: String,
-    currentSortOrder: String,
-    onSortChange: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(shape = RoundedCornerShape(16.dp)) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text("Sort By", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                listOf(
-                    "created_at" to "Date Created",
-                    "amount" to "Amount"
-                ).forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onSortChange(value) }
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = currentSortBy == value,
-                                onClick = { onSortChange(value) }
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(label)
-                        }
-                        if (currentSortBy == value) {
-                            Icon(
-                                painter = painterResource(
-                                    if (currentSortOrder == "asc") R.drawable.chevron_up else R.drawable.chevron_down
-                                ),
-                                contentDescription = currentSortOrder,
-                                modifier = Modifier.size(18.dp),
-                                tint = Color(0xFF0B99FF)
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-// --- Filter Dialog ---
-@Composable
-fun FilterDialog(
-    currentFilter: String?,
-    onFilterChange: (String?) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(shape = RoundedCornerShape(16.dp)) {
-            Column(modifier = Modifier.padding(20.dp)) {
-                Text("Filter Transactions", fontSize = 18.sp, fontWeight = FontWeight.Bold)
-                Spacer(modifier = Modifier.height(16.dp))
-
-                listOf(
-                    null to "All Transactions",
-                    "deposit" to "Deposits Only",
-                    "withdraw" to "Withdrawals Only"
-                ).forEach { (value, label) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { onFilterChange(value) }
-                            .padding(vertical = 8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = currentFilter == value,
-                            onClick = { onFilterChange(value) }
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label)
-                    }
-                }
-            }
-        }
-    }
-}

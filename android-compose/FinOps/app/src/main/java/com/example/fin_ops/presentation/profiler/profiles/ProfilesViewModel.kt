@@ -52,26 +52,6 @@ class ProfilesViewModel @Inject constructor(
                 loadProfiles(1)
             }
 
-            is ProfilesEvent.ChangeStatusFilter -> {
-                _state.value = _state.value.copy(filterStatus = event.status, showFilterDialog = false)
-                loadProfiles(1)
-            }
-
-            is ProfilesEvent.ChangeSortBy -> {
-                val newSortBy = event.sortBy
-                val newSortOrder = if (_state.value.sortBy == newSortBy) {
-                    if (_state.value.sortOrder == "asc") "desc" else "asc"
-                } else {
-                    "desc"
-                }
-                _state.value = _state.value.copy(
-                    sortBy = newSortBy,
-                    sortOrder = newSortOrder,
-                    showSortDialog = false
-                )
-                loadProfiles(1)
-            }
-
             is ProfilesEvent.SaveProfile -> saveProfile()
 
             is ProfilesEvent.DeleteProfile -> confirmDelete(event.profile)
@@ -210,14 +190,6 @@ class ProfilesViewModel @Inject constructor(
                 )
             }
 
-            is ProfilesEvent.ShowSortDialog -> {
-                _state.value = _state.value.copy(showSortDialog = event.show)
-            }
-
-            is ProfilesEvent.ShowFilterDialog -> {
-                _state.value = _state.value.copy(showFilterDialog = event.show)
-            }
-
             is ProfilesEvent.RefreshProfiles -> {
                 _state.value = _state.value.copy(searchQuery = "")
                 loadProfiles(1)
@@ -236,9 +208,9 @@ class ProfilesViewModel @Inject constructor(
                         page = page,
                         limit = 50,
                         search = _state.value.searchQuery.ifBlank { null },
-                        status = _state.value.filterStatus,
-                        sortBy = _state.value.sortBy,
-                        sortOrder = _state.value.sortOrder
+                        status = "active",
+                        sortBy = "created_at",
+                        sortOrder = "desc"
                     )
                 }
 
@@ -477,8 +449,6 @@ sealed class ProfilesEvent {
     data class LoadProfiles(val page: Int) : ProfilesEvent()
     data class Search(val query: String) : ProfilesEvent()
     data class ToggleDashboardMode(val enabled: Boolean) : ProfilesEvent()
-    data class ChangeStatusFilter(val status: String?) : ProfilesEvent()
-    data class ChangeSortBy(val sortBy: String) : ProfilesEvent()
     object SaveProfile : ProfilesEvent()
     data class DeleteProfile(val profile: ProfilerProfileDto) : ProfilesEvent()
     object ConfirmDelete : ProfilesEvent()
@@ -498,7 +468,5 @@ sealed class ProfilesEvent {
     data class SearchBank(val query: String) : ProfilesEvent()
     data class SelectBank(val bank: com.example.fin_ops.data.remote.dto.AutocompleteProfilerBankDto) : ProfilesEvent()
     object ClearBankSelection : ProfilesEvent()
-    data class ShowSortDialog(val show: Boolean) : ProfilesEvent()
-    data class ShowFilterDialog(val show: Boolean) : ProfilesEvent()
     object RefreshProfiles : ProfilesEvent()
 }

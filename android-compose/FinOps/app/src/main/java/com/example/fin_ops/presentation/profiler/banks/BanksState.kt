@@ -13,13 +13,6 @@ data class BanksState(
     val searchQuery: String = "",
     val autocompleteSuggestions: List<AutocompleteProfilerBankDto> = emptyList(),
 
-    // Sorting
-    val sortBy: String = "bank_name", // "bank_name", "created_at", "profile_count"
-    val sortOrder: String = "asc", // "asc" or "desc"
-
-    // Filtering
-    val hasProfilesFilter: Boolean? = null, // null = all, true = with profiles, false = without profiles
-
     // Dialog/Form state
     val isFormVisible: Boolean = false,
     val editingBank: ProfilerBankDto? = null, // null means creating new
@@ -28,9 +21,5 @@ data class BanksState(
 
     // Delete confirmation
     val showDeleteDialog: Boolean = false,
-    val bankToDelete: ProfilerBankDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false
+    val bankToDelete: ProfilerBankDto? = null
 )

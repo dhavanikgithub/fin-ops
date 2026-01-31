@@ -42,26 +42,6 @@ class TransactionsViewModel @Inject constructor(
                 searchDebounced(event.query)
             }
 
-            is TransactionsEvent.FilterByType -> {
-                _state.value = _state.value.copy(filterType = event.type, showFilterDialog = false)
-                loadTransactions(1)
-            }
-
-            is TransactionsEvent.ChangeSortBy -> {
-                val newSortBy = event.sortBy
-                val newSortOrder = if (_state.value.sortBy == newSortBy) {
-                    if (_state.value.sortOrder == "asc") "desc" else "asc"
-                } else {
-                    "desc"
-                }
-                _state.value = _state.value.copy(
-                    sortBy = newSortBy,
-                    sortOrder = newSortOrder,
-                    showSortDialog = false
-                )
-                loadTransactions(1)
-            }
-
             is TransactionsEvent.SaveDeposit -> saveDeposit()
 
             is TransactionsEvent.SaveWithdraw -> saveWithdraw()
@@ -187,14 +167,6 @@ class TransactionsViewModel @Inject constructor(
                 )
             }
 
-            is TransactionsEvent.ShowSortDialog -> {
-                _state.value = _state.value.copy(showSortDialog = event.show)
-            }
-
-            is TransactionsEvent.ShowFilterDialog -> {
-                _state.value = _state.value.copy(showFilterDialog = event.show)
-            }
-
             is TransactionsEvent.RefreshTransactions -> {
                 _state.value = _state.value.copy(searchQuery = "")
                 loadTransactions(1)
@@ -210,9 +182,9 @@ class TransactionsViewModel @Inject constructor(
                     page = page,
                     limit = 50,
                     search = _state.value.searchQuery.ifBlank { null },
-                    transactionType = _state.value.filterType,
-                    sortBy = _state.value.sortBy,
-                    sortOrder = _state.value.sortOrder
+                    transactionType = null,
+                    sortBy = "created_at",
+                    sortOrder = "desc"
                 )
 
                 _state.value = _state.value.copy(
@@ -430,8 +402,6 @@ class TransactionsViewModel @Inject constructor(
 sealed class TransactionsEvent {
     data class LoadTransactions(val page: Int) : TransactionsEvent()
     data class Search(val query: String) : TransactionsEvent()
-    data class FilterByType(val type: String?) : TransactionsEvent()
-    data class ChangeSortBy(val sortBy: String) : TransactionsEvent()
     object SaveDeposit : TransactionsEvent()
     object SaveWithdraw : TransactionsEvent()
     data class DeleteTransaction(val transaction: ProfilerTransactionDto) : TransactionsEvent()
@@ -449,7 +419,5 @@ sealed class TransactionsEvent {
     data class SearchProfile(val query: String) : TransactionsEvent()
     data class SelectProfile(val profile: com.example.fin_ops.data.remote.dto.AutocompleteProfilerProfileDto) : TransactionsEvent()
     object ClearProfileSelection : TransactionsEvent()
-    data class ShowSortDialog(val show: Boolean) : TransactionsEvent()
-    data class ShowFilterDialog(val show: Boolean) : TransactionsEvent()
     object RefreshTransactions : TransactionsEvent()
 }

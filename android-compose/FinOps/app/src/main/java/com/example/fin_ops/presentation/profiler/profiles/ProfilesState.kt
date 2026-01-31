@@ -12,11 +12,6 @@ data class ProfilesState(
     val pagination: Pagination? = null,
     val searchQuery: String = "",
 
-    // Filtering & Sorting
-    val filterStatus: String? = "active", // null = all, "active", "completed"
-    val sortBy: String = "created_at",
-    val sortOrder: String = "desc",
-
     // Dashboard mode
     val isDashboardMode: Boolean = false,
 
@@ -52,10 +47,6 @@ data class ProfilesState(
     // Mark Done confirmation
     val showMarkDoneDialog: Boolean = false,
     val profileToMarkDone: ProfilerProfileDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false,
 
     // Stats
     val totalProfiles: Int = 0,

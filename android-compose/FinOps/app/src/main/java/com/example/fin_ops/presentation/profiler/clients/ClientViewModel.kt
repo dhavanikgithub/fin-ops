@@ -114,44 +114,6 @@ class ClientsViewModel @Inject constructor(
                 _state.value = _state.value.copy(formNotes = event.value, formError = null)
             }
 
-            is ClientsEvent.ChangeSortBy -> {
-                val newSortBy = event.sortBy
-                val newSortOrder = if (_state.value.sortBy == newSortBy) {
-                    if (_state.value.sortOrder == "asc") "desc" else "asc"
-                } else {
-                    "asc"
-                }
-                _state.value = _state.value.copy(
-                    sortBy = newSortBy,
-                    sortOrder = newSortOrder,
-                    showSortDialog = false
-                )
-                loadClients(1)
-            }
-
-            is ClientsEvent.ApplyFilter -> {
-                _state.value = _state.value.copy(
-                    hasProfilesFilter = event.hasProfiles,
-                    showFilterDialog = false
-                )
-                loadClients(1)
-            }
-
-            is ClientsEvent.ClearFilters -> {
-                _state.value = _state.value.copy(
-                    hasProfilesFilter = null,
-                    showFilterDialog = false
-                )
-                loadClients(1)
-            }
-
-            is ClientsEvent.ShowSortDialog -> {
-                _state.value = _state.value.copy(showSortDialog = event.show)
-            }
-
-            is ClientsEvent.ShowFilterDialog -> {
-                _state.value = _state.value.copy(showFilterDialog = event.show)
-            }
 
             is ClientsEvent.RefreshClients -> {
                 _state.value = _state.value.copy(searchQuery = "")
@@ -175,9 +137,9 @@ class ClientsViewModel @Inject constructor(
                     page = page,
                     limit = 50,
                     search = _state.value.searchQuery.ifBlank { null },
-                    hasProfiles = _state.value.hasProfilesFilter,
-                    sortBy = _state.value.sortBy,
-                    sortOrder = _state.value.sortOrder
+                    hasProfiles = null,
+                    sortBy = "name",
+                    sortOrder = "asc"
                 )
                 val updatedList = if (isFirstPage) {
                     result.data
@@ -374,10 +336,5 @@ sealed class ClientsEvent {
     data class UpdateFormMobile(val value: String) : ClientsEvent()
     data class UpdateFormAadhaar(val value: String) : ClientsEvent()
     data class UpdateFormNotes(val value: String) : ClientsEvent()
-    data class ChangeSortBy(val sortBy: String) : ClientsEvent()
-    data class ApplyFilter(val hasProfiles: Boolean?) : ClientsEvent()
-    object ClearFilters : ClientsEvent()
-    data class ShowSortDialog(val show: Boolean) : ClientsEvent()
-    data class ShowFilterDialog(val show: Boolean) : ClientsEvent()
     object RefreshClients : ClientsEvent()
 }

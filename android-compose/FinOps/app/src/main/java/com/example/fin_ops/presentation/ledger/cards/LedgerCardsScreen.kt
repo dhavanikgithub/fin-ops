@@ -21,10 +21,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.LedgerCardDto
-import com.example.fin_ops.presentation.profiler.banks.CompactFilterButton
 import com.example.fin_ops.utils.shimmerEffect
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.math.abs
 import kotlin.random.Random
 
 // --- 3. Stateful Component ---
@@ -121,13 +121,95 @@ fun LoadingCardItem() {
 }
 
 // --- 6. Existing Components (Data Classes & Renderers) ---
+// 1. Your provided list (Fixed to be 400+ shades per your request)
+val gradients = listOf(
+    // --- Reds & Pinks ---
+    listOf(Color(0xFFF87171), Color(0xFFDC2626)), // Red 400 -> 600
+    listOf(Color(0xFFEF4444), Color(0xFFB91C1C)), // Red 500 -> 700
+    listOf(Color(0xFFFB7185), Color(0xFFE11D48)), // Rose 400 -> 600
+    listOf(Color(0xFFF43F5E), Color(0xFFBE123C)), // Rose 500 -> 700
+    listOf(Color(0xFFF472B6), Color(0xFFDB2777)), // Pink 400 -> 600
+    listOf(Color(0xFFEC4899), Color(0xFFBE185D)), // Pink 500 -> 700
 
+    // --- Oranges & Ambers ---
+    listOf(Color(0xFFFB923C), Color(0xFFEA580C)), // Orange 400 -> 600
+    listOf(Color(0xFFF97316), Color(0xFFC2410C)), // Orange 500 -> 700
+    listOf(Color(0xFFFBBF24), Color(0xFFD97706)), // Amber 400 -> 600
+    listOf(Color(0xFFF59E0B), Color(0xFFB45309)), // Amber 500 -> 700
+
+    // --- Yellows & Limes ---
+    listOf(Color(0xFFFACC15), Color(0xFFA16207)), // Yellow 400 -> 700
+    listOf(Color(0xFFA3E635), Color(0xFF65A30D)), // Lime 400 -> 600
+    listOf(Color(0xFF84CC16), Color(0xFF4D7C0F)), // Lime 500 -> 700
+
+    // --- Greens ---
+    listOf(Color(0xFF4ADE80), Color(0xFF16A34A)), // Green 400 -> 600
+    listOf(Color(0xFF22C55E), Color(0xFF15803D)), // Green 500 -> 700
+    listOf(Color(0xFF34D399), Color(0xFF059669)), // Emerald 400 -> 600
+    listOf(Color(0xFF10B981), Color(0xFF047857)), // Emerald 500 -> 700
+    listOf(Color(0xFF065F46), Color(0xFF064E3B)), // Emerald 800 -> 900
+
+    // --- Teals & Cyans ---
+    listOf(Color(0xFF2DD4BF), Color(0xFF0D9488)), // Teal 400 -> 600
+    listOf(Color(0xFF14B8A6), Color(0xFF0F766E)), // Teal 500 -> 700
+    listOf(Color(0xFF22D3EE), Color(0xFF0891B2)), // Cyan 400 -> 600
+    listOf(Color(0xFF06B6D4), Color(0xFF0E7490)), // Cyan 500 -> 700
+
+    // --- Blues ---
+    listOf(Color(0xFF60A5FA), Color(0xFF2563EB)), // Blue 400 -> 600
+    listOf(Color(0xFF3B82F6), Color(0xFF1D4ED8)), // Blue 500 -> 700
+    listOf(Color(0xFF1E40AF), Color(0xFF1E3A8A)), // Blue 800 -> 900
+    listOf(Color(0xFF38BDF8), Color(0xFF0284C7)), // Sky 400 -> 600
+    listOf(Color(0xFF0EA5E9), Color(0xFF0369A1)), // Sky 500 -> 700
+
+    // --- Indigos & Violets ---
+    listOf(Color(0xFF818CF8), Color(0xFF4F46E5)), // Indigo 400 -> 600
+    listOf(Color(0xFF6366F1), Color(0xFF4338CA)), // Indigo 500 -> 700
+    listOf(Color(0xFFA78BFA), Color(0xFF7C3AED)), // Violet 400 -> 600
+    listOf(Color(0xFF8B5CF6), Color(0xFF6D28D9)), // Violet 500 -> 700
+
+    // --- Purples & Fuchsias ---
+    listOf(Color(0xFFC084FC), Color(0xFF9333EA)), // Purple 400 -> 600
+    listOf(Color(0xFFA855F7), Color(0xFF7E22CE)), // Purple 500 -> 700
+    listOf(Color(0xFFE879F9), Color(0xFFC026D3)), // Fuchsia 400 -> 600
+    listOf(Color(0xFFD946EF), Color(0xFFA21CAF)), // Fuchsia 500 -> 700
+    listOf(Color(0xFFF0ABFC), Color(0xFFC026D3)), // Fuchsia 300 -> 600
+
+    // --- Grays & Neutrals ---
+    listOf(Color(0xFF9CA3AF), Color(0xFF4B5563)), // Gray 400 -> 600
+    listOf(Color(0xFF6B7280), Color(0xFF374151)), // Gray 500 -> 700
+    listOf(Color(0xFF4B5563), Color(0xFF1F2937)), // Gray 600 -> 800
+    listOf(Color(0xFF1F2937), Color(0xFF111827)), // Gray 800 -> 900
+    listOf(Color(0xFF94A3B8), Color(0xFF475569))  // Slate 400 -> 600
+)
+
+fun gradientFromTwoLetters(name: String): Brush {
+    // 1. Safety check for empty strings
+    if (name.isBlank()) return Brush.linearGradient(gradients[0])
+
+    // 2. Clean input: Take first 2 chars, remove whitespace, lowercase
+    val cleanName = name.trim().take(2).lowercase(Locale.ROOT)
+
+    // 3. Handle cases with single letter (treat as 'a' + letter)
+    val firstChar = if (cleanName.isNotEmpty()) cleanName[0] else 'a'
+    val secondChar = if (cleanName.length > 1) cleanName[1] else 'a'
+
+    // 4. Calculate a unique index based on 2 chars (0 to 675 for 'zz')
+    // We filter non-letters to avoid crashes with numbers/symbols
+    val v1 = if (firstChar in 'a'..'z') firstChar - 'a' else 0
+    val v2 = if (secondChar in 'a'..'z') secondChar - 'a' else 0
+
+    // Base 26 calculation: (first_char * 26) + second_char
+    val combinedValue = (v1 * 26) + v2
+
+    // 5. Map to gradient list size
+    val index = combinedValue % gradients.size
+
+    return Brush.linearGradient(gradients[index])
+}
 // Helper function to create a gradient from a card's name
 fun gradientFromName(cardName: String): Brush {
-    val random = Random(cardName.hashCode())
-    val color1 = Color(random.nextInt(256), random.nextInt(256), random.nextInt(256))
-    val color2 = Color(random.nextInt(256), random.nextInt(256), random.nextInt(256))
-    return Brush.linearGradient(listOf(color1, color2))
+   return gradientFromTwoLetters(cardName)
 }
 
 // Helper to format date string
@@ -167,11 +249,6 @@ fun SearchCards() {
             singleLine = true
         )
         Spacer(modifier = Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.Start) {
-            CompactFilterButton("Filter", R.drawable.funnel)
-            Spacer(modifier = Modifier.width(8.dp))
-            CompactFilterButton("Sort", R.drawable.arrow_up_down)
-        }
     }
 }
 

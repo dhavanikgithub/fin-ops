@@ -89,54 +89,6 @@ class BanksViewModel @Inject constructor(
                 )
             }
 
-            is BanksEvent.ChangeSortBy -> {
-                val newSortBy = event.sortBy
-                val newSortOrder = if (_state.value.sortBy == newSortBy) {
-                    // Toggle order if same field
-                    if (_state.value.sortOrder == "asc") "desc" else "asc"
-                } else {
-                    // Default to asc for new field
-                    "asc"
-                }
-                _state.value = _state.value.copy(
-                    sortBy = newSortBy,
-                    sortOrder = newSortOrder,
-                    showSortDialog = false
-                )
-                loadBanks(1)
-            }
-
-            is BanksEvent.ToggleSortOrder -> {
-                _state.value = _state.value.copy(
-                    sortOrder = if (_state.value.sortOrder == "asc") "desc" else "asc"
-                )
-                loadBanks(1)
-            }
-
-            is BanksEvent.ApplyFilter -> {
-                _state.value = _state.value.copy(
-                    hasProfilesFilter = event.hasProfiles,
-                    showFilterDialog = false
-                )
-                loadBanks(1)
-            }
-
-            is BanksEvent.ClearFilters -> {
-                _state.value = _state.value.copy(
-                    hasProfilesFilter = null,
-                    showFilterDialog = false
-                )
-                loadBanks(1)
-            }
-
-            is BanksEvent.ShowSortDialog -> {
-                _state.value = _state.value.copy(showSortDialog = event.show)
-            }
-
-            is BanksEvent.ShowFilterDialog -> {
-                _state.value = _state.value.copy(showFilterDialog = event.show)
-            }
-
             is BanksEvent.RefreshBanks -> {
                 _state.value = _state.value.copy(searchQuery = "")
                 loadBanks(1)
@@ -174,9 +126,9 @@ class BanksViewModel @Inject constructor(
                 val result = getBanksUseCase(
                     page = page,
                     search = _state.value.searchQuery.ifBlank { null },
-                    sortBy = _state.value.sortBy,
-                    sortOrder = _state.value.sortOrder,
-                    hasProfiles = _state.value.hasProfilesFilter
+                    sortBy = "bank_name",
+                    sortOrder = "asc",
+                    hasProfiles = null
                 )
                 // Append if loading more, Replace if first page
                 if (isFirstPage || page == (state.value.pagination?.currentPage?.plus(1))) {
@@ -321,11 +273,5 @@ sealed class BanksEvent {
     data class OpenForm(val bankToEdit: ProfilerBankDto? = null) : BanksEvent()
     object CloseForm : BanksEvent()
     data class UpdateFormBankName(val name: String) : BanksEvent()
-    data class ChangeSortBy(val sortBy: String) : BanksEvent()
-    object ToggleSortOrder : BanksEvent()
-    data class ApplyFilter(val hasProfiles: Boolean?) : BanksEvent()
-    object ClearFilters : BanksEvent()
-    data class ShowSortDialog(val show: Boolean) : BanksEvent()
-    data class ShowFilterDialog(val show: Boolean) : BanksEvent()
     object RefreshBanks : BanksEvent()
 }

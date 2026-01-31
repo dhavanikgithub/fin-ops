@@ -688,7 +688,7 @@ fun SearchBar(
     OutlinedTextField(
         value = searchQuery,
         onValueChange = onSearchChange,
-        placeholder = { Text("Search transactions...", fontSize = 12.sp) },
+        placeholder = { Text("Search...", fontSize = 12.sp) },
         leadingIcon = {
             Icon(
                 painter = painterResource(id = R.drawable.search),

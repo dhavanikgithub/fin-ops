@@ -13,11 +13,6 @@ data class TransactionsState(
     val searchQuery: String = "",
     val summary: TransactionSummary? = null,
 
-    // Filtering & Sorting
-    val filterType: String? = null, // null = all, "deposit", "withdraw"
-    val sortBy: String = "created_at",
-    val sortOrder: String = "desc",
-
     // Dialog/Form states
     val isDepositFormVisible: Boolean = false,
     val isWithdrawFormVisible: Boolean = false,
@@ -44,9 +39,5 @@ data class TransactionsState(
 
     // Delete confirmation
     val showDeleteDialog: Boolean = false,
-    val transactionToDelete: ProfilerTransactionDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false
+    val transactionToDelete: ProfilerTransactionDto? = null
 )

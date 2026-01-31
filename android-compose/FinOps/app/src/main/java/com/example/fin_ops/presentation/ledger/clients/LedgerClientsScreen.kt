@@ -18,7 +18,6 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.LedgerClientDto
-import com.example.fin_ops.presentation.profiler.banks.CompactFilterButton
 
 @Composable
 fun LedgerClientsScreen(
@@ -54,7 +53,7 @@ fun LedgerClientsScreenContent(
         OutlinedTextField(
             value = state.searchQuery,
             onValueChange = onSearch,
-            label = { Text("Search Clients...", fontSize = 12.sp) },
+            label = { Text("Search...", fontSize = 12.sp) },
             leadingIcon = { Icon(painterResource(id = R.drawable.search), "Search", Modifier.size(18.dp)) },
             modifier = Modifier
                 .fillMaxWidth(),
@@ -70,7 +69,6 @@ fun LedgerClientsScreenContent(
 
         // Filter Row
         Row(modifier = Modifier.fillMaxWidth()) {
-            CompactFilterButton("Sort", R.drawable.arrow_up_down)
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = onOpenForm,

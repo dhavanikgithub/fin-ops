@@ -55,7 +55,7 @@ fun LedgerTransactionsScreenContent(
         OutlinedTextField(
             value = state.searchQuery,
             onValueChange = onSearch,
-            label = { Text("Search Transactions...", fontSize = 12.sp) },
+            label = { Text("Search...", fontSize = 12.sp) },
             leadingIcon = { Icon(painterResource(id = R.drawable.search), "Search", Modifier.size(18.dp)) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(10.dp)

@@ -13,13 +13,6 @@ data class ClientsState(
     val searchQuery: String = "",
     val autocompleteSuggestions: List<AutocompleteProfilerClientItem> = emptyList(),
 
-    // Sorting
-    val sortBy: String = "name", // "name", "created_at", "profile_count"
-    val sortOrder: String = "asc", // "asc" or "desc"
-
-    // Filtering
-    val hasProfilesFilter: Boolean? = null, // null = all, true = with profiles, false = without profiles
-
     // Dialog/Form state
     val isFormVisible: Boolean = false,
     val editingClient: ProfilerClientDto? = null,
@@ -32,9 +25,5 @@ data class ClientsState(
 
     // Delete confirmation
     val showDeleteDialog: Boolean = false,
-    val clientToDelete: ProfilerClientDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false
+    val clientToDelete: ProfilerClientDto? = null
 )

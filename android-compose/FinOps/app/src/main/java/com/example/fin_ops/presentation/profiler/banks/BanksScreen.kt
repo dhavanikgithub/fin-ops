@@ -133,28 +133,6 @@ fun BanksScreen(
             onDismiss = { viewModel.onEvent(BanksEvent.CancelDelete) }
         )
     }
-
-    if (state.showSortDialog) {
-        SortDialog(
-            currentSortBy = state.sortBy,
-            currentSortOrder = state.sortOrder,
-            onSortChange = { sortBy ->
-                viewModel.onEvent(BanksEvent.ChangeSortBy(sortBy))
-            },
-            onDismiss = { viewModel.onEvent(BanksEvent.ShowSortDialog(false)) }
-        )
-    }
-
-    if (state.showFilterDialog) {
-        FilterDialog(
-            currentFilter = state.hasProfilesFilter,
-            onFilterChange = { hasProfiles ->
-                viewModel.onEvent(BanksEvent.ApplyFilter(hasProfiles))
-            },
-            onClearFilter = { viewModel.onEvent(BanksEvent.ClearFilters) },
-            onDismiss = { viewModel.onEvent(BanksEvent.ShowFilterDialog(false)) }
-        )
-    }
 }
 
 // --- Content Component ---
@@ -171,26 +149,42 @@ fun BanksScreenContent(
     ) {
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Search and Filter Bar
-        SearchAndFilter(
-            searchQuery = state.searchQuery,
-            onSearchChange = { onEvent(BanksEvent.Search(it)) },
-            onFilterClick = { onEvent(BanksEvent.ShowFilterDialog(true)) },
-            onSortClick = { onEvent(BanksEvent.ShowSortDialog(true)) },
-            hasActiveFilter = state.hasProfilesFilter != null
+        // Search Bar
+        OutlinedTextField(
+            value = state.searchQuery,
+            onValueChange = { onEvent(BanksEvent.Search(it)) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Search...") },
+            leadingIcon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.search),
+                    contentDescription = "Search",
+                    modifier = Modifier.size(20.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            trailingIcon = {
+                if (state.searchQuery.isNotEmpty()) {
+                    IconButton(onClick = { onEvent(BanksEvent.Search("")) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.close),
+                            contentDescription = "Clear",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+            },
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                focusedBorderColor = Color(0xFF2B7FFF),
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            ),
+            singleLine = true
         )
 
         Spacer(modifier = Modifier.height(12.dp))
-
-        // Active Filter Chip
-        if (state.hasProfilesFilter != null || state.sortBy != "bank_name" || state.sortOrder != "asc") {
-            ActiveFiltersChip(
-                state = state,
-                onClearFilters = { onEvent(BanksEvent.ClearFilters) },
-                onRefresh = { onEvent(BanksEvent.RefreshBanks) }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-        }
 
         // Bank List
         BankList(
@@ -200,189 +194,7 @@ fun BanksScreenContent(
     }
 }
 
-// --- Search and Filter Bar ---
-@Composable
-fun SearchAndFilter(
-    searchQuery: String,
-    onSearchChange: (String) -> Unit,
-    onFilterClick: () -> Unit,
-    onSortClick: () -> Unit,
-    hasActiveFilter: Boolean
-) {
-    Column {
-        OutlinedTextField(
-            value = searchQuery,
-            onValueChange = onSearchChange,
-            label = { Text("Search banks...") },
-            leadingIcon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.search),
-                    contentDescription = "Search",
-                    modifier = Modifier.size(18.dp)
-                )
-            },
-            trailingIcon = {
-                if (searchQuery.isNotEmpty()) {
-                    IconButton(
-                        onClick = { onSearchChange("") },
-                        modifier = Modifier.size(20.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.close),
-                            contentDescription = "Clear",
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            },
-            modifier = Modifier
-                .fillMaxWidth(),
-            shape = RoundedCornerShape(10.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = MaterialTheme.colorScheme.surface,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
-            ),
-            singleLine = true
-        )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Start
-        ) {
-            CompactFilterButton(
-                text = "Filter",
-                icon = R.drawable.funnel,
-                onClick = onFilterClick,
-                hasIndicator = hasActiveFilter
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            CompactFilterButton(
-                text = "Sort",
-                icon = R.drawable.arrow_up_down,
-                onClick = onSortClick,
-                hasIndicator = false
-            )
-        }
-    }
-}
-
-@Composable
-fun CompactFilterButton(
-    text: String,
-    icon: Int,
-    onClick: () -> Unit = {},
-    hasIndicator: Boolean = false
-) {
-    Box {
-        ElevatedButton(
-            onClick = onClick,
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            modifier = Modifier.height(32.dp),
-            colors = ButtonDefaults.elevatedButtonColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Icon(
-                painter = painterResource(icon),
-                contentDescription = text,
-                modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Text(text, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
-        }
-
-        if (hasIndicator) {
-            Box(
-                modifier = Modifier
-                    .size(8.dp)
-                    .background(Color(0xFF2B7FFF), CircleShape)
-                    .align(Alignment.TopEnd)
-            )
-        }
-    }
-}
-
-// --- Active Filters Chip ---
-@Composable
-fun ActiveFiltersChip(
-    state: BanksState,
-    onClearFilters: () -> Unit,
-    onRefresh: () -> Unit
-) {
-    Surface(
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "Active Filters",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF2B7FFF)
-                )
-                Text(
-                    text = buildFilterText(state),
-                    fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Row {
-                IconButton(
-                    onClick = onRefresh,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.rotate_ccw),
-                        contentDescription = "Refresh",
-                        modifier = Modifier.size(16.dp),
-                        tint = Color(0xFF2B7FFF)
-                    )
-                }
-                IconButton(
-                    onClick = onClearFilters,
-                    modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.close),
-                        contentDescription = "Clear Filters",
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        }
-    }
-}
-
-fun buildFilterText(state: BanksState): String {
-    val parts = mutableListOf<String>()
-
-    if (state.sortBy != "bank_name" || state.sortOrder != "asc") {
-        val sortLabel = when (state.sortBy) {
-            "bank_name" -> "Name"
-            "created_at" -> "Date"
-            "profile_count" -> "Profiles"
-            else -> state.sortBy
-        }
-        parts.add("Sort: $sortLabel ${if (state.sortOrder == "asc") "↑" else "↓"}")
-    }
-
-    state.hasProfilesFilter?.let {
-        parts.add(if (it) "With profiles" else "Without profiles")
-    }
-
-    return parts.joinToString(" • ")
-}
 
 // --- Bank List ---
 @Composable
@@ -785,190 +597,6 @@ fun DeleteConfirmationDialog(
             }
         }
     )
-}
-
-// --- Sort Dialog ---
-@Composable
-fun SortDialog(
-    currentSortBy: String,
-    currentSortOrder: String,
-    onSortChange: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "Sort By",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                SortOption(
-                    label = "Bank Name",
-                    value = "bank_name",
-                    isSelected = currentSortBy == "bank_name",
-                    sortOrder = if (currentSortBy == "bank_name") currentSortOrder else "asc",
-                    onClick = { onSortChange("bank_name") }
-                )
-
-                SortOption(
-                    label = "Profile Count",
-                    value = "profile_count",
-                    isSelected = currentSortBy == "profile_count",
-                    sortOrder = if (currentSortBy == "profile_count") currentSortOrder else "desc",
-                    onClick = { onSortChange("profile_count") }
-                )
-
-                SortOption(
-                    label = "Created Date",
-                    value = "created_at",
-                    isSelected = currentSortBy == "created_at",
-                    sortOrder = if (currentSortBy == "created_at") currentSortOrder else "desc",
-                    onClick = { onSortChange("created_at") }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SortOption(
-    label: String,
-    value: String,
-    isSelected: Boolean,
-    sortOrder: String,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = isSelected,
-                onClick = onClick
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(label)
-        }
-
-        if (isSelected) {
-            Icon(
-                painter = painterResource(
-                    id = if (sortOrder == "asc") R.drawable.chevron_up else R.drawable.chevron_down
-                ),
-                contentDescription = sortOrder,
-                modifier = Modifier.size(18.dp),
-                tint = Color(0xFF2B7FFF)
-            )
-        }
-    }
-}
-
-// --- Filter Dialog ---
-@Composable
-fun FilterDialog(
-    currentFilter: Boolean?,
-    onFilterChange: (Boolean?) -> Unit,
-    onClearFilter: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    Dialog(onDismissRequest = onDismiss) {
-        Card(
-            shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(20.dp)
-            ) {
-                Text(
-                    text = "Filter Banks",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(
-                    text = "Profile Status",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                FilterOption(
-                    label = "All Banks",
-                    isSelected = currentFilter == null,
-                    onClick = { onFilterChange(null) }
-                )
-
-                FilterOption(
-                    label = "With Profiles",
-                    isSelected = currentFilter == true,
-                    onClick = { onFilterChange(true) }
-                )
-
-                FilterOption(
-                    label = "Without Profiles",
-                    isSelected = currentFilter == false,
-                    onClick = { onFilterChange(false) }
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(onClick = onClearFilter) {
-                        Text("Clear")
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun FilterOption(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = onClick
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(label)
-    }
 }
 
 // --- Previews ---

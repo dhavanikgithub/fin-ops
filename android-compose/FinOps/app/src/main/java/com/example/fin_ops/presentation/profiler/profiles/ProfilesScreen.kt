@@ -109,27 +109,6 @@ fun ProfileScreen(
             onDismiss = { viewModel.onEvent(ProfilesEvent.CancelMarkDone) }
         )
     }
-
-    if (state.showSortDialog) {
-        SortDialog(
-            currentSortBy = state.sortBy,
-            currentSortOrder = state.sortOrder,
-            onSortChange = { sortBy ->
-                viewModel.onEvent(ProfilesEvent.ChangeSortBy(sortBy))
-            },
-            onDismiss = { viewModel.onEvent(ProfilesEvent.ShowSortDialog(false)) }
-        )
-    }
-
-    if (state.showFilterDialog) {
-        FilterDialog(
-            currentFilter = state.filterStatus,
-            onFilterChange = { status ->
-                viewModel.onEvent(ProfilesEvent.ChangeStatusFilter(status))
-            },
-            onDismiss = { viewModel.onEvent(ProfilesEvent.ShowFilterDialog(false)) }
-        )
-    }
 }
 
 // --- Content Component ---
@@ -142,10 +121,6 @@ fun ProfileScreenContent(
     modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(ProfileTab.Active) }
-
-    LaunchedEffect(selectedTab) {
-        onEvent(ProfilesEvent.ChangeStatusFilter(selectedTab.status))
-    }
 
     Column(
         modifier = modifier
@@ -168,6 +143,45 @@ fun ProfileScreenContent(
                         totalTransactions = state.totalTransactions
                     )
                 }
+            }
+
+            // Search Bar
+            item {
+                OutlinedTextField(
+                    value = state.searchQuery,
+                    onValueChange = { onEvent(ProfilesEvent.Search(it)) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    placeholder = { Text("Search...") },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.search),
+                            contentDescription = "Search",
+                            modifier = Modifier.size(20.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    },
+                    trailingIcon = {
+                        if (state.searchQuery.isNotEmpty()) {
+                            IconButton(onClick = { onEvent(ProfilesEvent.Search("")) }) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.close),
+                                    contentDescription = "Clear",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    },
+                    shape = RoundedCornerShape(12.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedContainerColor = MaterialTheme.colorScheme.surface,
+                        unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+                        focusedBorderColor = Color(0xFF6366F1),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    ),
+                    singleLine = true
+                )
             }
 
             // Sticky Tab Row
