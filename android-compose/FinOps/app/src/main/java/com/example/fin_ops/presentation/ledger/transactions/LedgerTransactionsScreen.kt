@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -195,6 +196,12 @@ fun LedgerTransactionsScreenContent(
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
             ),
             singleLine = true
+        )
+
+        // Filter Tabs
+        FilterTabsRow(
+            selectedTab = state.selectedTab,
+            onTabSelected = { onEvent(LedgerTransactionsEvent.SelectTab(it)) }
         )
 
         // Loading or List
@@ -519,6 +526,44 @@ fun EmptyState(
                     Text("Add Transaction")
                 }
             }
+        }
+    }
+}
+
+// --- Filter Tabs ---
+@Composable
+fun FilterTabsRow(
+    selectedTab: String,
+    onTabSelected: (String) -> Unit
+) {
+    val tabs = listOf("All", "Today", "Yesterday", "This Week", "This Month")
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(tabs) { tab ->
+            val isSelected = selectedTab == tab
+            FilterChip(
+                selected = isSelected,
+                onClick = { onTabSelected(tab) },
+                label = { Text(tab) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color(0xFF2B7FFF),
+                    selectedLabelColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    selectedBorderColor = Color.Transparent,
+                    borderWidth = 1.dp
+                )
+            )
         }
     }
 }
@@ -896,6 +941,34 @@ fun PreviewEmptyStateDark() {
                 state = LedgerTransactionsState(isLoading = false, transactions = emptyList()),
                 onEvent = {}
             )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Filter Tabs", showBackground = true)
+@Composable
+fun PreviewFilterTabs() {
+    FinOpsTheme {
+        Column {
+            FilterTabsRow(
+                selectedTab = "Today",
+                onTabSelected = {}
+            )
+        }
+    }
+}
+
+@androidx.compose.ui.tooling.preview.Preview(name = "Filter Tabs Dark", showBackground = false)
+@Composable
+fun PreviewFilterTabsDark() {
+    FinOpsTheme(darkTheme = true) {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column {
+                FilterTabsRow(
+                    selectedTab = "This Week",
+                    onTabSelected = {}
+                )
+            }
         }
     }
 }

@@ -20,6 +20,9 @@ data class LedgerTransactionsState(
     val pagination: LedgerTransactionPagination? = null,
     val searchQuery: String = "",
 
+    // Filter Tabs
+    val selectedTab: String = "Today", // All, Today, Yesterday, This Week, This Month
+
     // Form State
     val isFormVisible: Boolean = false,
     val editingTransaction: LedgerTransactionDto? = null,
@@ -45,6 +48,7 @@ data class LedgerTransactionsState(
 sealed class LedgerTransactionsEvent {
     object LoadNextPage : LedgerTransactionsEvent()
     data class Search(val query: String) : LedgerTransactionsEvent()
+    data class SelectTab(val tab: String) : LedgerTransactionsEvent()
     data class DeleteTransaction(val transaction: LedgerTransactionDto) : LedgerTransactionsEvent()
     object ConfirmDelete : LedgerTransactionsEvent()
     object CancelDelete : LedgerTransactionsEvent()
@@ -100,6 +104,11 @@ class LedgerTransactionsViewModel @Inject constructor(
                     delay(500) // Debounce
                     loadTransactions(1)
                 }
+            }
+
+            is LedgerTransactionsEvent.SelectTab -> {
+                _state.value = _state.value.copy(selectedTab = event.tab)
+                loadTransactions(1)
             }
 
             is LedgerTransactionsEvent.DeleteTransaction -> {
@@ -281,10 +290,15 @@ class LedgerTransactionsViewModel @Inject constructor(
             }
 
             try {
+                // Calculate date range based on selected tab
+                val dateRange = getDateRangeForTab(_state.value.selectedTab)
+
                 val result = getTransactionsUseCase(
                     page = page,
                     search = _state.value.searchQuery.ifBlank { null },
                     type = null,
+                    startDate = dateRange.first,
+                    endDate = dateRange.second,
                     sortBy = "create_date",
                     sortOrder = "desc"
                 )
@@ -336,6 +350,52 @@ class LedgerTransactionsViewModel @Inject constructor(
                     error = e.message
                 )
             }
+        }
+    }
+
+    private fun getDateRangeForTab(tab: String): Pair<String?, String?> {
+        val calendar = java.util.Calendar.getInstance()
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+
+        return when (tab) {
+            "All" -> null to null
+
+            "Today" -> {
+                val today = dateFormat.format(calendar.time)
+                today to today
+            }
+
+            "Yesterday" -> {
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, -1)
+                val yesterday = dateFormat.format(calendar.time)
+                yesterday to yesterday
+            }
+
+            "This Week" -> {
+                // Get start of week (Monday)
+                calendar.set(java.util.Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+                val startOfWeek = dateFormat.format(calendar.time)
+
+                // Get end of week (Sunday)
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, 6)
+                val endOfWeek = dateFormat.format(calendar.time)
+
+                startOfWeek to endOfWeek
+            }
+
+            "This Month" -> {
+                // Get start of month
+                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                val startOfMonth = dateFormat.format(calendar.time)
+
+                // Get end of month
+                calendar.set(java.util.Calendar.DAY_OF_MONTH, calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH))
+                val endOfMonth = dateFormat.format(calendar.time)
+
+                startOfMonth to endOfMonth
+            }
+
+            else -> null to null
         }
     }
 }
