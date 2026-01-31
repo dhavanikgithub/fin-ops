@@ -42,6 +42,16 @@ class TransactionsViewModel @Inject constructor(
                 searchDebounced(event.query)
             }
 
+            is TransactionsEvent.SelectTab -> {
+                _state.value = _state.value.copy(selectedTab = event.tab)
+                loadTransactions(1)
+            }
+
+            is TransactionsEvent.SelectType -> {
+                _state.value = _state.value.copy(selectedType = event.type)
+                loadTransactions(1)
+            }
+
             is TransactionsEvent.SaveDeposit -> saveDeposit()
 
             is TransactionsEvent.SaveWithdraw -> saveWithdraw()
@@ -178,18 +188,28 @@ class TransactionsViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isLoading = true, error = null)
             try {
+                // Map selected type to API parameter
+                val typeFilter = when (_state.value.selectedType) {
+                    "Deposit" -> "deposit"
+                    "Withdrawal" -> "withdraw"
+                    else -> null // "All"
+                }
+
                 val result = getTransactionsUseCase(
                     page = page,
                     limit = 50,
                     search = _state.value.searchQuery.ifBlank { null },
-                    transactionType = null,
+                    transactionType = typeFilter,
                     sortBy = "created_at",
                     sortOrder = "desc"
                 )
 
+                // Filter by date on client side (API doesn't support date filtering)
+                val filteredTransactions = filterTransactionsByDate(result.data, _state.value.selectedTab)
+
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    transactions = result.data,
+                    transactions = filteredTransactions,
                     pagination = result.pagination,
                     summary = result.summary,
                     error = null
@@ -199,6 +219,49 @@ class TransactionsViewModel @Inject constructor(
                     isLoading = false,
                     error = e.message ?: "Failed to load transactions"
                 )
+            }
+        }
+    }
+
+    private fun filterTransactionsByDate(transactions: List<ProfilerTransactionDto>, selectedTab: String): List<ProfilerTransactionDto> {
+        if (selectedTab == "All") return transactions
+
+        val calendar = java.util.Calendar.getInstance()
+        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+
+        val (startDate, endDate) = when (selectedTab) {
+            "Today" -> {
+                val today = dateFormat.format(calendar.time)
+                today to today
+            }
+            "Yesterday" -> {
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, -1)
+                val yesterday = dateFormat.format(calendar.time)
+                yesterday to yesterday
+            }
+            "This Week" -> {
+                calendar.set(java.util.Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+                val startOfWeek = dateFormat.format(calendar.time)
+                calendar.add(java.util.Calendar.DAY_OF_YEAR, 6)
+                val endOfWeek = dateFormat.format(calendar.time)
+                startOfWeek to endOfWeek
+            }
+            "This Month" -> {
+                calendar.set(java.util.Calendar.DAY_OF_MONTH, 1)
+                val startOfMonth = dateFormat.format(calendar.time)
+                calendar.set(java.util.Calendar.DAY_OF_MONTH, calendar.getActualMaximum(java.util.Calendar.DAY_OF_MONTH))
+                val endOfMonth = dateFormat.format(calendar.time)
+                startOfMonth to endOfMonth
+            }
+            else -> return transactions
+        }
+
+        return transactions.filter { transaction ->
+            try {
+                val transactionDate = transaction.createdAt?.split(" ")?.get(0) // Extract date from "2024-01-15 10:23:45"
+                transactionDate != null && transactionDate >= startDate && transactionDate <= endDate
+            } catch (e: Exception) {
+                false
             }
         }
     }
@@ -402,6 +465,8 @@ class TransactionsViewModel @Inject constructor(
 sealed class TransactionsEvent {
     data class LoadTransactions(val page: Int) : TransactionsEvent()
     data class Search(val query: String) : TransactionsEvent()
+    data class SelectTab(val tab: String) : TransactionsEvent()
+    data class SelectType(val type: String) : TransactionsEvent()
     object SaveDeposit : TransactionsEvent()
     object SaveWithdraw : TransactionsEvent()
     data class DeleteTransaction(val transaction: ProfilerTransactionDto) : TransactionsEvent()

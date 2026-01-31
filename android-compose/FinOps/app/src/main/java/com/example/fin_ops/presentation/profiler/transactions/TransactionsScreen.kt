@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -143,6 +144,22 @@ fun TransactionsScreenContent(
         SearchBar(
             searchQuery = state.searchQuery,
             onSearchChange = { onEvent(TransactionsEvent.Search(it)) }
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Filter Tabs
+        FilterTabsRow(
+            selectedTab = state.selectedTab,
+            onTabSelected = { onEvent(TransactionsEvent.SelectTab(it)) }
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Transaction Type Filter
+        TransactionTypeFilterRow(
+            selectedType = state.selectedType,
+            onTypeSelected = { onEvent(TransactionsEvent.SelectType(it)) }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -1025,6 +1042,96 @@ fun DeleteConfirmationDialog(
             }
         }
     )
+}
+
+// --- Filter Components ---
+@Composable
+fun FilterTabsRow(
+    selectedTab: String,
+    onTabSelected: (String) -> Unit
+) {
+    val tabs = listOf("All", "Today", "Yesterday", "This Week", "This Month")
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(tabs) { tab ->
+            val isSelected = selectedTab == tab
+            FilterChip(
+                selected = isSelected,
+                onClick = { onTabSelected(tab) },
+                label = { Text(tab) },
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = Color(0xFF2B7FFF),
+                    selectedLabelColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    selectedBorderColor = Color.Transparent,
+                    borderWidth = 1.dp
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun TransactionTypeFilterRow(
+    selectedType: String,
+    onTypeSelected: (String) -> Unit
+) {
+    val types = listOf("All", "Deposit", "Withdrawal")
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        types.forEach { type ->
+            val isSelected = selectedType == type
+            FilterChip(
+                selected = isSelected,
+                onClick = { onTypeSelected(type) },
+                label = { Text(type) },
+                leadingIcon = if (type != "All") {
+                    {
+                        Icon(
+                            painter = painterResource(
+                                id = if (type == "Deposit") R.drawable.trending_up else R.drawable.trending_down
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                } else null,
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = when (type) {
+                        "Deposit" -> Color(0xFF10B981)
+                        "Withdrawal" -> Color(0xFFEF4444)
+                        else -> Color(0xFF6B7280)
+                    },
+                    selectedLabelColor = Color.White,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    labelColor = MaterialTheme.colorScheme.onSurface
+                ),
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                    selectedBorderColor = Color.Transparent,
+                    borderWidth = 1.dp
+                )
+            )
+        }
+    }
 }
 
 

@@ -13,6 +13,10 @@ data class TransactionsState(
     val searchQuery: String = "",
     val summary: TransactionSummary? = null,
 
+    // Filter Tabs
+    val selectedTab: String = "Today", // All, Today, Yesterday, This Week, This Month
+    val selectedType: String = "All", // All, Deposit, Withdrawal
+
     // Dialog/Form states
     val isDepositFormVisible: Boolean = false,
     val isWithdrawFormVisible: Boolean = false,
