@@ -83,7 +83,7 @@ class MainViewModel @Inject constructor(
         serverPollJob?.cancel()
         serverPollJob = viewModelScope.launch {
             while (true) {
-                delay(5_000) // Poll every 5 seconds
+                delay(10_000) // Poll every 10 seconds
                 checkServerHealth()
             }
         }

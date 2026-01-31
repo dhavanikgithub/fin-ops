@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.settings
 
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
@@ -39,7 +40,7 @@ class SettingsViewModel @Inject constructor(
         healthMonitoringJob = viewModelScope.launch {
             checkHealth() // Immediate first check
             while (isActive) {
-                delay(10_000L) // 10 seconds
+                delay(30_000L) // 30 seconds
                 checkHealth()
             }
         }
@@ -59,10 +60,8 @@ class SettingsViewModel @Inject constructor(
                 val response = getSystemHealthUseCase()
 
                 val status = when (response.status.uppercase()) {
-                    "UP" -> ServerStatus.CONNECTED
-                    "DOWN" -> ServerStatus.DISCONNECTED
-                    "DEGRADED" -> ServerStatus.DEGRADED
-                    else -> ServerStatus.ERROR
+                    "OK" -> ServerStatus.CONNECTED
+                    else -> ServerStatus.DISCONNECTED
                 }
 
                 _state.value = _state.value.copy(
