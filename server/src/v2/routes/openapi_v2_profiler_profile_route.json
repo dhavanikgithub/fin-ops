@@ -252,6 +252,53 @@
                         }
                     },
                     {
+                        "name": "created_at_start",
+                        "in": "query",
+                        "description": "Filter profiles created on or after this date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-01-01"
+                        }
+                    },
+                    {
+                        "name": "created_at_end",
+                        "in": "query",
+                        "description": "Filter profiles created on or before this date (YYYY-MM-DD)",
+                        "schema": {
+                            "type": "string",
+                            "format": "date",
+                            "example": "2024-12-31"
+                        }
+                    },
+                    {
+                        "name": "pre_planned_deposit_amount",
+                        "in": "query",
+                        "description": "Filter by exact pre-planned deposit amount",
+                        "schema": {
+                            "type": "number",
+                            "example": 50000
+                        }
+                    },
+                    {
+                        "name": "min_deposit_amount",
+                        "in": "query",
+                        "description": "Filter profiles with pre-planned deposit amount greater than or equal to this value",
+                        "schema": {
+                            "type": "number",
+                            "example": 10000
+                        }
+                    },
+                    {
+                        "name": "max_deposit_amount",
+                        "in": "query",
+                        "description": "Filter profiles with pre-planned deposit amount less than or equal to this value",
+                        "schema": {
+                            "type": "number",
+                            "example": 100000
+                        }
+                    },
+                    {
                         "name": "sort_by",
                         "in": "query",
                         "schema": {

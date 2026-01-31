@@ -51,6 +51,11 @@ export class ProfilerProfileService {
                 has_negative_balance,
                 balance_greater_than,
                 balance_less_than,
+                created_at_start,
+                created_at_end,
+                pre_planned_deposit_amount,
+                min_deposit_amount,
+                max_deposit_amount,
                 sort_by = 'created_at',
                 sort_order = 'desc'
             } = params;
@@ -141,6 +146,38 @@ export class ProfilerProfileService {
                 paramIndex++;
             }
 
+            // Filter by date range
+            if (created_at_start !== undefined) {
+                whereConditions.push(`DATE(p.created_at) >= $${paramIndex}::date`);
+                queryParams.push(created_at_start);
+                paramIndex++;
+            }
+
+            if (created_at_end !== undefined) {
+                whereConditions.push(`DATE(p.created_at) <= $${paramIndex}::date`);
+                queryParams.push(created_at_end);
+                paramIndex++;
+            }
+
+            // Filter by pre-planned deposit amount
+            if (pre_planned_deposit_amount !== undefined) {
+                whereConditions.push(`p.pre_planned_deposit_amount = $${paramIndex}`);
+                queryParams.push(pre_planned_deposit_amount);
+                paramIndex++;
+            }
+
+            if (min_deposit_amount !== undefined) {
+                whereConditions.push(`p.pre_planned_deposit_amount >= $${paramIndex}`);
+                queryParams.push(min_deposit_amount);
+                paramIndex++;
+            }
+
+            if (max_deposit_amount !== undefined) {
+                whereConditions.push(`p.pre_planned_deposit_amount <= $${paramIndex}`);
+                queryParams.push(max_deposit_amount);
+                paramIndex++;
+            }
+
             const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
 
             // Build ORDER BY clause
@@ -210,6 +247,11 @@ export class ProfilerProfileService {
             if (has_negative_balance !== undefined) filters.has_negative_balance = has_negative_balance;
             if (balance_greater_than !== undefined) filters.balance_greater_than = balance_greater_than;
             if (balance_less_than !== undefined) filters.balance_less_than = balance_less_than;
+            if (created_at_start !== undefined) filters.created_at_start = created_at_start;
+            if (created_at_end !== undefined) filters.created_at_end = created_at_end;
+            if (pre_planned_deposit_amount !== undefined) filters.pre_planned_deposit_amount = pre_planned_deposit_amount;
+            if (min_deposit_amount !== undefined) filters.min_deposit_amount = min_deposit_amount;
+            if (max_deposit_amount !== undefined) filters.max_deposit_amount = max_deposit_amount;
 
             return {
                 data: dataResult.rows,

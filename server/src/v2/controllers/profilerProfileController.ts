@@ -45,6 +45,11 @@ export class ProfilerProfileController {
             has_negative_balance,
             balance_greater_than,
             balance_less_than,
+            created_at_start,
+            created_at_end,
+            pre_planned_deposit_amount,
+            min_deposit_amount,
+            max_deposit_amount,
             sort_by,
             sort_order
         } = req.query;
@@ -133,6 +138,35 @@ export class ProfilerProfileController {
             const parsed = parseFloat(balance_less_than as string);
             if (!isNaN(parsed)) {
                 params.balance_less_than = parsed;
+            }
+        }
+
+        if (created_at_start !== undefined) {
+            params.created_at_start = (created_at_start as string).trim();
+        }
+
+        if (created_at_end !== undefined) {
+            params.created_at_end = (created_at_end as string).trim();
+        }
+
+        if (pre_planned_deposit_amount !== undefined) {
+            const parsed = parseFloat(pre_planned_deposit_amount as string);
+            if (!isNaN(parsed)) {
+                params.pre_planned_deposit_amount = parsed;
+            }
+        }
+
+        if (min_deposit_amount !== undefined) {
+            const parsed = parseFloat(min_deposit_amount as string);
+            if (!isNaN(parsed)) {
+                params.min_deposit_amount = parsed;
+            }
+        }
+
+        if (max_deposit_amount !== undefined) {
+            const parsed = parseFloat(max_deposit_amount as string);
+            if (!isNaN(parsed)) {
+                params.max_deposit_amount = parsed;
             }
         }
 

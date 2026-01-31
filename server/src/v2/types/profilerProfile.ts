@@ -67,6 +67,15 @@ export interface ProfilerProfileFilter {
     has_negative_balance?: boolean; // Filter profiles with remaining_balance < 0
     balance_greater_than?: number; // Filter remaining_balance > value
     balance_less_than?: number; // Filter remaining_balance < value
+
+    // Date range filters
+    created_at_start?: string; // Filter profiles created on or after this date (YYYY-MM-DD)
+    created_at_end?: string; // Filter profiles created on or before this date (YYYY-MM-DD)
+
+    // Base amount filters
+    pre_planned_deposit_amount?: number; // Filter by exact pre-planned deposit amount
+    min_deposit_amount?: number; // Filter pre_planned_deposit_amount >= value
+    max_deposit_amount?: number; // Filter pre_planned_deposit_amount <= value
 }
 
 export interface ProfilerProfileSort {

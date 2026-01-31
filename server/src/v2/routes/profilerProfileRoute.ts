@@ -26,6 +26,11 @@ router.get('/', ProfilerProfileController.getAllProfiles);
  *   has_negative_balance?: boolean,
  *   balance_greater_than?: number,
  *   balance_less_than?: number,
+ *   created_at_start?: string (YYYY-MM-DD),
+ *   created_at_end?: string (YYYY-MM-DD),
+ *   pre_planned_deposit_amount?: number,
+ *   min_deposit_amount?: number,
+ *   max_deposit_amount?: number,
  *   sort_by?: string,
  *   sort_order?: string
  * }
