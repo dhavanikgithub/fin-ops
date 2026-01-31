@@ -15,39 +15,7 @@ import com.example.fin_ops.data.remote.dto.AutocompleteProfilerClientItem
 import com.example.fin_ops.data.remote.dto.Pagination
 import com.example.fin_ops.data.remote.dto.ProfilerClientDto
 
-data class ClientsState(
-    val clients: List<ProfilerClientDto> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val pagination: Pagination? = null,
-    val searchQuery: String = "",
-    val autocompleteSuggestions: List<AutocompleteProfilerClientItem> = emptyList(),
 
-    // Sorting
-    val sortBy: String = "name", // "name", "created_at", "profile_count"
-    val sortOrder: String = "asc", // "asc" or "desc"
-
-    // Filtering
-    val hasProfilesFilter: Boolean? = null, // null = all, true = with profiles, false = without profiles
-
-    // Dialog/Form state
-    val isFormVisible: Boolean = false,
-    val editingClient: ProfilerClientDto? = null,
-    val formName: String = "",
-    val formEmail: String = "",
-    val formMobile: String = "",
-    val formAadhaar: String = "",
-    val formNotes: String = "",
-    val formError: String? = null,
-
-    // Delete confirmation
-    val showDeleteDialog: Boolean = false,
-    val clientToDelete: ProfilerClientDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false
-)
 @HiltViewModel
 class ClientsViewModel @Inject constructor(
     private val getClientsUseCase: GetClientsUseCase,
@@ -61,6 +29,7 @@ class ClientsViewModel @Inject constructor(
     val state: State<ClientsState> = _state
 
     private var searchJob: Job? = null
+    private var loadJob: Job? = null
 
     init {
         loadClients()
@@ -69,6 +38,17 @@ class ClientsViewModel @Inject constructor(
     fun onEvent(event: ClientsEvent) {
         when (event) {
             is ClientsEvent.LoadClients -> loadClients(event.page)
+
+            is ClientsEvent.LoadNextPage -> {
+                val pagination = state.value.pagination
+                if (pagination != null &&
+                    pagination.hasNextPage &&
+                    !state.value.isLoading &&
+                    !state.value.isLoadingMore
+                ) {
+                    loadClients(pagination.currentPage + 1)
+                }
+            }
 
             is ClientsEvent.Search -> {
                 _state.value = _state.value.copy(searchQuery = event.query)
@@ -182,7 +162,14 @@ class ClientsViewModel @Inject constructor(
 
     private fun loadClients(page: Int = 1) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null)
+            val isFirstPage = page == 1
+
+            if (isFirstPage) {
+                loadJob?.cancel()
+                _state.value = _state.value.copy(isLoading = true, isLoadingMore = false, error = null)
+            } else {
+                _state.value = _state.value.copy(isLoadingMore = true, error = null)
+            }
             try {
                 val result = getClientsUseCase(
                     page = page,
@@ -192,16 +179,23 @@ class ClientsViewModel @Inject constructor(
                     sortBy = _state.value.sortBy,
                     sortOrder = _state.value.sortOrder
                 )
+                val updatedList = if (isFirstPage) {
+                    result.data
+                } else {
+                    state.value.clients + result.data
+                }
+
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    clients = result.data,
-                    pagination = result.pagination,
-                    error = null
+                    isLoadingMore = false,
+                    clients = updatedList,
+                    pagination = result.pagination
                 )
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isLoading = false,
-                    error = e.message ?: "Failed to load clients"
+                    isLoadingMore = false,
+                    error = e.message ?: "An unexpected error occurred"
                 )
             }
         }
@@ -210,6 +204,9 @@ class ClientsViewModel @Inject constructor(
     private fun searchDebounced(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
+            if (query.isNotBlank()) {
+                _state.value = _state.value.copy(clients = emptyList(), isLoading = true)
+            }
             delay(500L)
             if (query.isBlank()) {
                 loadClients(1)
@@ -363,6 +360,8 @@ class ClientsViewModel @Inject constructor(
 // Events sealed class for UI interactions
 sealed class ClientsEvent {
     data class LoadClients(val page: Int) : ClientsEvent()
+    object LoadNextPage : ClientsEvent()
+
     data class Search(val query: String) : ClientsEvent()
     object SaveClient : ClientsEvent()
     data class DeleteClient(val client: ProfilerClientDto) : ClientsEvent()

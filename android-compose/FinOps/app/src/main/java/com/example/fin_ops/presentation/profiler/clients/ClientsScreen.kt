@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -31,7 +32,8 @@ import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerClientDto
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
-
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 // --- Main Screen Component ---
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -339,6 +341,23 @@ fun ClientList(
     state: ClientsState,
     onEvent: (ClientsEvent) -> Unit
 ) {
+    val listState = rememberLazyListState()
+    // Infinite Scroll Logic
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            totalItems > 0 && lastVisibleItemIndex >= (totalItems - 2)
+        }
+            .distinctUntilChanged()
+            .collectLatest { shouldLoadMore ->
+                if (shouldLoadMore) {
+                    onEvent(ClientsEvent.LoadNextPage)
+                }
+            }
+    }
+
     LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (state.isLoading && state.clients.isEmpty()) {
             items(6) {
@@ -361,20 +380,35 @@ fun ClientList(
                     onDeleteClick = { onEvent(ClientsEvent.DeleteClient(client)) }
                 )
             }
-        }
-
-        state.pagination?.let { pagination ->
-            item {
-                PaginationInfo(
-                    pagination = pagination,
-                    onLoadMore = {
-                        if (pagination.currentPage < pagination.totalPages) {
-                            onEvent(ClientsEvent.LoadClients(pagination.currentPage + 1))
+            // Bottom Loader for Pagination
+            if (state.isLoadingMore) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
+                }
+            } else if (state.error != null && state.clients.isNotEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Error loading more", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        TextButton(onClick = { onEvent(ClientsEvent.LoadNextPage) }) {
+                            Text("Retry")
                         }
                     }
-                )
+                }
             }
         }
+
 
         item { Spacer(modifier = Modifier.height(70.dp)) }
     }
@@ -668,35 +702,6 @@ fun EmptyStateView(
     }
 }
 
-// --- Pagination Info ---
-@Composable
-fun PaginationInfo(
-    pagination: com.example.fin_ops.data.remote.dto.Pagination,
-    onLoadMore: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Page ${pagination.currentPage} of ${pagination.totalPages} • ${pagination.totalCount} total",
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        if (pagination.currentPage < pagination.totalPages) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = onLoadMore,
-                modifier = Modifier.height(32.dp)
-            ) {
-                Text("Load More", fontSize = 12.sp)
-            }
-        }
-    }
-}
 
 // --- Client Form Dialog ---
 @Composable

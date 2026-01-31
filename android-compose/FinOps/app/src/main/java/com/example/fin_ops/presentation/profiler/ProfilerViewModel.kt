@@ -12,16 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class ProfilerState(
-    val profiles: List<ProfilerProfileDto> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String = ""
-)
-data class TransactionState(
-    val transactions: TransactionData? = null,
-    val isLoading: Boolean = false,
-    val error: String = ""
-)
+
 @HiltViewModel
 class ProfilerViewModel @Inject constructor(
     private val getProfilesUseCase: GetProfilesUseCase,

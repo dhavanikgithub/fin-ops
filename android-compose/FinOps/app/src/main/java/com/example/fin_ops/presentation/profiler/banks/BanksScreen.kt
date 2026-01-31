@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -27,6 +28,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -53,6 +55,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,6 +72,8 @@ import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerBankDto
 import com.example.fin_ops.utils.formatDate
 import com.example.fin_ops.utils.shimmerEffect
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 
@@ -381,128 +386,141 @@ fun buildFilterText(state: BanksState): String {
 
 // --- Bank List ---
 @Composable
-fun BankList(
-    state: BanksState,
-    onEvent: (BanksEvent) -> Unit
-) {
-    LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (state.isLoading && state.banks.isEmpty()) {
-            // Show skeleton items
-            items(6) {
-                LoadingBankItem()
+fun BankList(state: BanksState, onEvent: (BanksEvent) -> Unit) {
+    val listState = rememberLazyListState()
+
+    // Infinite Scroll Logic
+    // In BankList composable
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            val layoutInfo = listState.layoutInfo
+            val totalItems = layoutInfo.totalItemsCount
+            val lastVisibleItemIndex = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+
+            // Return boolean
+            totalItems > 0 && lastVisibleItemIndex >= (totalItems - 2)
+        }
+            .distinctUntilChanged() // Only emit when the boolean changes from false to true
+            .collectLatest { shouldLoadMore ->
+                if (shouldLoadMore) {
+                    onEvent(BanksEvent.LoadNextPage)
+                }
             }
-        } else if (state.banks.isEmpty() && !state.isLoading) {
-            // Empty state
+    }
+
+    LazyColumn(
+        state = listState,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(bottom = 80.dp) // Space for FAB
+    ) {
+        if (!state.isLoading && state.banks.isEmpty()) {
             item {
-                EmptyStateView(
-                    message = if (state.searchQuery.isNotEmpty())
-                        "No banks found matching \"${state.searchQuery}\""
-                    else "No banks available",
-                    onAddClick = { onEvent(BanksEvent.OpenForm(null)) }
-                )
-            }
-        } else {
-            // Show real items
-            items(state.banks, key = { it.id }) { bank ->
-                BankItem(
-                    bank = bank,
-                    onEditClick = { onEvent(BanksEvent.OpenForm(bank)) },
-                    onDeleteClick = { onEvent(BanksEvent.DeleteBank(bank)) }
-                )
+                Box(
+                    modifier = Modifier.fillParentMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No banks found", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
         }
+        if (state.isLoading && state.banks.isEmpty()) {
+            items(5) { LoadingBankItem() }
+        } else {
+            items(
+                items = state.banks,
+                key = { bank -> bank.id } // Add this line
+            ) { bank ->
+                BankItem(bank = bank, onEvent = onEvent)
+            }
 
-        // Pagination info
-        state.pagination?.let { pagination ->
-            item {
-                PaginationInfo(
-                    pagination = pagination,
-                    onLoadMore = {
-                        if (pagination.currentPage < pagination.totalPages) {
-                            onEvent(BanksEvent.LoadBanks(pagination.currentPage + 1))
+            // Loading indicator at bottom
+            if (state.isLoadingMore) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    }
+                }
+            }
+            else if (state.error != null && state.banks.isNotEmpty()) {
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Error loading more", color = MaterialTheme.colorScheme.error)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Button(onClick = { onEvent(BanksEvent.LoadNextPage) }) {
+                            Text("Retry")
                         }
                     }
-                )
+                }
             }
         }
-
-        item { Spacer(modifier = Modifier.height(70.dp)) }
     }
 }
 
+
+
 // --- Bank Item ---
 @Composable
-fun BankItem(
-    bank: ProfilerBankDto,
-    onEditClick: () -> Unit,
-    onDeleteClick: () -> Unit
-) {
+fun BankItem(bank: ProfilerBankDto, onEvent: (BanksEvent) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(10.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Bank Icon
                 Box(
                     modifier = Modifier
-                        .size(44.dp)
-                        .background(
-                            color = Color(0xFF2B7FFF).copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(12.dp)
-                        ),
+                        .size(40.dp)
+                        .background(Color(0xFFAD46FF), RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.building_2),
                         contentDescription = bank.bankName,
-                        tint = Color(0xFF2B7FFF),
-                        modifier = Modifier.size(22.dp)
+                        tint = Color.White,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                // Bank Info
+                Spacer(modifier = Modifier.width(10.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = bank.bankName,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 15.sp,
+                        fontSize = 14.sp,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Created: ${formatDate(bank.createdAt)}",
+                        text = "Created: ${bank.createdAt.take(10)}",
                         fontSize = 11.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-
-                // Menu Button
                 Box {
-                    IconButton(
-                        onClick = { expanded = true },
-                        modifier = Modifier.size(28.dp)
-                    ) {
+                    IconButton(onClick = { expanded = true }, modifier = Modifier.size(24.dp)) {
                         Icon(
                             painter = painterResource(id = R.drawable.ellipsis_vertical),
                             contentDescription = "Options",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(18.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-
                     DropdownMenu(
                         expanded = expanded,
                         onDismissRequest = { expanded = false }
@@ -511,62 +529,31 @@ fun BankItem(
                             text = { Text("Edit") },
                             onClick = {
                                 expanded = false
-                                onEditClick()
+                                onEvent(BanksEvent.OpenForm(bank))
                             },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.square_pen),
-                                    contentDescription = "Edit",
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            leadingIcon = { Icon(painterResource(R.drawable.square_pen), null) }
                         )
                         DropdownMenuItem(
-                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+                            text = { Text("Delete", color = Color.Red) },
                             onClick = {
                                 expanded = false
-                                onDeleteClick()
+                                onEvent(BanksEvent.DeleteBank(bank))
                             },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.trash_2),
-                                    contentDescription = "Delete",
-                                    tint = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
+                            leadingIcon = { Icon(painterResource(R.drawable.trash_2), null, tint = Color.Red) }
                         )
                     }
                 }
             }
-
-            // Profile Count Badge
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
+                shape = RoundedCornerShape(6.dp)
             ) {
-                Surface(
-                    color = Color(0xFF2B7FFF).copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.users),
-                            contentDescription = "Profiles",
-                            tint = Color(0xFF2B7FFF),
-                            modifier = Modifier.size(12.dp)
-                        )
-                        Text(
-                            text = "${bank.profileCount} Profiles",
-                            color = Color(0xFF2B7FFF),
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
+                Text(
+                    text = "${bank.profileCount} Profiles",
+                    color = Color(0xFF2B7FFF),
+                    fontSize = 11.sp,
+                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                )
             }
         }
     }
@@ -675,35 +662,6 @@ fun EmptyStateView(
     }
 }
 
-// --- Pagination Info ---
-@Composable
-fun PaginationInfo(
-    pagination: com.example.fin_ops.data.remote.dto.Pagination,
-    onLoadMore: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Page ${pagination.currentPage} of ${pagination.totalPages} • ${pagination.totalCount} total",
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        if (pagination.currentPage < pagination.totalPages) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = onLoadMore,
-                modifier = Modifier.height(32.dp)
-            ) {
-                Text("Load More", fontSize = 12.sp)
-            }
-        }
-    }
-}
 
 // --- Bank Form Dialog ---
 @Composable

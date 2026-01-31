@@ -1,14 +1,27 @@
 package com.example.fin_ops
 
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsTopHeight
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -22,6 +35,7 @@ import com.example.fin_ops.presentation.calculator.finkeda.FinkedaSettingsScreen
 import com.example.fin_ops.presentation.calculator.simple.BankPresetsScreen
 import com.example.fin_ops.presentation.calculator.simple.PlatformPresetsScreen
 import com.example.fin_ops.presentation.calculator.simple.SavedScenariosScreen
+import com.example.fin_ops.presentation.components.ConnectivityBanner
 import com.example.fin_ops.presentation.components.FinOpsTopAppBar
 import com.example.fin_ops.presentation.ledger.LedgerScreen
 import com.example.fin_ops.presentation.ledger.banks.LedgerBanksScreen
@@ -43,6 +57,7 @@ import com.example.fin_ops.presentation.profiler.transactions.TransactionsScreen
 import com.example.fin_ops.presentation.settings.SettingsScreen
 import com.example.fin_ops.ui.theme.FinOpsTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
     mainViewModel: MainViewModel = hiltViewModel()
@@ -86,15 +101,44 @@ fun MainScreen(
     val showBackButton = currentRoute !in bottomNavRoutes
     val showBottomBar = currentRoute in bottomNavRoutes
 
+    // Observe Connectivity State
+    val connectionState by mainViewModel.connectionState
+    val isBannerVisible = connectionState !is ConnectivityState.Connected
+
+    // Animate the Status Bar color (Red when error, Default Background when normal)
+    val statusBarColor by animateColorAsState(
+        targetValue = if (isBannerVisible) Color(0xFFCC0000) else MaterialTheme.colorScheme.background,
+        label = "StatusBarColor"
+    )
+
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp),
         topBar = {
-            if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route ) {
-                FinOpsTopAppBar(
-                    title = title,
-                    navController = navController,
-                    showBackButton = showBackButton
+            Column {
+                // 1. Explicit Status Bar Background
+                // This ensures the space behind the clock is always the correct color and height
+                Spacer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .windowInsetsTopHeight(WindowInsets.statusBars)
+                        .background(statusBarColor)
                 )
+
+                // 2. Place the Banner here, ABOVE the TopAppBar
+                ConnectivityBanner(connectionState = connectionState)
+
+                // 3. The App Bar
+                // We pass 0 insets because the Spacer at #1 already reserved the top space
+                if (currentRoute != BottomNavItem.Profiler.route && currentRoute != BottomNavItem.Ledger.route ) {
+                    FinOpsTopAppBar(
+                        title = title,
+                        navController = navController,
+                        showBackButton = showBackButton,
+                        windowInsets = WindowInsets(0.dp)
+                    )
+                }
             }
+
         },
         bottomBar = {
             if (showBottomBar) {

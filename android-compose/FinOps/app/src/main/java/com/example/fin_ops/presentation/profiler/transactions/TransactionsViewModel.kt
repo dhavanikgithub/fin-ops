@@ -13,51 +13,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class TransactionsState(
-    val transactions: List<ProfilerTransactionDto> = emptyList(),
-    val isLoading: Boolean = false,
-    val error: String? = null,
-    val pagination: Pagination? = null,
-    val searchQuery: String = "",
-    val summary: TransactionSummary? = null,
 
-    // Filtering & Sorting
-    val filterType: String? = null, // null = all, "deposit", "withdraw"
-    val sortBy: String = "created_at",
-    val sortOrder: String = "desc",
-
-    // Dialog/Form states
-    val isDepositFormVisible: Boolean = false,
-    val isWithdrawFormVisible: Boolean = false,
-    val editingTransaction: ProfilerTransactionDto? = null,
-
-    // Deposit Form fields
-    val depositFormProfileId: Int? = null,
-    val depositFormAmount: String = "",
-    val depositFormNotes: String = "",
-
-    // Withdraw Form fields
-    val withdrawFormProfileId: Int? = null,
-    val withdrawFormAmount: String = "",
-    val withdrawFormChargesPercentage: String = "",
-    val withdrawFormNotes: String = "",
-
-    val formError: String? = null,
-
-    // Autocomplete for Profile
-    val profileSearchQuery: String = "",
-    val profileSuggestions: List<AutocompleteProfilerProfileDto> = emptyList(),
-    val selectedProfile: AutocompleteProfilerProfileDto? = null,
-    val showProfileDropdown: Boolean = false,
-
-    // Delete confirmation
-    val showDeleteDialog: Boolean = false,
-    val transactionToDelete: ProfilerTransactionDto? = null,
-
-    // Sort/Filter dialog
-    val showSortDialog: Boolean = false,
-    val showFilterDialog: Boolean = false
-)
 @HiltViewModel
 class TransactionsViewModel @Inject constructor(
     private val getTransactionsUseCase: GetTransactionsUseCase,

@@ -1,11 +1,14 @@
 
 package com.example.fin_ops.di
 
+import android.content.Context
 import com.example.fin_ops.BuildConfig
 import com.example.fin_ops.data.remote.ApiService
+import com.example.fin_ops.utils.NetworkConnectivityObserver
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -45,5 +48,11 @@ object AppModule {
     @Singleton
     fun provideApiService(retrofit: Retrofit): ApiService {
         return retrofit.create(ApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideNetworkConnectivityObserver(@ApplicationContext context: Context): NetworkConnectivityObserver {
+        return NetworkConnectivityObserver(context)
     }
 }

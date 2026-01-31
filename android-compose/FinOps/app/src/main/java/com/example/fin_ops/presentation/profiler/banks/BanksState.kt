@@ -7,6 +7,7 @@ import com.example.fin_ops.data.remote.dto.Pagination
 data class BanksState(
     val banks: List<ProfilerBankDto> = emptyList(),
     val isLoading: Boolean = false,
+    val isLoadingMore: Boolean = false, // Added for infinite scroll
     val error: String? = null,
     val pagination: Pagination? = null,
     val searchQuery: String = "",

@@ -210,20 +210,6 @@ fun ProfileScreenContent(
                     }
                 }
             }
-
-            // Pagination
-            state.pagination?.let { pagination ->
-                item {
-                    PaginationInfo(
-                        pagination = pagination,
-                        onLoadMore = {
-                            if (pagination.currentPage < pagination.totalPages) {
-                                onEvent(ProfilesEvent.LoadProfiles(pagination.currentPage + 1))
-                            }
-                        }
-                    )
-                }
-            }
         }
     }
 }
@@ -721,35 +707,6 @@ fun EmptyStateView(
     }
 }
 
-// --- Pagination ---
-@Composable
-fun PaginationInfo(
-    pagination: com.example.fin_ops.data.remote.dto.Pagination,
-    onLoadMore: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Page ${pagination.currentPage} of ${pagination.totalPages} • ${pagination.totalCount} total",
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        if (pagination.hasNextPage) {
-            Spacer(modifier = Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = onLoadMore,
-                modifier = Modifier.height(32.dp)
-            ) {
-                Text("Load More", fontSize = 12.sp)
-            }
-        }
-    }
-}
 
 // --- Profile Form Dialog with Autocomplete ---
 @Composable

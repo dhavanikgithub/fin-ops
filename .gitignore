@@ -6,3 +6,9 @@ ngrok-auth-command.txt
 logs/
 install_ngrok_service.bat
 remove_ngrok_service.bat
+.claude/
+fin-ops-android-compose-prompt.md
+fin-ops-client.md
+fin-ops-server.md
+flutter-app-prompt.md
+IMPLEMENTATION_GUIDE.md

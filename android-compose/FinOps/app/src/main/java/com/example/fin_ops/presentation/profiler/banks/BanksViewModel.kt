@@ -25,6 +25,7 @@ class BanksViewModel @Inject constructor(
     val state: State<BanksState> = _state
 
     private var searchJob: Job? = null
+    private var loadJob: Job? = null // 1. Add a Job reference
 
     init {
         loadBanks()
@@ -33,6 +34,17 @@ class BanksViewModel @Inject constructor(
     fun onEvent(event: BanksEvent) {
         when (event) {
             is BanksEvent.LoadBanks -> loadBanks(event.page)
+
+            is BanksEvent.LoadNextPage -> {
+                val pagination = state.value.pagination
+                if (pagination != null &&
+                    pagination.hasNextPage &&
+                    !state.value.isLoading &&
+                    !state.value.isLoadingMore
+                ) {
+                    loadBanks(pagination.currentPage + 1)
+                }
+            }
 
             is BanksEvent.Search -> {
                 _state.value = _state.value.copy(searchQuery = event.query)
@@ -134,7 +146,30 @@ class BanksViewModel @Inject constructor(
 
     private fun loadBanks(page: Int = 1) {
         viewModelScope.launch {
-            _state.value = _state.value.copy(isLoading = true, error = null)
+            val isFirstPage = page == 1
+
+            // 2. If loading page 1 (Reset), cancel any existing pagination request
+            if (isFirstPage) {
+                loadJob?.cancel()
+                _state.value = _state.value.copy(
+                    isLoading = true,
+                    isLoadingMore = false, // <--- Added this
+                    error = null
+                )
+            }
+            else {
+                _state.value = _state.value.copy(
+                    isLoadingMore = true,
+                    error = null
+                )
+            }
+
+            // Update loading state
+            if (isFirstPage) {
+                _state.value = _state.value.copy(isLoading = true, error = null)
+            } else {
+                _state.value = _state.value.copy(isLoadingMore = true, error = null)
+            }
             try {
                 val result = getBanksUseCase(
                     page = page,
@@ -143,12 +178,20 @@ class BanksViewModel @Inject constructor(
                     sortOrder = _state.value.sortOrder,
                     hasProfiles = _state.value.hasProfilesFilter
                 )
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    banks = result.data,
-                    pagination = result.pagination,
-                    error = null
-                )
+                // Append if loading more, Replace if first page
+                if (isFirstPage || page == (state.value.pagination?.currentPage?.plus(1))) {
+                    val updatedList = if (isFirstPage) {
+                        result.data
+                    } else {
+                        state.value.banks + result.data
+                    }
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        isLoadingMore = false,
+                        banks = updatedList,
+                        pagination = result.pagination
+                    )
+                }
             } catch (e: Exception) {
                 _state.value = _state.value.copy(
                     isLoading = false,
@@ -161,7 +204,11 @@ class BanksViewModel @Inject constructor(
     private fun searchDebounced(query: String) {
         searchJob?.cancel()
         searchJob = viewModelScope.launch {
+            if (query.isNotBlank()) {
+                _state.value = _state.value.copy(banks = emptyList(), isLoading = true)
+            }
             delay(500L) // Debounce
+            _state.value = _state.value.copy(banks = emptyList(), isLoading = true)
             if (query.isBlank()) {
                 loadBanks(1)
                 _state.value = _state.value.copy(autocompleteSuggestions = emptyList())
@@ -265,6 +312,7 @@ class BanksViewModel @Inject constructor(
 // Events sealed class for UI interactions
 sealed class BanksEvent {
     data class LoadBanks(val page: Int) : BanksEvent()
+    object LoadNextPage : BanksEvent() // Added for infinite scroll
     data class Search(val query: String) : BanksEvent()
     object SaveBank : BanksEvent()
     data class DeleteBank(val bank: ProfilerBankDto) : BanksEvent()
