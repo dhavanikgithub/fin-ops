@@ -224,13 +224,13 @@ fun SummarySection(
         } else {
             CompactSummaryCard(
                 label = "Deposits",
-                amount = formatCurrency(summary?.totalDeposits ?: 0),
+                amount = formatCurrency(summary?.totalDeposits ?: 0.0),
                 isDeposit = true,
                 modifier = Modifier.weight(1f)
             )
             CompactSummaryCard(
                 label = "Withdrawals",
-                amount = formatCurrency(summary?.totalWithdrawals ?: 0),
+                amount = formatCurrency(summary?.totalWithdrawals ?: 0.0),
                 isDeposit = false,
                 modifier = Modifier.weight(1f)
             )

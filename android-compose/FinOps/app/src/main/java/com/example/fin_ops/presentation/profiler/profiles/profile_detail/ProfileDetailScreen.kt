@@ -1433,12 +1433,12 @@ private fun createMockTransactions(): List<ProfilerTransactionDto> {
 
 private fun createMockSummary(): TransactionSummary {
     return TransactionSummary(
-        totalDeposits = 5000,
-        totalWithdrawals = 1500,
-        totalCharges = 23,
-        netAmount = 3477,
-        transactionDifference = 3500,
-        creditUncountable = 0
+        totalDeposits = 5000.0,
+        totalWithdrawals = 1500.0,
+        totalCharges = 23.0,
+        netAmount = 3477.0,
+        transactionDifference = 3500.0,
+        creditUncountable = 0.0
     )
 }
 

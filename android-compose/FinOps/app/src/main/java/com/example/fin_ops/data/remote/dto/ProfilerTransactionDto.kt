@@ -51,17 +51,17 @@ data class ProfilerTransactionDto(
 // Represents the summary block in the response
 data class TransactionSummary(
     @SerializedName("total_deposits")
-    val totalDeposits: Long,
+    val totalDeposits: Double,
     @SerializedName("total_withdrawals")
-    val totalWithdrawals: Long,
+    val totalWithdrawals: Double,
     @SerializedName("total_charges")
-    val totalCharges: Long,
+    val totalCharges: Double,
     @SerializedName("net_amount")
-    val netAmount: Long,
+    val netAmount: Double,
     @SerializedName("transaction_difference")
-    val transactionDifference: Long,
+    val transactionDifference: Double,
     @SerializedName("credit_uncountable")
-    val creditUncountable: Long
+    val creditUncountable: Double
 )
 
 

@@ -318,7 +318,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Total Deposits",
                     // Fix: Use ?: "0" (or 0 if the data type is a number)
-                    formatCurrency(transactionsState.transactions?.summary?.totalDeposits ?: 0),
+                    formatCurrency(transactionsState.transactions?.summary?.totalDeposits ?: 0.0),
                     R.drawable.arrow_down_left,
                     Color(0xFF00A63E),
                     Color(0xFFF0FDF4),
@@ -332,7 +332,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Total Withdrawals",
                     // Fix applied here
-                    formatCurrency(transactionsState.transactions?.summary?.totalWithdrawals ?: 0),
+                    formatCurrency(transactionsState.transactions?.summary?.totalWithdrawals ?: 0.0),
                     R.drawable.arrow_up_right,
                     Color(0xFFE7000B),
                     Color(0xFFFEF2F2),
@@ -345,7 +345,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Net Balance",
                     // Fix applied here
-                    formatCurrency(transactionsState.transactions?.summary?.creditUncountable ?: 0),
+                    formatCurrency(transactionsState.transactions?.summary?.creditUncountable ?: 0.0),
                     R.drawable.wallet,
                     Color(0xFF155DFC),
                     Color(0xFFEFF6FF),
