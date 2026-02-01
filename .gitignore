@@ -6,3 +6,5 @@ ngrok-auth-command.txt
 logs/
 install_ngrok_service.bat
 remove_ngrok_service.bat
+ngrok.txt
+start-online.bat
