@@ -703,11 +703,6 @@ fun ProfileCard(
                     label = "Current",
                     value = formatCurrency(profile.currentBalance)
                 )
-                FinancialItem(
-                    label = "Remaining",
-                    value = formatCurrency(profile.remainingBalance),
-                    isHighlight = true
-                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))

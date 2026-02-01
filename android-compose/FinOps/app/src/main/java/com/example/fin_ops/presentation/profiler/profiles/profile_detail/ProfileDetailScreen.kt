@@ -532,17 +532,13 @@ fun ProfileHeaderCard(profile: ProfilerProfileDto) {
                     value = formatCurrency(profile.currentBalance),
                     color = Color(0xFF6366F1)
                 )
-                FinancialDetailItem(
-                    label = "Remaining",
-                    value = formatCurrency(profile.remainingBalance),
-                    color = Color(0xFF10B981)
-                )
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             // Progress Bar
             val progress = try {
+
                 val total = profile.prePlannedDepositAmount.toDoubleOrNull() ?: 1.0
                 val withdrawn = profile.totalWithdrawnAmount.toDoubleOrNull() ?: 0.0
                 (withdrawn / total).toFloat().coerceIn(0f, 1f)
