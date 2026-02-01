@@ -308,7 +308,7 @@ fun TransactionCard(
         MaterialTheme.customColors.withdrawIcon
     }
 
-    val iconRes = if (isDeposit) R.drawable.trending_up else R.drawable.trending_down
+    val iconRes = if (isDeposit) R.drawable.arrow_down_left else R.drawable.arrow_up_right
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -594,7 +594,7 @@ fun TransactionTypeFilterRow(
                     {
                         Icon(
                             painter = painterResource(
-                                id = if (type == "Deposit") R.drawable.trending_up else R.drawable.trending_down
+                                id = if (type == "Deposit") R.drawable.arrow_down_left else R.drawable.arrow_up_right
                             ),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
@@ -663,13 +663,13 @@ fun TransactionFormDialog(
                             selected = state.formTransactionType == 1,
                             onClick = { onEvent(LedgerTransactionsEvent.UpdateFormTransactionType(1)) },
                             label = { Text("Deposit") },
-                            leadingIcon = { Icon(painterResource(R.drawable.trending_up), null, Modifier.size(18.dp)) }
+                            leadingIcon = { Icon(painterResource(R.drawable.arrow_down_left), null, Modifier.size(18.dp)) }
                         )
                         FilterChip(
                             selected = state.formTransactionType == 0,
                             onClick = { onEvent(LedgerTransactionsEvent.UpdateFormTransactionType(0)) },
                             label = { Text("Withdrawal") },
-                            leadingIcon = { Icon(painterResource(R.drawable.trending_down), null, Modifier.size(18.dp)) }
+                            leadingIcon = { Icon(painterResource(R.drawable.arrow_up_right), null, Modifier.size(18.dp)) }
                         )
                     }
                     Spacer(modifier = Modifier.height(12.dp))

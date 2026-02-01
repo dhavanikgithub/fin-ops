@@ -295,7 +295,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                     "Total Deposits",
                     // Fix: Use ?: "0" (or 0 if the data type is a number)
                     "₹${transactionsState.transactions?.summary?.totalDeposits ?: 0}",
-                    R.drawable.trending_up,
+                    R.drawable.arrow_down_left,
                     Color(0xFF00A63E),
                     Color(0xFFF0FDF4),
                     transactionsState.isLoading
@@ -309,7 +309,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                     "Total Withdrawals",
                     // Fix applied here
                     "₹${transactionsState.transactions?.summary?.totalWithdrawals ?: 0}",
-                    R.drawable.trending_down,
+                    R.drawable.arrow_up_right,
                     Color(0xFFE7000B),
                     Color(0xFFFEF2F2),
                     transactionsState.isLoading
@@ -555,7 +555,7 @@ fun RecentTransactions(transactionsState: TransactionState, navController: NavCo
                         it.bankName,
                         it.amount,
                         if (it.transactionType == "deposit") depositFg else withdrawFg,
-                        if (it.transactionType == "deposit") R.drawable.trending_up else R.drawable.trending_down,
+                        if (it.transactionType == "deposit") R.drawable.arrow_down_left else R.drawable.arrow_up_right,
                         if (it.transactionType == "deposit") depositBg else withdrawBg
                     )
                 }

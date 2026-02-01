@@ -70,7 +70,7 @@ fun TransactionsScreen(
                     modifier = Modifier.size(56.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.trending_down),
+                        painter = painterResource(id = R.drawable.arrow_up_right),
                         contentDescription = "Withdraw",
                         modifier = Modifier.size(24.dp)
                     )
@@ -84,7 +84,7 @@ fun TransactionsScreen(
                     modifier = Modifier.size(56.dp)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.trending_up),
+                        painter = painterResource(id = R.drawable.arrow_down_left),
                         contentDescription = "Deposit",
                         modifier = Modifier.size(24.dp)
                     )
@@ -339,7 +339,7 @@ fun TransactionItem(
     val isDeposit = transaction.transactionType == "deposit"
     val iconBgColor = if (isDeposit) Color(0xFFF0FDF4) else Color(0xFFFEF2F2)
     val iconTint = if (isDeposit) Color(0xFF16A34A) else Color(0xFFDC2626)
-    val iconRes = if (isDeposit) R.drawable.trending_up else R.drawable.trending_down
+    val iconRes = if (isDeposit) R.drawable.arrow_down_left else R.drawable.arrow_up_right
 
     var expanded by remember { mutableStateOf(false) }
 
@@ -571,7 +571,7 @@ fun EmptyStateView(
                 )
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.trending_up),
+                    painter = painterResource(id = R.drawable.arrow_down_left),
                     contentDescription = "Deposit",
                     modifier = Modifier.size(18.dp)
                 )
@@ -585,7 +585,7 @@ fun EmptyStateView(
                 )
             ) {
                 Icon(
-                    painter = painterResource(id = R.drawable.trending_down),
+                    painter = painterResource(id = R.drawable.arrow_up_right),
                     contentDescription = "Withdraw",
                     modifier = Modifier.size(18.dp)
                 )
@@ -625,7 +625,7 @@ fun DepositFormDialog(
                             fontWeight = FontWeight.Bold
                         )
                         Icon(
-                            painter = painterResource(id = R.drawable.trending_up),
+                            painter = painterResource(id = R.drawable.arrow_down_left),
                             contentDescription = "Deposit",
                             tint = Color(0xFF16A34A),
                             modifier = Modifier.size(24.dp)
@@ -751,7 +751,7 @@ fun WithdrawFormDialog(
                             fontWeight = FontWeight.Bold
                         )
                         Icon(
-                            painter = painterResource(id = R.drawable.trending_down),
+                            painter = painterResource(id = R.drawable.arrow_up_right),
                             contentDescription = "Withdraw",
                             tint = Color(0xFFDC2626),
                             modifier = Modifier.size(24.dp)
@@ -1106,7 +1106,7 @@ fun TransactionTypeFilterRow(
                     {
                         Icon(
                             painter = painterResource(
-                                id = if (type == "Deposit") R.drawable.trending_up else R.drawable.trending_down
+                                id = if (type == "Deposit") R.drawable.arrow_down_left else R.drawable.arrow_up_right
                             ),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp)
