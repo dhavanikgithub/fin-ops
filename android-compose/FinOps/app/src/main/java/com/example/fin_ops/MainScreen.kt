@@ -42,6 +42,7 @@ import com.example.fin_ops.presentation.ledger.LedgerScreen
 import com.example.fin_ops.presentation.ledger.banks.LedgerBanksScreen
 import com.example.fin_ops.presentation.ledger.cards.LedgerCardsScreen
 import com.example.fin_ops.presentation.ledger.clients.LedgerClientsScreen
+import com.example.fin_ops.presentation.ledger.export.ExportTransactionsScreen
 import com.example.fin_ops.presentation.ledger.transactions.LedgerTransactionsScreen
 import com.example.fin_ops.presentation.navigation.BottomNavigationBar
 import com.example.fin_ops.presentation.navigation.BottomNavItem
@@ -94,6 +95,7 @@ fun MainScreen(
         Routes.LEDGER_BANK -> "Banks"
         Routes.LEDGER_CLIENTS -> "Clients"
         Routes.LEDGER_TRANSACTIONS -> "Transactions"
+        Routes.LEDGER_EXPORT -> "Export Transactions"
        "${Routes.PF_PROFILES_DETAIL}/{profileId}" -> "Profile Details"
         else -> "FinOps"
     }
@@ -221,6 +223,18 @@ fun MainScreen(
                 composable(Routes.LEDGER_BANK) { LedgerBanksScreen() }
                 composable(Routes.LEDGER_CLIENTS) { LedgerClientsScreen() }
                 composable(Routes.LEDGER_TRANSACTIONS) { LedgerTransactionsScreen() }
+                composable(
+                    route = "${Routes.LEDGER_EXPORT}?config={config}",
+                    arguments = listOf(
+                        navArgument("config") {
+                            type = NavType.StringType
+                            nullable = true
+                            defaultValue = null
+                        }
+                    )
+                ) {
+                    ExportTransactionsScreen(navController)
+                }
             }
         }
     }
