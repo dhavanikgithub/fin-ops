@@ -95,7 +95,7 @@ fun MainScreen(
         Routes.LEDGER_BANK -> "Banks"
         Routes.LEDGER_CLIENTS -> "Clients"
         Routes.LEDGER_TRANSACTIONS -> "Transactions"
-        Routes.LEDGER_EXPORT -> "Export Transactions"
+        "${Routes.LEDGER_EXPORT}?config={config}" -> "Export Transactions"
        "${Routes.PF_PROFILES_DETAIL}/{profileId}" -> "Profile Details"
         else -> "FinOps"
     }
@@ -222,7 +222,7 @@ fun MainScreen(
                 composable(Routes.LEDGER_CARD) { LedgerCardsScreen() }
                 composable(Routes.LEDGER_BANK) { LedgerBanksScreen() }
                 composable(Routes.LEDGER_CLIENTS) { LedgerClientsScreen() }
-                composable(Routes.LEDGER_TRANSACTIONS) { LedgerTransactionsScreen() }
+                composable(Routes.LEDGER_TRANSACTIONS) { LedgerTransactionsScreen(navController) }
                 composable(
                     route = "${Routes.LEDGER_EXPORT}?config={config}",
                     arguments = listOf(

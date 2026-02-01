@@ -29,7 +29,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.example.fin_ops.R
+import com.example.fin_ops.presentation.navigation.Routes
 import com.example.fin_ops.data.remote.dto.LedgerTransactionDto
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import com.example.fin_ops.ui.theme.customColors
@@ -43,6 +45,7 @@ import java.io.File
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun LedgerTransactionsScreen(
+    navController: NavController,
     viewModel: LedgerTransactionsViewModel = hiltViewModel()
 ) {
     val state = viewModel.state.value
@@ -66,26 +69,18 @@ fun LedgerTransactionsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.End
             ) {
-                // Export FAB
+                // Export FAB - Navigate to Export Screen
                 FloatingActionButton(
-                    onClick = { viewModel.onEvent(LedgerTransactionsEvent.ExportPDF) },
-                    containerColor = Color(0xFF10B981),
+                    onClick = { navController.navigate(Routes.LEDGER_EXPORT) },
+                    containerColor = Color(0xFFFF6B35),
                     contentColor = Color.White,
                     modifier = Modifier.size(48.dp)
                 ) {
-                    if (state.isExporting) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Color.White,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(id = R.drawable.download),
-                            contentDescription = "Export",
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
+                    Icon(
+                        painter = painterResource(id = R.drawable.download),
+                        contentDescription = "Export",
+                        modifier = Modifier.size(22.dp)
+                    )
                 }
 
                 // Add FAB
