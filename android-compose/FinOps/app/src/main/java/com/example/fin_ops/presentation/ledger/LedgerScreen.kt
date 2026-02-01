@@ -81,7 +81,11 @@ fun LedgerScreenContent(
             }
 
             // Recent Exports Section
-            if (!state.isLoading && state.recentExports.isNotEmpty()) {
+            if (state.isLoading) {
+                item {
+                    LoadingRecentExportsSection()
+                }
+            } else if (state.recentExports.isNotEmpty()) {
                 item {
                     RecentExportsSection(
                         recentExports = state.recentExports,
@@ -124,6 +128,16 @@ fun LoadingQuickActions() {
             LoadingQuickActionItem(Modifier.weight(1f))
             LoadingQuickActionItem(Modifier.weight(1f))
         }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(IntrinsicSize.Min),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            LoadingQuickActionExportPDF(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f)) // Empty space for symmetry
+        }
     }
 }
 
@@ -141,14 +155,48 @@ fun LoadingQuickActionItem(modifier: Modifier = Modifier) {
                 .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(modifier = Modifier
-                .size(48.dp)
-                .clip(RoundedCornerShape(8.dp))
-                .shimmerEffect())
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmerEffect()
+            )
             Spacer(modifier = Modifier.height(6.dp))
             Box(
                 modifier = Modifier
                     .width(60.dp)
+                    .height(14.dp)
+                    .clip(RoundedCornerShape(4.dp))
+                    .shimmerEffect()
+            )
+        }
+    }
+}
+
+@Composable
+fun LoadingQuickActionExportPDF(modifier: Modifier = Modifier) {
+    Card(
+        modifier = modifier,
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(1.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .shimmerEffect()
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Box(
+                modifier = Modifier
+                    .width(80.dp)
                     .height(14.dp)
                     .clip(RoundedCornerShape(4.dp))
                     .shimmerEffect()
@@ -268,6 +316,36 @@ fun QuickActionItem(
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface
             )
+        }
+    }
+}
+
+@Composable
+fun LoadingRecentExportsSection() {
+    Column(modifier = Modifier.padding(12.dp)) {
+        Box(
+            modifier = Modifier
+                .width(120.dp)
+                .height(16.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .shimmerEffect()
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(2) { // Placeholder for shimmer effect
+                Card(
+                    modifier = Modifier
+                        .width(180.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .shimmerEffect(),
+                    elevation = CardDefaults.cardElevation(2.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(100.dp))
+                }
+            }
         }
     }
 }
