@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 // --- 2. ViewModel & State ---
 data class LedgerState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val recentExports: List<ExportConfig> = emptyList()
 )
 
@@ -27,16 +27,7 @@ class LedgerViewModel @Inject constructor(
         private set
 
     init {
-        loadData()
         loadRecentExports()
-    }
-
-    private fun loadData() {
-        viewModelScope.launch {
-            state = state.copy(isLoading = true)
-            delay(2500) // Simulate delay
-            state = state.copy(isLoading = false)
-        }
     }
 
     private fun loadRecentExports() {

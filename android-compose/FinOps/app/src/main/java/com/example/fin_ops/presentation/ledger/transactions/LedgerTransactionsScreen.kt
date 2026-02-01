@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -628,13 +629,22 @@ fun TransactionFormDialog(
     state: LedgerTransactionsState,
     onEvent: (LedgerTransactionsEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(LedgerTransactionsEvent.CloseForm) }) {
+    Dialog(
+        onDismissRequest = { onEvent(LedgerTransactionsEvent.CloseForm) },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
         Card(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth(0.92f)
+                .fillMaxHeight(0.85f),
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
-            LazyColumn(modifier = Modifier.padding(24.dp)) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(24.dp)
+            ) {
                 item {
                     Text(
                         text = if (state.editingTransaction != null) "Edit Transaction" else "Add Transaction",
@@ -665,17 +675,16 @@ fun TransactionFormDialog(
                     Spacer(modifier = Modifier.height(12.dp))
                 }
 
-                // Fields
+                // Client Autocomplete Field
                 item {
-                    OutlinedTextField(
-                        value = state.formClientId,
-                        onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormClientId(it)) },
-                        label = { Text("Client ID *") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
+                    Text("Client *", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AutocompleteClientField(state = state, onEvent = onEvent)
                     Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Amount Field
+                item {
                     OutlinedTextField(
                         value = state.formAmount,
                         onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormAmount(it)) },
@@ -686,7 +695,11 @@ fun TransactionFormDialog(
                         singleLine = true
                     )
                     Spacer(modifier = Modifier.height(12.dp))
-                    if (state.formTransactionType == 0) {
+                }
+
+                // Withdraw Charges (only for withdrawal)
+                if (state.formTransactionType == 0) {
+                    item {
                         OutlinedTextField(
                             value = state.formWithdrawCharges,
                             onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormWithdrawCharges(it)) },
@@ -698,24 +711,26 @@ fun TransactionFormDialog(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
-                    OutlinedTextField(
-                        value = state.formBankId,
-                        onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormBankId(it)) },
-                        label = { Text("Bank ID") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
+                }
+
+                // Bank Autocomplete Field
+                item {
+                    Text("Bank", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AutocompleteBankField(state = state, onEvent = onEvent)
                     Spacer(modifier = Modifier.height(12.dp))
-                    OutlinedTextField(
-                        value = state.formCardId,
-                        onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormCardId(it)) },
-                        label = { Text("Card ID") },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp),
-                        singleLine = true
-                    )
+                }
+
+                // Card Autocomplete Field
+                item {
+                    Text("Card", fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AutocompleteCardField(state = state, onEvent = onEvent)
                     Spacer(modifier = Modifier.height(12.dp))
+                }
+
+                // Remark Field
+                item {
                     OutlinedTextField(
                         value = state.formRemark,
                         onValueChange = { onEvent(LedgerTransactionsEvent.UpdateFormRemark(it)) },
@@ -742,6 +757,339 @@ fun TransactionFormDialog(
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2B7FFF))
                         ) {
                             Text(if (state.editingTransaction != null) "Update" else "Create")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Autocomplete Client Field ---
+@Composable
+fun AutocompleteClientField(
+    state: LedgerTransactionsState,
+    onEvent: (LedgerTransactionsEvent) -> Unit
+) {
+    Column {
+        if (state.selectedClient != null) {
+            // Show selected client as chip
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF2B7FFF).copy(alpha = 0.1f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.users),
+                            contentDescription = null,
+                            tint = Color(0xFF2B7FFF),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = state.selectedClient.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF2B7FFF)
+                        )
+                    }
+                    IconButton(
+                        onClick = { onEvent(LedgerTransactionsEvent.ClearClientSelection) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.close),
+                            contentDescription = "Remove",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFF2B7FFF)
+                        )
+                    }
+                }
+            }
+        } else {
+            // Show search field
+            OutlinedTextField(
+                value = state.clientSearchQuery,
+                onValueChange = { onEvent(LedgerTransactionsEvent.SearchClient(it)) },
+                placeholder = { Text("Search client...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search),
+                        contentDescription = "Search",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
+
+            // Show dropdown suggestions
+            if (state.showClientDropdown && state.clientSuggestions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        state.clientSuggestions.take(5).forEach { client ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEvent(LedgerTransactionsEvent.SelectClient(client)) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.user),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = client.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            if (client != state.clientSuggestions.last()) {
+                                HorizontalDivider(thickness = 0.5.dp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Autocomplete Bank Field ---
+@Composable
+fun AutocompleteBankField(
+    state: LedgerTransactionsState,
+    onEvent: (LedgerTransactionsEvent) -> Unit
+) {
+    Column {
+        if (state.selectedBank != null) {
+            // Show selected bank as chip
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF10B981).copy(alpha = 0.1f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.building_2),
+                            contentDescription = null,
+                            tint = Color(0xFF10B981),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = state.selectedBank.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF10B981)
+                        )
+                    }
+                    IconButton(
+                        onClick = { onEvent(LedgerTransactionsEvent.ClearBankSelection) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.close),
+                            contentDescription = "Remove",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFF10B981)
+                        )
+                    }
+                }
+            }
+        } else {
+            // Show search field
+            OutlinedTextField(
+                value = state.bankSearchQuery,
+                onValueChange = { onEvent(LedgerTransactionsEvent.SearchBank(it)) },
+                placeholder = { Text("Search bank...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search),
+                        contentDescription = "Search",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
+
+            // Show dropdown suggestions
+            if (state.showBankDropdown && state.bankSuggestions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        state.bankSuggestions.take(5).forEach { bank ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEvent(LedgerTransactionsEvent.SelectBank(bank)) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.building_2),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = bank.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            if (bank != state.bankSuggestions.last()) {
+                                HorizontalDivider(thickness = 0.5.dp)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// --- Autocomplete Card Field ---
+@Composable
+fun AutocompleteCardField(
+    state: LedgerTransactionsState,
+    onEvent: (LedgerTransactionsEvent) -> Unit
+) {
+    Column {
+        if (state.selectedCard != null) {
+            // Show selected card as chip
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = Color(0xFF8B5CF6).copy(alpha = 0.1f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.credit_card),
+                            contentDescription = null,
+                            tint = Color(0xFF8B5CF6),
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = state.selectedCard.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = Color(0xFF8B5CF6)
+                        )
+                    }
+                    IconButton(
+                        onClick = { onEvent(LedgerTransactionsEvent.ClearCardSelection) },
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.close),
+                            contentDescription = "Remove",
+                            modifier = Modifier.size(16.dp),
+                            tint = Color(0xFF8B5CF6)
+                        )
+                    }
+                }
+            }
+        } else {
+            // Show search field
+            OutlinedTextField(
+                value = state.cardSearchQuery,
+                onValueChange = { onEvent(LedgerTransactionsEvent.SearchCard(it)) },
+                placeholder = { Text("Search card...") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.search),
+                        contentDescription = "Search",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            )
+
+            // Show dropdown suggestions
+            if (state.showCardDropdown && state.cardSuggestions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Card(
+                    shape = RoundedCornerShape(8.dp),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        state.cardSuggestions.take(5).forEach { card ->
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { onEvent(LedgerTransactionsEvent.SelectCard(card)) }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.credit_card),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = card.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            if (card != state.cardSuggestions.last()) {
+                                HorizontalDivider(thickness = 0.5.dp)
+                            }
                         }
                     }
                 }

@@ -6,6 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fin_ops.data.remote.dto.*
 import com.example.fin_ops.domain.use_case.ledger_transaction.*
+import com.example.fin_ops.domain.use_case.ledger_client.SearchLedgerClientsUseCase
+import com.example.fin_ops.domain.use_case.ledger_bank.SearchLedgerBanksUseCase
+import com.example.fin_ops.domain.use_case.ledger_card.SearchLedgerCardsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -27,14 +30,29 @@ data class LedgerTransactionsState(
     // Form State
     val isFormVisible: Boolean = false,
     val editingTransaction: LedgerTransactionDto? = null,
-    val formClientId: String = "",
     val formTransactionType: Int = 1, // 1=Deposit, 0=Withdrawal
     val formAmount: String = "",
     val formWithdrawCharges: String = "",
-    val formBankId: String = "",
-    val formCardId: String = "",
     val formRemark: String = "",
     val formError: String? = null,
+
+    // Client Autocomplete
+    val clientSearchQuery: String = "",
+    val clientSuggestions: List<LedgerClientAutocompleteItem> = emptyList(),
+    val selectedClient: LedgerClientAutocompleteItem? = null,
+    val showClientDropdown: Boolean = false,
+
+    // Bank Autocomplete
+    val bankSearchQuery: String = "",
+    val bankSuggestions: List<LedgerBankAutocompleteItem> = emptyList(),
+    val selectedBank: LedgerBankAutocompleteItem? = null,
+    val showBankDropdown: Boolean = false,
+
+    // Card Autocomplete
+    val cardSearchQuery: String = "",
+    val cardSuggestions: List<LedgerCardAutocompleteItem> = emptyList(),
+    val selectedCard: LedgerCardAutocompleteItem? = null,
+    val showCardDropdown: Boolean = false,
 
     // Delete Confirmation
     val showDeleteDialog: Boolean = false,
@@ -57,16 +75,28 @@ sealed class LedgerTransactionsEvent {
     object SaveTransaction : LedgerTransactionsEvent()
     data class OpenForm(val transactionToEdit: LedgerTransactionDto? = null) : LedgerTransactionsEvent()
     object CloseForm : LedgerTransactionsEvent()
-    data class UpdateFormClientId(val clientId: String) : LedgerTransactionsEvent()
     data class UpdateFormTransactionType(val type: Int) : LedgerTransactionsEvent()
     data class UpdateFormAmount(val amount: String) : LedgerTransactionsEvent()
     data class UpdateFormWithdrawCharges(val charges: String) : LedgerTransactionsEvent()
-    data class UpdateFormBankId(val bankId: String) : LedgerTransactionsEvent()
-    data class UpdateFormCardId(val cardId: String) : LedgerTransactionsEvent()
     data class UpdateFormRemark(val remark: String) : LedgerTransactionsEvent()
     object ExportPDF : LedgerTransactionsEvent()
     object DismissExportDialog : LedgerTransactionsEvent()
     object RefreshTransactions : LedgerTransactionsEvent()
+
+    // Client Autocomplete Events
+    data class SearchClient(val query: String) : LedgerTransactionsEvent()
+    data class SelectClient(val client: LedgerClientAutocompleteItem) : LedgerTransactionsEvent()
+    object ClearClientSelection : LedgerTransactionsEvent()
+
+    // Bank Autocomplete Events
+    data class SearchBank(val query: String) : LedgerTransactionsEvent()
+    data class SelectBank(val bank: LedgerBankAutocompleteItem) : LedgerTransactionsEvent()
+    object ClearBankSelection : LedgerTransactionsEvent()
+
+    // Card Autocomplete Events
+    data class SearchCard(val query: String) : LedgerTransactionsEvent()
+    data class SelectCard(val card: LedgerCardAutocompleteItem) : LedgerTransactionsEvent()
+    object ClearCardSelection : LedgerTransactionsEvent()
 }
 
 @HiltViewModel
@@ -75,12 +105,18 @@ class LedgerTransactionsViewModel @Inject constructor(
     private val createTransactionUseCase: CreateLedgerTransactionUseCase,
     private val updateTransactionUseCase: UpdateLedgerTransactionUseCase,
     private val deleteTransactionUseCase: DeleteLedgerTransactionUseCase,
-    private val generateReportUseCase: GenerateLedgerReportUseCase
+    private val generateReportUseCase: GenerateLedgerReportUseCase,
+    private val searchClientsUseCase: SearchLedgerClientsUseCase,
+    private val searchBanksUseCase: SearchLedgerBanksUseCase,
+    private val searchCardsUseCase: SearchLedgerCardsUseCase
 ) : ViewModel() {
 
     private val _state = mutableStateOf(LedgerTransactionsState())
     val state: State<LedgerTransactionsState> = _state
     private var searchJob: Job? = null
+    private var clientSearchJob: Job? = null
+    private var bankSearchJob: Job? = null
+    private var cardSearchJob: Job? = null
 
     init {
         loadTransactions()
@@ -154,13 +190,13 @@ class LedgerTransactionsViewModel @Inject constructor(
             }
 
             is LedgerTransactionsEvent.SaveTransaction -> {
-                val clientId = state.value.formClientId.trim().toIntOrNull()
+                val clientId = state.value.selectedClient?.id
                 val amount = state.value.formAmount.trim().toDoubleOrNull()
                 val charges = state.value.formWithdrawCharges.trim().toDoubleOrNull() ?: 0.0
 
                 // Validation
                 if (clientId == null) {
-                    _state.value = _state.value.copy(formError = "Invalid Client ID")
+                    _state.value = _state.value.copy(formError = "Please select a client")
                     return
                 }
                 if (amount == null || amount <= 0) {
@@ -178,8 +214,8 @@ class LedgerTransactionsViewModel @Inject constructor(
                                 transactionType = state.value.formTransactionType,
                                 transactionAmount = amount,
                                 withdrawCharges = if (state.value.formTransactionType == 0) charges else null,
-                                bankId = state.value.formBankId.trim().toIntOrNull(),
-                                cardId = state.value.formCardId.trim().toIntOrNull(),
+                                bankId = state.value.selectedBank?.id,
+                                cardId = state.value.selectedCard?.id,
                                 remark = state.value.formRemark.trim().ifBlank { null }
                             )
                             updateTransactionUseCase(updateReq)
@@ -190,8 +226,8 @@ class LedgerTransactionsViewModel @Inject constructor(
                                 transactionType = state.value.formTransactionType,
                                 transactionAmount = amount,
                                 withdrawCharges = if (state.value.formTransactionType == 0) charges else 0.0,
-                                bankId = state.value.formBankId.trim().toIntOrNull(),
-                                cardId = state.value.formCardId.trim().toIntOrNull(),
+                                bankId = state.value.selectedBank?.id,
+                                cardId = state.value.selectedCard?.id,
                                 remark = state.value.formRemark.trim().ifBlank { null }
                             )
                             createTransactionUseCase(createReq)
@@ -199,13 +235,23 @@ class LedgerTransactionsViewModel @Inject constructor(
                         _state.value = _state.value.copy(
                             isFormVisible = false,
                             editingTransaction = null,
-                            formClientId = "",
                             formAmount = "",
                             formWithdrawCharges = "",
-                            formBankId = "",
-                            formCardId = "",
                             formRemark = "",
-                            formError = null
+                            formError = null,
+                            // Clear autocomplete fields
+                            clientSearchQuery = "",
+                            clientSuggestions = emptyList(),
+                            selectedClient = null,
+                            showClientDropdown = false,
+                            bankSearchQuery = "",
+                            bankSuggestions = emptyList(),
+                            selectedBank = null,
+                            showBankDropdown = false,
+                            cardSearchQuery = "",
+                            cardSuggestions = emptyList(),
+                            selectedCard = null,
+                            showCardDropdown = false
                         )
                         loadTransactions()
                     } catch (e: Exception) {
@@ -219,14 +265,36 @@ class LedgerTransactionsViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     isFormVisible = true,
                     editingTransaction = txn,
-                    formClientId = txn?.clientId?.toString() ?: "",
                     formTransactionType = txn?.transactionType ?: 1,
                     formAmount = txn?.transactionAmount?.toString() ?: "",
                     formWithdrawCharges = txn?.withdrawCharges?.toString() ?: "",
-                    formBankId = txn?.bankId?.toString() ?: "",
-                    formCardId = txn?.cardId?.toString() ?: "",
                     formRemark = txn?.remark ?: "",
-                    formError = null
+                    formError = null,
+                    // Set client autocomplete
+                    selectedClient = txn?.let {
+                        LedgerClientAutocompleteItem(id = it.clientId, name = it.clientName)
+                    },
+                    clientSearchQuery = "",
+                    clientSuggestions = emptyList(),
+                    showClientDropdown = false,
+                    // Set bank autocomplete
+                    selectedBank = txn?.bankId?.let { bankId ->
+                        txn.bankName?.let { bankName ->
+                            LedgerBankAutocompleteItem(id = bankId, name = bankName)
+                        }
+                    },
+                    bankSearchQuery = "",
+                    bankSuggestions = emptyList(),
+                    showBankDropdown = false,
+                    // Set card autocomplete
+                    selectedCard = txn?.cardId?.let { cardId ->
+                        txn.cardName?.let { cardName ->
+                            LedgerCardAutocompleteItem(id = cardId, name = cardName)
+                        }
+                    },
+                    cardSearchQuery = "",
+                    cardSuggestions = emptyList(),
+                    showCardDropdown = false
                 )
             }
 
@@ -234,18 +302,24 @@ class LedgerTransactionsViewModel @Inject constructor(
                 _state.value = _state.value.copy(
                     isFormVisible = false,
                     editingTransaction = null,
-                    formClientId = "",
                     formAmount = "",
                     formWithdrawCharges = "",
-                    formBankId = "",
-                    formCardId = "",
                     formRemark = "",
-                    formError = null
+                    formError = null,
+                    // Clear autocomplete fields
+                    clientSearchQuery = "",
+                    clientSuggestions = emptyList(),
+                    selectedClient = null,
+                    showClientDropdown = false,
+                    bankSearchQuery = "",
+                    bankSuggestions = emptyList(),
+                    selectedBank = null,
+                    showBankDropdown = false,
+                    cardSearchQuery = "",
+                    cardSuggestions = emptyList(),
+                    selectedCard = null,
+                    showCardDropdown = false
                 )
-            }
-
-            is LedgerTransactionsEvent.UpdateFormClientId -> {
-                _state.value = _state.value.copy(formClientId = event.clientId, formError = null)
             }
 
             is LedgerTransactionsEvent.UpdateFormTransactionType -> {
@@ -258,14 +332,6 @@ class LedgerTransactionsViewModel @Inject constructor(
 
             is LedgerTransactionsEvent.UpdateFormWithdrawCharges -> {
                 _state.value = _state.value.copy(formWithdrawCharges = event.charges)
-            }
-
-            is LedgerTransactionsEvent.UpdateFormBankId -> {
-                _state.value = _state.value.copy(formBankId = event.bankId)
-            }
-
-            is LedgerTransactionsEvent.UpdateFormCardId -> {
-                _state.value = _state.value.copy(formCardId = event.cardId)
             }
 
             is LedgerTransactionsEvent.UpdateFormRemark -> {
@@ -284,6 +350,144 @@ class LedgerTransactionsViewModel @Inject constructor(
             }
 
             is LedgerTransactionsEvent.RefreshTransactions -> loadTransactions()
+
+            // Client Autocomplete Events
+            is LedgerTransactionsEvent.SearchClient -> {
+                _state.value = _state.value.copy(
+                    clientSearchQuery = event.query,
+                    showClientDropdown = true,
+                    formError = null
+                )
+                searchClientDebounced(event.query)
+            }
+
+            is LedgerTransactionsEvent.SelectClient -> {
+                _state.value = _state.value.copy(
+                    selectedClient = event.client,
+                    clientSearchQuery = "",
+                    showClientDropdown = false,
+                    clientSuggestions = emptyList(),
+                    formError = null
+                )
+            }
+
+            is LedgerTransactionsEvent.ClearClientSelection -> {
+                _state.value = _state.value.copy(
+                    selectedClient = null,
+                    clientSearchQuery = "",
+                    showClientDropdown = false,
+                    clientSuggestions = emptyList()
+                )
+            }
+
+            // Bank Autocomplete Events
+            is LedgerTransactionsEvent.SearchBank -> {
+                _state.value = _state.value.copy(
+                    bankSearchQuery = event.query,
+                    showBankDropdown = true
+                )
+                searchBankDebounced(event.query)
+            }
+
+            is LedgerTransactionsEvent.SelectBank -> {
+                _state.value = _state.value.copy(
+                    selectedBank = event.bank,
+                    bankSearchQuery = "",
+                    showBankDropdown = false,
+                    bankSuggestions = emptyList()
+                )
+            }
+
+            is LedgerTransactionsEvent.ClearBankSelection -> {
+                _state.value = _state.value.copy(
+                    selectedBank = null,
+                    bankSearchQuery = "",
+                    showBankDropdown = false,
+                    bankSuggestions = emptyList()
+                )
+            }
+
+            // Card Autocomplete Events
+            is LedgerTransactionsEvent.SearchCard -> {
+                _state.value = _state.value.copy(
+                    cardSearchQuery = event.query,
+                    showCardDropdown = true
+                )
+                searchCardDebounced(event.query)
+            }
+
+            is LedgerTransactionsEvent.SelectCard -> {
+                _state.value = _state.value.copy(
+                    selectedCard = event.card,
+                    cardSearchQuery = "",
+                    showCardDropdown = false,
+                    cardSuggestions = emptyList()
+                )
+            }
+
+            is LedgerTransactionsEvent.ClearCardSelection -> {
+                _state.value = _state.value.copy(
+                    selectedCard = null,
+                    cardSearchQuery = "",
+                    showCardDropdown = false,
+                    cardSuggestions = emptyList()
+                )
+            }
+        }
+    }
+
+    // Autocomplete debounced search functions
+    private fun searchClientDebounced(query: String) {
+        clientSearchJob?.cancel()
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(clientSuggestions = emptyList())
+            return
+        }
+
+        clientSearchJob = viewModelScope.launch {
+            delay(300L)
+            try {
+                val suggestions = searchClientsUseCase(query)
+                _state.value = _state.value.copy(clientSuggestions = suggestions)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(clientSuggestions = emptyList())
+            }
+        }
+    }
+
+    private fun searchBankDebounced(query: String) {
+        bankSearchJob?.cancel()
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(bankSuggestions = emptyList())
+            return
+        }
+
+        bankSearchJob = viewModelScope.launch {
+            delay(300L)
+            try {
+                val suggestions = searchBanksUseCase(query)
+                _state.value = _state.value.copy(bankSuggestions = suggestions)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(bankSuggestions = emptyList())
+            }
+        }
+    }
+
+    private fun searchCardDebounced(query: String) {
+        cardSearchJob?.cancel()
+        if (query.isBlank()) {
+            _state.value = _state.value.copy(cardSuggestions = emptyList())
+            return
+        }
+
+        cardSearchJob = viewModelScope.launch {
+            delay(300L)
+            try {
+                val suggestions = searchCardsUseCase(query)
+                _state.value = _state.value.copy(cardSuggestions = suggestions)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(cardSuggestions = emptyList())
+            }
         }
     }
 
