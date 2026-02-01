@@ -2,6 +2,7 @@ package com.example.fin_ops.presentation.calculator.finkeda
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -24,6 +26,7 @@ import com.example.fin_ops.data.remote.dto.FinkedaSettingsDto
 import com.example.fin_ops.data.remote.dto.FinkedaSettingsHistoryDto
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 // --- 1. Stateful Composable (Connects to ViewModel) ---
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -96,7 +99,37 @@ fun FinkedaSettingsContent(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    var offsetX by remember { mutableStateOf(0f) }
+                    val scope = rememberCoroutineScope()
+
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        modifier = Modifier
+                            .offset(x = offsetX.dp)
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        if (abs(offsetX) > 100f) {
+                                            scope.launch {
+                                                snackbarData.dismiss()
+                                            }
+                                        } else {
+                                            offsetX = 0f
+                                        }
+                                    },
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        offsetX += dragAmount / density
+                                    }
+                                )
+                            }
+                    )
+                }
+            )
+        },
     ) { _ ->
         LazyColumn(
             modifier = Modifier

@@ -3,6 +3,7 @@ package com.example.fin_ops.presentation.ledger.cards
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -17,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -35,6 +37,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
+import kotlin.math.abs
 
 // --- Main Screen Component ---
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -56,7 +59,37 @@ fun LedgerCardsScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    var offsetX by remember { mutableStateOf(0f) }
+                    val scope = rememberCoroutineScope()
+
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        modifier = Modifier
+                            .offset(x = offsetX.dp)
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        if (abs(offsetX) > 100f) {
+                                            scope.launch {
+                                                snackbarData.dismiss()
+                                            }
+                                        } else {
+                                            offsetX = 0f
+                                        }
+                                    },
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        offsetX += dragAmount / density
+                                    }
+                                )
+                            }
+                    )
+                }
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { viewModel.onEvent(LedgerCardsEvent.OpenForm(null)) },

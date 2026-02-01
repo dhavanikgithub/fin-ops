@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -29,6 +31,7 @@ import com.example.fin_ops.ui.theme.FinOpsTheme
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.abs
 
 @Composable
 fun ExportTransactionsScreen(
@@ -118,7 +121,37 @@ fun ExportTransactionsContent(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
+        snackbarHost = { 
+            SnackbarHost(
+                hostState = snackbarHostState,
+                snackbar = { snackbarData ->
+                    var offsetX by remember { mutableStateOf(0f) }
+                    val scope = rememberCoroutineScope()
+                    
+                    Snackbar(
+                        snackbarData = snackbarData,
+                        modifier = Modifier
+                            .offset(x = offsetX.dp)
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragEnd = {
+                                        if (abs(offsetX) > 100f) {
+                                            scope.launch {
+                                                snackbarData.dismiss()
+                                            }
+                                        } else {
+                                            offsetX = 0f
+                                        }
+                                    },
+                                    onHorizontalDrag = { _, dragAmount ->
+                                        offsetX += dragAmount / density
+                                    }
+                                )
+                            }
+                    )
+                }
+            )
+        },
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
