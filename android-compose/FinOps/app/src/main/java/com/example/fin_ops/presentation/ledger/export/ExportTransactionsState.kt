@@ -2,6 +2,7 @@ package com.example.fin_ops.presentation.ledger.export
 
 import android.net.Uri
 import com.example.fin_ops.data.remote.dto.AutocompleteProfilerClientItem
+import com.example.fin_ops.data.remote.dto.LedgerClientAutocompleteItem
 
 enum class TimePeriod(val displayName: String) {
     TODAY("Today"),
@@ -27,8 +28,8 @@ data class ExportTransactionsState(
 
     // Client filter (optional)
     val clientSearchQuery: String = "",
-    val clientSuggestions: List<AutocompleteProfilerClientItem> = emptyList(),
-    val selectedClient: AutocompleteProfilerClientItem? = null,
+    val clientSuggestions: List<LedgerClientAutocompleteItem> = emptyList(),
+    val selectedClient: LedgerClientAutocompleteItem? = null,
     val showClientDropdown: Boolean = false,
 
     // Export state

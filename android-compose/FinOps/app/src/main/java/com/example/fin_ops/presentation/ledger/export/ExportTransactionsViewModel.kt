@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.util.Base64
+import android.util.Log
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
@@ -20,7 +21,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.fin_ops.data.local.ExportConfig
 import com.example.fin_ops.data.local.ExportConfigStorage
 import com.example.fin_ops.data.remote.dto.AutocompleteProfilerClientItem
+import com.example.fin_ops.data.remote.dto.LedgerClientAutocompleteItem
 import com.example.fin_ops.domain.use_case.client.SearchClientsUseCase
+import com.example.fin_ops.domain.use_case.ledger_client.SearchLedgerClientsUseCase
 import com.example.fin_ops.domain.use_case.ledger_transaction.GenerateLedgerReportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -38,7 +41,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ExportTransactionsViewModel @Inject constructor(
     private val generateReportUseCase: GenerateLedgerReportUseCase,
-    private val searchClientsUseCase: SearchClientsUseCase,
+    private val searchClientsUseCase: SearchLedgerClientsUseCase,
     private val exportConfigStorage: ExportConfigStorage,
     @ApplicationContext private val context: Context,
     savedStateHandle: SavedStateHandle
@@ -92,15 +95,14 @@ class ExportTransactionsViewModel @Inject constructor(
 
             is ExportTransactionsEvent.SearchClient -> {
                 _state.value = _state.value.copy(
-                    clientSearchQuery = event.query,
-                    showClientDropdown = true
+                    clientSearchQuery = event.query
                 )
                 searchClientDebounced(event.query)
             }
 
             is ExportTransactionsEvent.SelectClient -> {
                 _state.value = _state.value.copy(
-                    selectedClient = event.client,
+                    selectedClient = LedgerClientAutocompleteItem(event.client.id,event.client.name),
                     clientSearchQuery = event.client.name,
                     showClientDropdown = false,
                     clientSuggestions = emptyList()
@@ -249,7 +251,10 @@ class ExportTransactionsViewModel @Inject constructor(
     private fun searchClientDebounced(query: String) {
         clientSearchJob?.cancel()
         if (query.isBlank()) {
-            _state.value = _state.value.copy(clientSuggestions = emptyList())
+            _state.value = _state.value.copy(
+                clientSuggestions = emptyList(),
+                showClientDropdown = false
+            )
             return
         }
 
@@ -257,9 +262,17 @@ class ExportTransactionsViewModel @Inject constructor(
             delay(300L)
             try {
                 val suggestions = searchClientsUseCase(query)
-                _state.value = _state.value.copy(clientSuggestions = suggestions)
+                Log.d("ExportTransactionsViewModel", "Client suggestions count: ${suggestions.size}")
+                _state.value = _state.value.copy(
+                    clientSuggestions = suggestions,
+                    showClientDropdown = suggestions.isNotEmpty()
+                )
             } catch (e: Exception) {
-                _state.value = _state.value.copy(clientSuggestions = emptyList())
+                Log.e("ExportTransactionsViewModel", "Error searching clients: ${e.message}")
+                _state.value = _state.value.copy(
+                    clientSuggestions = emptyList(),
+                    showClientDropdown = false
+                )
             }
         }
     }
@@ -275,7 +288,11 @@ class ExportTransactionsViewModel @Inject constructor(
         viewModelScope.launch {
             _state.value = _state.value.copy(isExporting = true, exportError = null)
             try {
-                val clientId = currentState.selectedClient?.id?.toString()
+                var clientId: String? = null
+                if(currentState.selectedClient?.id != null){
+                    clientId = currentState.selectedClient.id.toString()
+                }
+                Log.d("ExportTransactionsViewModel","Selected Client: ${currentState.selectedClient}")
                 val result = generateReportUseCase(
                     startDate = currentState.startDate,
                     endDate = currentState.endDate,
@@ -307,9 +324,29 @@ class ExportTransactionsViewModel @Inject constructor(
                     shareToWhatsApp()
                 }
             } catch (e: Exception) {
+                // Extract error message, handling specific API error cases
+                val errorMessage = when {
+                    // Check if error message contains the specific 422 error
+                    e.message?.contains("No transactions found for the specified criteria", ignoreCase = true) == true -> 
+                        "No transactions found for the specified criteria"
+                    // Check for HTTP 422 with various message formats
+                    e.message?.contains("422") == true -> {
+                        // Try to extract the actual message after the status code
+                        val msg = e.message ?: ""
+                        when {
+                            msg.contains("No transactions found", ignoreCase = true) -> 
+                                "No transactions found for the specified criteria"
+                            // Extract message after "HTTP 422" or similar patterns
+                            msg.contains(":") -> msg.substringAfter(":").trim()
+                            else -> "No transactions found for the specified criteria"
+                        }
+                    }
+                    else -> e.message ?: "Failed to export report"
+                }
+                
                 _state.value = _state.value.copy(
                     isExporting = false,
-                    exportError = e.message ?: "Failed to export report"
+                    exportError = errorMessage
                 )
             }
         }
@@ -429,12 +466,9 @@ class ExportTransactionsViewModel @Inject constructor(
                     displayStartDate = formatDateForDisplay(parts[1]),
                     displayEndDate = formatDateForDisplay(parts[2]),
                     selectedClient = if (parts.size >= 5 && parts[3].isNotEmpty()) {
-                        AutocompleteProfilerClientItem(
+                        LedgerClientAutocompleteItem(
                             id = parts[3].toIntOrNull() ?: 0,
-                            name = parts[4],
-                            mobileNumber = null,
-                            email = null,
-                            profileCount = 0
+                            name = parts[4]
                         )
                     } else null,
                     clientSearchQuery = if (parts.size >= 5) parts[4] else ""
@@ -456,7 +490,7 @@ sealed class ExportTransactionsEvent {
     data class ShowStartDatePicker(val show: Boolean) : ExportTransactionsEvent()
     data class ShowEndDatePicker(val show: Boolean) : ExportTransactionsEvent()
     data class SearchClient(val query: String) : ExportTransactionsEvent()
-    data class SelectClient(val client: AutocompleteProfilerClientItem) : ExportTransactionsEvent()
+    data class SelectClient(val client: LedgerClientAutocompleteItem) : ExportTransactionsEvent()
     object ClearClient : ExportTransactionsEvent()
     object Export : ExportTransactionsEvent()
     object ExportAndShare : ExportTransactionsEvent()

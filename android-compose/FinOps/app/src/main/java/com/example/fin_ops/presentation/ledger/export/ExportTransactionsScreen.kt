@@ -408,62 +408,100 @@ fun ClientFilterSection(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Search field
-            OutlinedTextField(
-                value = state.clientSearchQuery,
-                onValueChange = { onEvent(ExportTransactionsEvent.SearchClient(it)) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Search client...", fontSize = 14.sp) },
-                leadingIcon = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.search),
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                },
-                trailingIcon = {
-                    if (state.selectedClient != null || state.clientSearchQuery.isNotEmpty()) {
-                        IconButton(onClick = { onEvent(ExportTransactionsEvent.ClearClient) }) {
+            // Selected Client Chip or Search Field
+            if (state.selectedClient != null) {
+                // Show selected client as chip
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = Color(0xFF2B7FFF).copy(alpha = 0.1f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.users),
+                                contentDescription = null,
+                                tint = Color(0xFF2B7FFF),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = state.selectedClient.name,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = Color(0xFF2B7FFF)
+                            )
+                        }
+                        IconButton(
+                            onClick = { onEvent(ExportTransactionsEvent.ClearClient) },
+                            modifier = Modifier.size(32.dp)
+                        ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.close),
-                                contentDescription = "Clear",
-                                modifier = Modifier.size(18.dp)
+                                contentDescription = "Remove",
+                                modifier = Modifier.size(16.dp),
+                                tint = Color(0xFF2B7FFF)
                             )
                         }
                     }
-                },
-                shape = RoundedCornerShape(10.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color(0xFF2B7FFF),
-                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                ),
-                singleLine = true
-            )
-
-            // Client suggestions dropdown
-            if (state.showClientDropdown && state.clientSuggestions.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Card(
+                }
+            } else {
+                // Show search field
+                OutlinedTextField(
+                    value = state.clientSearchQuery,
+                    onValueChange = { onEvent(ExportTransactionsEvent.SearchClient(it)) },
+                    placeholder = { Text("Search client...") },
                     modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(id = R.drawable.search),
+                            contentDescription = "Search",
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                )
+            }
+
+            // Show dropdown suggestions
+            if (state.showClientDropdown && state.clientSuggestions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                Card(
                     shape = RoundedCornerShape(8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    elevation = CardDefaults.cardElevation(8.dp)
                 ) {
-                    Column {
-                        state.clientSuggestions.forEach { client ->
-                            Box(
+                    Column(modifier = Modifier.fillMaxWidth()) {
+                        state.clientSuggestions.take(5).forEach { client ->
+                            Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { onEvent(ExportTransactionsEvent.SelectClient(client)) }
-                                    .padding(12.dp)
                             ) {
-                                Text(
-                                    text = client.name,
-                                    fontSize = 14.sp,
-                                    color = MaterialTheme.colorScheme.onSurface
-                                )
+                                Row(
+                                    modifier = Modifier.padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.user),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = client.name,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
                             }
                             if (client != state.clientSuggestions.last()) {
                                 HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
