@@ -66,6 +66,23 @@ fun ProfileScreen(
         }
     }
 
+    // Handle export success with snackbar and "Open" action
+    LaunchedEffect(state.exportSuccess) {
+        if (state.exportSuccess) {
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "Report exported: ${state.exportedFileName}",
+                    actionLabel = "Open",
+                    duration = SnackbarDuration.Long
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.onEvent(ProfilesEvent.OpenExportedPdf)
+                }
+                viewModel.onEvent(ProfilesEvent.ClearExportSuccess)
+            }
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {

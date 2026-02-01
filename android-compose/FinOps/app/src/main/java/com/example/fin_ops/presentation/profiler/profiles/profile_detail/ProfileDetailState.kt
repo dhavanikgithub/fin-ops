@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.profiles.profile_detail
 
+import android.net.Uri
 import com.example.fin_ops.data.remote.dto.Pagination
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
 import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
@@ -43,6 +44,13 @@ data class ProfileDetailState(
 
     // Export
     val isExporting: Boolean = false,
+    val exportSuccess: Boolean = false,
+    val exportedFileName: String? = null,
+    val exportedFileUri: Uri? = null,
+
+    // Permission handling
+    val showStoragePermissionRequest: Boolean = false,
+    val pendingShareAfterExport: Boolean = false,
 
     // General error
     val error: String? = null

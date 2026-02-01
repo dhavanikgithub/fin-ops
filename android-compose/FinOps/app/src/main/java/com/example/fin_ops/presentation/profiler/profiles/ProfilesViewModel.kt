@@ -256,6 +256,20 @@ class ProfilesViewModel @Inject constructor(
                     sharePdf(event.profile)
                 }
             }
+
+            is ProfilesEvent.OpenExportedPdf -> {
+                _state.value.exportedFileUri?.let { uri ->
+                    openFileUri(uri)
+                }
+            }
+
+            is ProfilesEvent.ClearExportSuccess -> {
+                _state.value = _state.value.copy(
+                    exportSuccess = false,
+                    exportedFileName = null,
+                    exportedFileUri = null
+                )
+            }
         }
     }
 
@@ -305,7 +319,7 @@ class ProfilesViewModel @Inject constructor(
             }
         } catch (e: Exception) {
             e.printStackTrace()
-            showToast("Export failed: ${e.localizedMessage}")
+            _state.value = _state.value.copy(error = "Export failed: ${e.localizedMessage}")
         }
     }
 
@@ -325,11 +339,18 @@ class ProfilesViewModel @Inject constructor(
             resolver.openOutputStream(it)?.use { outputStream ->
                 inputStream.copyTo(outputStream)
             }
-            // Open the file after saving
-            showToast("Saved to Downloads")
-            openFileUri(it)
+            // Update state for snackbar with Open action
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    exportSuccess = true,
+                    exportedFileName = fileName,
+                    exportedFileUri = it
+                )
+            }
         } ?: run {
-            showToast("Failed to create file in MediaStore")
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(error = "Failed to create file in MediaStore")
+            }
         }
     }
 
@@ -345,10 +366,15 @@ class ProfilesViewModel @Inject constructor(
                 inputStream.copyTo(output)
             }
 
-            showToast("Saved to Downloads: ${file.name}")
-            // We can't open 'file://' Uris directly on newer apps, so we rely on user finding it
-            // Or use FileProvider to open it right now:
-            openFileUri(getFileUri(file))
+            val uri = getFileUri(file)
+            // Update state for snackbar with Open action
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    exportSuccess = true,
+                    exportedFileName = file.name,
+                    exportedFileUri = uri
+                )
+            }
 
         } catch (e: SecurityException) {
             // Fallback: If WRITE_EXTERNAL_STORAGE is denied, save to App-Specific directory (No permission needed)
@@ -357,8 +383,14 @@ class ProfilesViewModel @Inject constructor(
             FileOutputStream(file).use { output ->
                 inputStream.copyTo(output)
             }
-            showToast("Permission denied. Saved to App Data: ${file.name}")
-            openFileUri(getFileUri(file))
+            val uri = getFileUri(file)
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    exportSuccess = true,
+                    exportedFileName = file.name,
+                    exportedFileUri = uri
+                )
+            }
         }
     }
 
@@ -717,4 +749,7 @@ sealed class ProfilesEvent {
     data class ShareWhatsapp(val profile: ProfilerProfileDto) : ProfilesEvent()
     // NEW: Handle Permission Result
     data class StoragePermissionResult(val isGranted: Boolean) : ProfilesEvent()
+    // Export success handling
+    object OpenExportedPdf : ProfilesEvent()
+    object ClearExportSuccess : ProfilesEvent()
 }

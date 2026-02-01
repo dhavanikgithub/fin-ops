@@ -1,6 +1,9 @@
 package com.example.fin_ops.presentation.profiler.profile_detail
 
+import android.Manifest
 import android.annotation.SuppressLint
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -46,18 +49,25 @@ fun ProfileDetailScreen(
     viewModel: ProfileDetailViewModel = hiltViewModel(),
     onNavigateBack: () -> Unit = {}
 ) {
-    ProfileDetailContent(viewModel.state.value, viewModel::onEvent, onNavigateBack)
-}
-
-@Composable
-fun ProfileDetailContent(
-    state: ProfileDetailState,
-    onEvent: (ProfileDetailEvent) -> Unit,
-    onNavigateBack: () -> Unit
-) {
+    val state = viewModel.state.value
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // Permission launcher for storage
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        viewModel.onEvent(ProfileDetailEvent.StoragePermissionResult(isGranted))
+    }
+
+    // Observe permission request state
+    LaunchedEffect(state.showStoragePermissionRequest) {
+        if (state.showStoragePermissionRequest) {
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
+    // Handle error snackbar
     LaunchedEffect(state.error) {
         state.error?.let { error ->
             scope.launch {
@@ -65,7 +75,42 @@ fun ProfileDetailContent(
             }
         }
     }
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+
+    // Handle export success with snackbar and "Open" action
+    LaunchedEffect(state.exportSuccess) {
+        if (state.exportSuccess) {
+            scope.launch {
+                val result = snackbarHostState.showSnackbar(
+                    message = "Report exported: ${state.exportedFileName}",
+                    actionLabel = "Open",
+                    duration = SnackbarDuration.Long
+                )
+                if (result == SnackbarResult.ActionPerformed) {
+                    viewModel.onEvent(ProfileDetailEvent.OpenExportedPdf)
+                }
+                viewModel.onEvent(ProfileDetailEvent.ClearExportSuccess)
+            }
+        }
+    }
+
+    ProfileDetailScreenContent(
+        state = state,
+        onEvent = viewModel::onEvent,
+        onNavigateBack = onNavigateBack,
+        snackbarHostState = snackbarHostState
+    )
+}
+
+@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+@Composable
+fun ProfileDetailScreenContent(
+    state: ProfileDetailState,
+    onEvent: (ProfileDetailEvent) -> Unit,
+    onNavigateBack: () -> Unit,
+    snackbarHostState: SnackbarHostState
+) {
+    var showExportMenu by remember { mutableStateOf(false) }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         floatingActionButton = {
@@ -73,6 +118,66 @@ fun ProfileDetailContent(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalAlignment = Alignment.End
             ) {
+                // Export FAB with dropdown
+                Box {
+                    FloatingActionButton(
+                        onClick = { showExportMenu = true },
+                        containerColor = Color(0xFFFF6B35),
+                        contentColor = Color.White,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        if (state.isExporting) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.download),
+                                contentDescription = "Export",
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                    }
+
+                    DropdownMenu(
+                        expanded = showExportMenu,
+                        onDismissRequest = { showExportMenu = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Export PDF") },
+                            onClick = {
+                                showExportMenu = false
+                                onEvent(ProfileDetailEvent.ExportPDF)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.download),
+                                    contentDescription = "Export",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Share WhatsApp") },
+                            onClick = {
+                                showExportMenu = false
+                                onEvent(ProfileDetailEvent.ShareWhatsApp)
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.share_2),
+                                    contentDescription = "Share",
+                                    modifier = Modifier.size(18.dp),
+                                    tint = Color(0xFF25D366)
+                                )
+                            }
+                        )
+                    }
+                }
+
                 // Withdraw FAB
                 FloatingActionButton(
                     onClick = { onEvent(ProfileDetailEvent.OpenWithdrawForm) },
@@ -102,7 +207,7 @@ fun ProfileDetailContent(
                 }
             }
         }
-    ) {  _ ->
+    ) { _ ->
         ProfileDetailContent(
             state = state,
             onEvent = onEvent
@@ -1306,7 +1411,12 @@ fun ProfileDetailScreenPreview() {
         summary = createMockSummary()
     )
     FinOpsTheme {
-        ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        ProfileDetailScreenContent(
+            state = state,
+            onEvent = {},
+            onNavigateBack = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }
 
@@ -1319,7 +1429,12 @@ fun ProfileDetailScreenLoadingPreview() {
         isLoadingSummary = true
     )
     FinOpsTheme {
-        ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        ProfileDetailScreenContent(
+            state = state,
+            onEvent = {},
+            onNavigateBack = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }
 
@@ -1331,7 +1446,12 @@ fun ProfileDetailScreenErrorPreview() {
         transactionsError = "Could not fetch transactions."
     )
     FinOpsTheme {
-        ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        ProfileDetailScreenContent(
+            state = state,
+            onEvent = {},
+            onNavigateBack = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }
 
@@ -1346,7 +1466,12 @@ fun ProfileDetailScreenDepositFormPreview() {
         depositFormAmount = "100.00"
     )
     FinOpsTheme {
-        ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        ProfileDetailScreenContent(
+            state = state,
+            onEvent = {},
+            onNavigateBack = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }
 
@@ -1362,7 +1487,12 @@ fun ProfileDetailScreenWithdrawFormPreview() {
         withdrawFormChargesPercentage = "2.0"
     )
     FinOpsTheme {
-        ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+        ProfileDetailScreenContent(
+            state = state,
+            onEvent = {},
+            onNavigateBack = {},
+            snackbarHostState = remember { SnackbarHostState() }
+        )
     }
 }
 
@@ -1378,7 +1508,12 @@ fun ProfileDetailScreenPreviewDark() {
     )
     FinOpsTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+            ProfileDetailScreenContent(
+                state = state,
+                onEvent = {},
+                onNavigateBack = {},
+                snackbarHostState = remember { SnackbarHostState() }
+            )
         }
     }
 }
@@ -1393,7 +1528,12 @@ fun ProfileDetailScreenLoadingPreviewDark() {
     )
     FinOpsTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+            ProfileDetailScreenContent(
+                state = state,
+                onEvent = {},
+                onNavigateBack = {},
+                snackbarHostState = remember { SnackbarHostState() }
+            )
         }
     }
 }
@@ -1407,7 +1547,12 @@ fun ProfileDetailScreenErrorPreviewDark() {
     )
     FinOpsTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+            ProfileDetailScreenContent(
+                state = state,
+                onEvent = {},
+                onNavigateBack = {},
+                snackbarHostState = remember { SnackbarHostState() }
+            )
         }
     }
 }
@@ -1424,7 +1569,12 @@ fun ProfileDetailScreenDepositFormPreviewDark() {
     )
     FinOpsTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+            ProfileDetailScreenContent(
+                state = state,
+                onEvent = {},
+                onNavigateBack = {},
+                snackbarHostState = remember { SnackbarHostState() }
+            )
         }
     }
 }
@@ -1442,7 +1592,12 @@ fun ProfileDetailScreenWithdrawFormPreviewDark() {
     )
     FinOpsTheme(darkTheme = true) {
         Surface(color = MaterialTheme.colorScheme.background) {
-            ProfileDetailContent(state = state, onEvent = {}, onNavigateBack = {})
+            ProfileDetailScreenContent(
+                state = state,
+                onEvent = {},
+                onNavigateBack = {},
+                snackbarHostState = remember { SnackbarHostState() }
+            )
         }
     }
 }

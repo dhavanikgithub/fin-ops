@@ -1,7 +1,19 @@
 package com.example.fin_ops.presentation.profiler.profile_detail
 
+import android.Manifest
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,9 +24,15 @@ import com.example.fin_ops.domain.use_case.profile.GetProfilesUseCase
 import com.example.fin_ops.domain.use_case.transaction.*
 import com.example.fin_ops.presentation.profiler.profiles.profile_detail.ProfileDetailState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
 import javax.inject.Inject
 
 @HiltViewModel
@@ -25,6 +43,8 @@ class ProfileDetailViewModel @Inject constructor(
     private val createWithdrawUseCase: CreateWithdrawUseCase,
     private val deleteTransactionUseCase: DeleteTransactionUseCase,
     private val getTransactionSummaryUseCase: GetTransactionSummaryUseCase,
+    private val exportProfilePdfUseCase: ExportProfilePdfUseCase,
+    @ApplicationContext private val application: Context,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -125,7 +145,40 @@ class ProfileDetailViewModel @Inject constructor(
                 _state.value = _state.value.copy(withdrawFormNotes = event.value)
             }
 
-            is ProfileDetailEvent.ExportPDF -> exportPDF()
+            is ProfileDetailEvent.ExportPDF -> {
+                checkPermissionAndExport(shareToWhatsApp = false)
+            }
+
+            is ProfileDetailEvent.ShareWhatsApp -> {
+                viewModelScope.launch {
+                    sharePdf()
+                }
+            }
+
+            is ProfileDetailEvent.StoragePermissionResult -> {
+                _state.value = _state.value.copy(showStoragePermissionRequest = false)
+                if (event.isGranted) {
+                    viewModelScope.launch {
+                        savePdfToDownloads()
+                    }
+                } else {
+                    _state.value = _state.value.copy(error = "Permission denied. Cannot save to Downloads folder.")
+                }
+            }
+
+            is ProfileDetailEvent.OpenExportedPdf -> {
+                _state.value.exportedFileUri?.let { uri ->
+                    openFileUri(uri)
+                }
+            }
+
+            is ProfileDetailEvent.ClearExportSuccess -> {
+                _state.value = _state.value.copy(
+                    exportSuccess = false,
+                    exportedFileName = null,
+                    exportedFileUri = null
+                )
+            }
 
             is ProfileDetailEvent.RefreshAll -> {
                 loadProfileDetails()
@@ -373,19 +426,201 @@ class ProfileDetailViewModel @Inject constructor(
         }
     }
 
-    private fun exportPDF() {
-        viewModelScope.launch {
-            _state.value = _state.value.copy(isExporting = true)
-            try {
-                // TODO: Implement PDF export functionality
-                // This would use exportProfilerTransactionPdf from repository
-                _state.value = _state.value.copy(isExporting = false)
-            } catch (e: Exception) {
+    // --- Export Logic ---
+    private fun checkPermissionAndExport(shareToWhatsApp: Boolean) {
+        val profile = _state.value.profile ?: return
+
+        _state.value = _state.value.copy(pendingShareAfterExport = shareToWhatsApp)
+
+        // Android 10+ (Q) does not need storage permissions for MediaStore
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            viewModelScope.launch {
+                savePdfToDownloads()
+            }
+        } else {
+            // Android 9 and below needs WRITE_EXTERNAL_STORAGE
+            val hasPermission = ContextCompat.checkSelfPermission(
+                application,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPermission) {
+                viewModelScope.launch {
+                    savePdfToDownloads()
+                }
+            } else {
+                // Request Permission
+                _state.value = _state.value.copy(showStoragePermissionRequest = true)
+            }
+        }
+    }
+
+    private suspend fun savePdfToDownloads() {
+        val profile = _state.value.profile ?: return
+
+        _state.value = _state.value.copy(isExporting = true)
+        try {
+            val responseBody = exportProfilePdfUseCase(profile.id)
+            val fileName = "Profile_${profile.clientName}_${System.currentTimeMillis()}.pdf"
+
+            withContext(Dispatchers.IO) {
+                val inputStream = responseBody.byteStream()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    saveToMediaStore(inputStream, fileName)
+                } else {
+                    saveToLegacyStorage(inputStream, fileName)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _state.value = _state.value.copy(
+                isExporting = false,
+                error = "Export failed: ${e.localizedMessage}"
+            )
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveToMediaStore(inputStream: InputStream, fileName: String) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        val resolver = application.contentResolver
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+            viewModelScope.launch(Dispatchers.Main) {
                 _state.value = _state.value.copy(
                     isExporting = false,
-                    error = e.message ?: "Failed to export PDF"
+                    exportSuccess = true,
+                    exportedFileName = fileName,
+                    exportedFileUri = it
                 )
             }
+        } ?: run {
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    isExporting = false,
+                    error = "Failed to create file in MediaStore"
+                )
+            }
+        }
+    }
+
+    private fun saveToLegacyStorage(inputStream: InputStream, fileName: String) {
+        try {
+            val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!targetDir.exists()) targetDir.mkdirs()
+
+            val file = File(targetDir, fileName)
+            FileOutputStream(file).use { output ->
+                inputStream.copyTo(output)
+            }
+
+            val uri = getFileUri(file)
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    isExporting = false,
+                    exportSuccess = true,
+                    exportedFileName = file.name,
+                    exportedFileUri = uri
+                )
+            }
+        } catch (e: SecurityException) {
+            val fallbackDir = application.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(fallbackDir, fileName)
+            FileOutputStream(file).use { output ->
+                inputStream.copyTo(output)
+            }
+            val uri = getFileUri(file)
+            viewModelScope.launch(Dispatchers.Main) {
+                _state.value = _state.value.copy(
+                    isExporting = false,
+                    exportSuccess = true,
+                    exportedFileName = file.name,
+                    exportedFileUri = uri
+                )
+            }
+        }
+    }
+
+    private suspend fun sharePdf() {
+        val profile = _state.value.profile ?: return
+
+        _state.value = _state.value.copy(isExporting = true)
+        try {
+            val responseBody = exportProfilePdfUseCase(profile.id)
+            val fileName = "Profile_${profile.clientName}_${System.currentTimeMillis()}.pdf"
+
+            val file = withContext(Dispatchers.IO) {
+                val cacheDir = application.externalCacheDir ?: application.cacheDir
+                val tempFile = File(cacheDir, fileName)
+                FileOutputStream(tempFile).use { output ->
+                    responseBody.byteStream().copyTo(output)
+                }
+                tempFile
+            }
+
+            _state.value = _state.value.copy(isExporting = false)
+            shareFileIntent(file)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            _state.value = _state.value.copy(
+                isExporting = false,
+                error = "Share failed: ${e.localizedMessage}"
+            )
+        }
+    }
+
+    // --- Helpers ---
+    private fun getFileUri(file: File): Uri {
+        return FileProvider.getUriForFile(
+            application,
+            "${application.packageName}.provider",
+            file
+        )
+    }
+
+    private fun openFileUri(uri: Uri) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            application.startActivity(intent)
+        } catch (e: Exception) {
+            _state.value = _state.value.copy(error = "No PDF Viewer app found")
+        }
+    }
+
+    private fun shareFileIntent(file: File) {
+        val uri = getFileUri(file)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/pdf"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TEXT, "Here is the profile report.")
+            setPackage("com.whatsapp")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+
+        try {
+            application.startActivity(intent)
+        } catch (e: Exception) {
+            val fallback = Intent(Intent.ACTION_SEND).apply {
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val chooser = Intent.createChooser(fallback, "Share Report")
+            chooser.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            application.startActivity(chooser)
         }
     }
 }
@@ -409,5 +644,9 @@ sealed class ProfileDetailEvent {
     data class UpdateWithdrawFormCharges(val value: String) : ProfileDetailEvent()
     data class UpdateWithdrawFormNotes(val value: String) : ProfileDetailEvent()
     object ExportPDF : ProfileDetailEvent()
+    object ShareWhatsApp : ProfileDetailEvent()
+    data class StoragePermissionResult(val isGranted: Boolean) : ProfileDetailEvent()
+    object OpenExportedPdf : ProfileDetailEvent()
+    object ClearExportSuccess : ProfileDetailEvent()
     object RefreshAll : ProfileDetailEvent()
 }

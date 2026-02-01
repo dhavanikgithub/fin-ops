@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.profiles
 
+import android.net.Uri
 import com.example.fin_ops.data.remote.dto.AutocompleteProfilerBankDto
 import com.example.fin_ops.data.remote.dto.AutocompleteProfilerClientItem
 import com.example.fin_ops.data.remote.dto.Pagination
@@ -59,6 +60,10 @@ data class ProfilesState(
 
     // NEW: Permission Handling State
     val showStoragePermissionRequest: Boolean = false,
-    val pendingExportProfile: ProfilerProfileDto? = null
+    val pendingExportProfile: ProfilerProfileDto? = null,
 
+    // Export success tracking (for snackbar)
+    val exportSuccess: Boolean = false,
+    val exportedFileName: String? = null,
+    val exportedFileUri: Uri? = null
 )
