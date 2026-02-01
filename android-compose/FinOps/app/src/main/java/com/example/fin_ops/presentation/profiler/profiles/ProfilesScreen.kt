@@ -39,6 +39,8 @@ import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.window.DialogProperties
+
 // Define Tabs Enum
 enum class ProfileTab(val title: String, val status: String?) {
     All("All Profiles", null),
@@ -814,7 +816,7 @@ fun ProfileFormDialog(
     state: ProfilesState,
     onEvent: (ProfilesEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(ProfilesEvent.CloseForm) }) {
+    Dialog(onDismissRequest = { onEvent(ProfilesEvent.CloseForm) },properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(

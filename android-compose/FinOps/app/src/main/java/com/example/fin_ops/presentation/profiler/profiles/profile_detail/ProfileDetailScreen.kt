@@ -25,6 +25,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
@@ -1065,7 +1066,7 @@ fun DepositFormDialog(
     state: ProfileDetailState,
     onEvent: (ProfileDetailEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(ProfileDetailEvent.CloseDepositForm) }) {
+    Dialog(onDismissRequest = { onEvent(ProfileDetailEvent.CloseDepositForm) }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(
@@ -1168,7 +1169,7 @@ fun WithdrawFormDialog(
     state: ProfileDetailState,
     onEvent: (ProfileDetailEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(ProfileDetailEvent.CloseWithdrawForm) }) {
+    Dialog(onDismissRequest = { onEvent(ProfileDetailEvent.CloseWithdrawForm) }, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(

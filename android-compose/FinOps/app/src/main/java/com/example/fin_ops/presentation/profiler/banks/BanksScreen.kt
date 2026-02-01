@@ -67,6 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerBankDto
@@ -482,7 +483,7 @@ fun BankFormDialog(
     state: BanksState,
     onEvent: (BanksEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(BanksEvent.CloseForm) }) {
+    Dialog(onDismissRequest = { onEvent(BanksEvent.CloseForm) },properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(

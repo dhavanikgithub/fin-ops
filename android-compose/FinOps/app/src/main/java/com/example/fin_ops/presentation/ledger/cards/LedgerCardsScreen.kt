@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.LedgerCardDto
@@ -507,7 +508,9 @@ fun CardFormDialog(
     state: LedgerCardsState,
     onEvent: (LedgerCardsEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(LedgerCardsEvent.CloseForm) }) {
+    Dialog(
+        onDismissRequest = { onEvent(LedgerCardsEvent.CloseForm) },
+        properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()

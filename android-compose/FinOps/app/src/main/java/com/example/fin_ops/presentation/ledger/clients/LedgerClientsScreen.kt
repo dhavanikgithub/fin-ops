@@ -22,6 +22,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.LedgerClientDto
@@ -505,7 +506,7 @@ fun ClientFormDialog(
     state: LedgerClientsState,
     onEvent: (LedgerClientsEvent) -> Unit
 ) {
-    Dialog(onDismissRequest = { onEvent(LedgerClientsEvent.CloseForm) }) {
+    Dialog(onDismissRequest = { onEvent(LedgerClientsEvent.CloseForm) },properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
