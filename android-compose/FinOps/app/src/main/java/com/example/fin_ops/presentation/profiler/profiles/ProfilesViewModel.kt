@@ -1,17 +1,40 @@
 package com.example.fin_ops.presentation.profiler.profiles
 
+import android.Manifest
+import android.app.Application
+import android.content.ContentValues
+import android.content.Context
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fin_ops.data.remote.dto.*
 import com.example.fin_ops.domain.use_case.bank.SearchBanksUseCase
 import com.example.fin_ops.domain.use_case.client.SearchClientsUseCase
 import com.example.fin_ops.domain.use_case.profile.*
+import com.example.fin_ops.domain.use_case.transaction.ExportProfilePdfUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.ResponseBody
+import java.io.File
+import java.io.FileOutputStream
+import java.io.InputStream
+import java.io.OutputStream
 import javax.inject.Inject
 
 
@@ -24,7 +47,9 @@ class ProfilesViewModel @Inject constructor(
     private val deleteProfileUseCase: DeleteProfileUseCase,
     private val markProfileDoneUseCase: MarkProfileDoneUseCase,
     private val searchBanksUseCase: SearchBanksUseCase,
-    private val searchClientsUseCase: SearchClientsUseCase
+    private val searchClientsUseCase: SearchClientsUseCase,
+    private val exportProfilePdfUseCase: ExportProfilePdfUseCase, // <--- INJECT THIS
+    @ApplicationContext private val application: Context,
 ) : ViewModel() {
 
     private val _state = mutableStateOf(ProfilesState())
@@ -199,6 +224,218 @@ class ProfilesViewModel @Inject constructor(
                 _state.value = _state.value.copy(searchQuery = "")
                 loadProfiles(1)
             }
+
+            // --- UPDATED EXPORT LOGIC ---
+            is ProfilesEvent.ExportPdf -> {
+                checkPermissionAndExport(event.profile)
+            }
+
+            // --- NEW: PERMISSION RESULT HANDLER ---
+            is ProfilesEvent.StoragePermissionResult -> {
+                val pendingProfile = _state.value.pendingExportProfile
+
+                // Reset the trigger flag immediately
+                _state.value = _state.value.copy(showStoragePermissionRequest = false)
+
+                if (event.isGranted && pendingProfile != null) {
+                    // Permission granted, proceed with export
+                    viewModelScope.launch {
+                        savePdfToDownloads(pendingProfile)
+                    }
+                } else if (!event.isGranted) {
+                    // Permission denied
+                    showToast("Permission denied. Cannot save to Downloads folder.")
+                }
+
+                // Clear pending profile after handling
+                _state.value = _state.value.copy(pendingExportProfile = null)
+            }
+
+            is ProfilesEvent.ShareWhatsapp -> {
+                viewModelScope.launch {
+                    sharePdf(event.profile)
+                }
+            }
+        }
+    }
+
+    private fun checkPermissionAndExport(profile: ProfilerProfileDto) {
+        // Android 10+ (Q) does not need storage permissions for MediaStore
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            viewModelScope.launch {
+                savePdfToDownloads(profile)
+            }
+        } else {
+            // Android 9 and below needs WRITE_EXTERNAL_STORAGE
+            val hasPermission = ContextCompat.checkSelfPermission(
+                application,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPermission) {
+                viewModelScope.launch {
+                    savePdfToDownloads(profile)
+                }
+            } else {
+                // Permission not granted, update state to trigger UI request
+                _state.value = _state.value.copy(
+                    showStoragePermissionRequest = true,
+                    pendingExportProfile = profile
+                )
+            }
+        }
+    }
+
+    // --- Logic for "Export" (Permanent Save) ---
+    private suspend fun savePdfToDownloads(profile: ProfilerProfileDto) {
+        try {
+            val responseBody = exportProfilePdfUseCase(profile.id)
+            val fileName = "Profile_${profile.clientName}_${System.currentTimeMillis()}.pdf"
+
+            withContext(Dispatchers.IO) {
+                val inputStream = responseBody.byteStream()
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    // ANDROID 10+ (API 29+): Use MediaStore (No Permission Needed)
+                    saveToMediaStore(inputStream, fileName)
+                } else {
+                    // ANDROID 9 (API 28-): Use Legacy Storage
+                    saveToLegacyStorage(inputStream, fileName)
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Export failed: ${e.localizedMessage}")
+        }
+    }
+
+    // Android 10+ Implementation
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun saveToMediaStore(inputStream: InputStream, fileName: String) {
+        val contentValues = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+            put(MediaStore.MediaColumns.MIME_TYPE, "application/pdf")
+            put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+        }
+
+        val resolver = application.contentResolver
+        val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+
+        uri?.let {
+            resolver.openOutputStream(it)?.use { outputStream ->
+                inputStream.copyTo(outputStream)
+            }
+            // Open the file after saving
+            showToast("Saved to Downloads")
+            openFileUri(it)
+        } ?: run {
+            showToast("Failed to create file in MediaStore")
+        }
+    }
+
+    // Android 9- Implementation
+    private fun saveToLegacyStorage(inputStream: InputStream, fileName: String) {
+        try {
+            // Try standard Downloads folder first
+            val targetDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!targetDir.exists()) targetDir.mkdirs()
+
+            val file = File(targetDir, fileName)
+            FileOutputStream(file).use { output ->
+                inputStream.copyTo(output)
+            }
+
+            showToast("Saved to Downloads: ${file.name}")
+            // We can't open 'file://' Uris directly on newer apps, so we rely on user finding it
+            // Or use FileProvider to open it right now:
+            openFileUri(getFileUri(file))
+
+        } catch (e: SecurityException) {
+            // Fallback: If WRITE_EXTERNAL_STORAGE is denied, save to App-Specific directory (No permission needed)
+            val fallbackDir = application.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(fallbackDir, fileName)
+            FileOutputStream(file).use { output ->
+                inputStream.copyTo(output)
+            }
+            showToast("Permission denied. Saved to App Data: ${file.name}")
+            openFileUri(getFileUri(file))
+        }
+    }
+
+    // --- Logic for "Share" (Temporary Cache) ---
+    private suspend fun sharePdf(profile: ProfilerProfileDto) {
+        try {
+            val responseBody = exportProfilePdfUseCase(profile.id)
+            val fileName = "Profile_${profile.clientName}_${System.currentTimeMillis()}.pdf"
+
+            // Save to Cache (Works on ALL versions without permission)
+            val file = withContext(Dispatchers.IO) {
+                val cacheDir = application.externalCacheDir ?: application.cacheDir
+                val tempFile = File(cacheDir, fileName)
+                FileOutputStream(tempFile).use { output ->
+                    responseBody.byteStream().copyTo(output)
+                }
+                tempFile
+            }
+
+            shareFileIntent(file)
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            showToast("Share failed: ${e.localizedMessage}")
+        }
+    }
+
+    // --- Helpers ---
+
+    private fun getFileUri(file: File): Uri {
+        return FileProvider.getUriForFile(
+            application,
+            "${application.packageName}.provider",
+            file
+        )
+    }
+
+    private fun openFileUri(uri: Uri) {
+        val intent = Intent(Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "application/pdf")
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        try {
+            application.startActivity(intent)
+        } catch (e: Exception) {
+            showToast("No PDF Viewer app found")
+        }
+    }
+
+    private fun shareFileIntent(file: File) {
+        val uri = getFileUri(file)
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "application/pdf"
+            putExtra(Intent.EXTRA_STREAM, uri)
+            putExtra(Intent.EXTRA_TEXT, "Here is the profile report.")
+            setPackage("com.whatsapp") // Target WhatsApp
+            flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+
+        try {
+            application.startActivity(intent)
+        } catch (e: Exception) {
+            // Fallback if WhatsApp is missing
+            val fallback = Intent(Intent.ACTION_SEND).apply {
+                type = "application/pdf"
+                putExtra(Intent.EXTRA_STREAM, uri)
+                flags = Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            val chooser = Intent.createChooser(fallback, "Share Report")
+            chooser.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            application.startActivity(chooser)
+        }
+    }
+
+    private fun showToast(message: String) {
+        viewModelScope.launch(Dispatchers.Main) {
+            Toast.makeText(application, message, Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -475,4 +712,9 @@ sealed class ProfilesEvent {
     data class SelectBank(val bank: com.example.fin_ops.data.remote.dto.AutocompleteProfilerBankDto) : ProfilesEvent()
     object ClearBankSelection : ProfilesEvent()
     object RefreshProfiles : ProfilesEvent()
+
+    data class ExportPdf(val profile: ProfilerProfileDto) : ProfilesEvent()
+    data class ShareWhatsapp(val profile: ProfilerProfileDto) : ProfilesEvent()
+    // NEW: Handle Permission Result
+    data class StoragePermissionResult(val isGranted: Boolean) : ProfilesEvent()
 }

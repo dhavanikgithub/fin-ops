@@ -55,5 +55,10 @@ data class ProfilesState(
     val totalProfiles: Int = 0,
     val activeProfiles: Int = 0,
     val completedProfiles: Int = 0,
-    val totalTransactions: Int = 0
+    val totalTransactions: Int = 0,
+
+    // NEW: Permission Handling State
+    val showStoragePermissionRequest: Boolean = false,
+    val pendingExportProfile: ProfilerProfileDto? = null
+
 )

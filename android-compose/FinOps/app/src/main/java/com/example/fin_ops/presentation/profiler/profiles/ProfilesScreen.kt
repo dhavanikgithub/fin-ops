@@ -1,5 +1,6 @@
 package com.example.fin_ops.presentation.profiler.profiles
 
+import android.Manifest
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -36,7 +37,8 @@ import com.example.fin_ops.utils.formatAmount
 import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.launch
-
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 // Define Tabs Enum
 enum class ProfileTab(val title: String, val status: String?) {
     All("All Profiles", null),
@@ -127,6 +129,21 @@ fun ProfileScreenContent(
         "active" -> ProfileTab.Active
         "done" -> ProfileTab.Completed
         else -> ProfileTab.Active
+    }
+
+    // 1. Create the Permission Launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Send the result back to the ViewModel
+        onEvent(ProfilesEvent.StoragePermissionResult(isGranted))
+    }
+
+    // 2. Observe the state to trigger the permission request
+    LaunchedEffect(state.showStoragePermissionRequest) {
+        if (state.showStoragePermissionRequest) {
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
     }
 
     Column(
@@ -228,7 +245,10 @@ fun ProfileScreenContent(
                             onMarkDoneClick = { onEvent(ProfilesEvent.MarkDone(profile)) },
                             onEditClick = { onEvent(ProfilesEvent.OpenForm(profile)) },
                             onDeleteClick = { onEvent(ProfilesEvent.DeleteProfile(profile)) },
-                            onCardClick = { navController.navigate("${Routes.PF_PROFILES_DETAIL}/${profile.id}") }
+                            onCardClick = { navController.navigate("${Routes.PF_PROFILES_DETAIL}/${profile.id}") },
+                            // --- NEW: Map the new events here ---
+                            onExportClick = { onEvent(ProfilesEvent.ExportPdf(profile)) },
+                            onShareClick = { onEvent(ProfilesEvent.ShareWhatsapp(profile)) }
                         )
                     }
                 }
@@ -440,6 +460,10 @@ fun ProfileCard(
     onMarkDoneClick: () -> Unit,
     onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
+    // --- NEW PARAMETERS ---
+    onExportClick: () -> Unit,
+    onShareClick: () -> Unit,
+    // ----------------------
     onCardClick: () -> Unit = {},
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -517,6 +541,42 @@ fun ProfileCard(
                             expanded = expanded,
                             onDismissRequest = { expanded = false }
                         ) {
+                            // --- NEW EXPORT OPTION ---
+                            DropdownMenuItem(
+                                text = { Text("Export PDF") },
+                                onClick = {
+                                    expanded = false
+                                    onExportClick()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.download),
+                                        contentDescription = "Export",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+
+                            // --- NEW SHARE OPTION ---
+                            DropdownMenuItem(
+                                text = { Text("Share WhatsApp") },
+                                onClick = {
+                                    expanded = false
+                                    onShareClick()
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.share_2),
+                                        contentDescription = "Share",
+                                        modifier = Modifier.size(18.dp),
+                                        tint = Color(0xFF25D366) // WhatsApp Green
+                                    )
+                                }
+                            )
+
+                            HorizontalDivider() // Optional: Separator
+
                             if (profile.status == "active") {
                                 DropdownMenuItem(
                                     text = { Text("Mark as Done") },

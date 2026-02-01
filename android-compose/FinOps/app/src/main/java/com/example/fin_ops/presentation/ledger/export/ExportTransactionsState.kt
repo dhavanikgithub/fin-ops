@@ -41,5 +41,7 @@ data class ExportTransactionsState(
 
     // Computed dates (for display)
     val displayStartDate: String = "",
-    val displayEndDate: String = ""
+    val displayEndDate: String = "",
+    val showStoragePermissionRequest: Boolean = false,
+    val isShareRequestedForPermission: Boolean = false // Tracks if user clicked "Export & Share" or just "Export"
 )

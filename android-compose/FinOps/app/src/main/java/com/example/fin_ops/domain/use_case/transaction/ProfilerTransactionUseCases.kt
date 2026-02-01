@@ -2,6 +2,7 @@ package com.example.fin_ops.domain.use_case.transaction
 
 import com.example.fin_ops.data.remote.dto.*
 import com.example.fin_ops.domain.repository.ProfilerTransactionRepository
+import okhttp3.ResponseBody
 import javax.inject.Inject
 
 class GetTransactionsUseCase @Inject constructor(private val repository: ProfilerTransactionRepository) {
@@ -32,4 +33,12 @@ class GetTransactionSummaryUseCase @Inject constructor(
     private val repository: ProfilerTransactionRepository
 ) {
     suspend operator fun invoke(profileId: Int) = repository.getSummary(profileId)
+}
+
+class ExportProfilePdfUseCase @Inject constructor(
+    private val repository: ProfilerTransactionRepository
+) {
+    suspend operator fun invoke(profileId: Int): ResponseBody {
+        return repository.exportPdf(profileId)
+    }
 }

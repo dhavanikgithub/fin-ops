@@ -1,17 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <!-- External files directory for Downloads -->
-    <external-files-path
-        name="downloads"
-        path="Download/" />
+    <external-files-path name="app_downloads" path="Download/" />
 
-    <!-- Cache directory for temporary files -->
-    <cache-path
-        name="cache"
-        path="/" />
+    <external-path name="public_downloads" path="Download/" />
 
-    <!-- External cache for temporary sharing -->
-    <external-cache-path
-        name="external_cache"
-        path="/" />
+    <external-cache-path name="cache" path="." />
+
+    <cache-path name="internal_cache" path="." />
 </paths>

@@ -1,8 +1,10 @@
 package com.example.fin_ops.presentation.ledger.export
 
+import android.Manifest
 import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -10,6 +12,7 @@ import android.provider.MediaStore
 import android.util.Base64
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -21,9 +24,11 @@ import com.example.fin_ops.domain.use_case.client.SearchClientsUseCase
 import com.example.fin_ops.domain.use_case.ledger_transaction.GenerateLedgerReportUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
@@ -111,13 +116,28 @@ class ExportTransactionsViewModel @Inject constructor(
                 )
             }
 
+            // --- EXPORT EVENTS (Updated) ---
             is ExportTransactionsEvent.Export -> {
-                exportReport(shareToWhatsApp = false)
+                checkPermissionAndExport(shareToWhatsApp = false)
             }
 
             is ExportTransactionsEvent.ExportAndShare -> {
-                exportReport(shareToWhatsApp = true)
+                checkPermissionAndExport(shareToWhatsApp = true)
             }
+
+            // --- PERMISSION RESULT (New) ---
+            is ExportTransactionsEvent.StoragePermissionResult -> {
+                val wasSharing = _state.value.isShareRequestedForPermission
+                _state.value = _state.value.copy(showStoragePermissionRequest = false)
+
+                if (event.isGranted) {
+                    // Permission granted, retry the export
+                    exportReport(shareToWhatsApp = wasSharing)
+                } else {
+                    _state.value = _state.value.copy(exportError = "Storage permission denied. Cannot save to Downloads.")
+                }
+            }
+
 
             is ExportTransactionsEvent.OpenPdf -> {
                 openPdf()
@@ -141,6 +161,37 @@ class ExportTransactionsViewModel @Inject constructor(
             }
         }
     }
+
+    // --- Permission Check Logic ---
+    private fun checkPermissionAndExport(shareToWhatsApp: Boolean) {
+        val currentState = _state.value
+        if (currentState.startDate.isEmpty() || currentState.endDate.isEmpty()) {
+            _state.value = _state.value.copy(exportError = "Please select valid dates")
+            return
+        }
+
+        // Android 10+ (Q) does not need storage permissions for MediaStore
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            exportReport(shareToWhatsApp)
+        } else {
+            // Android 9 and below needs WRITE_EXTERNAL_STORAGE
+            val hasPermission = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPermission) {
+                exportReport(shareToWhatsApp)
+            } else {
+                // Request Permission
+                _state.value = _state.value.copy(
+                    showStoragePermissionRequest = true,
+                    isShareRequestedForPermission = shareToWhatsApp
+                )
+            }
+        }
+    }
+
 
     private fun updateDatesForTimePeriod(period: TimePeriod) {
         val calendar = Calendar.getInstance()
@@ -282,17 +333,34 @@ class ExportTransactionsViewModel @Inject constructor(
 
             filename to uri
         } else {
-            val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
-                ?: throw Exception("External storage not available")
-            val file = File(downloadsDir, filename)
-            FileOutputStream(file).use { it.write(pdfBytes) }
+            // --- ANDROID 9 and below (Legacy) ---
+            try {
+                // 1. Try Public Downloads Folder
+                val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                if (!downloadsDir.exists()) downloadsDir.mkdirs()
 
-            val uri = FileProvider.getUriForFile(
-                context,
-                "${context.packageName}.provider",
-                file
-            )
-            file.absolutePath to uri
+                val file = File(downloadsDir, filename)
+                FileOutputStream(file).use { it.write(pdfBytes) }
+
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+                file.name to uri
+            } catch (e: Exception) {
+                // 2. Fallback to App-Specific storage if permission denied or error
+                val fallbackDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                val file = File(fallbackDir, filename)
+                FileOutputStream(file).use { it.write(pdfBytes) }
+
+                val uri = FileProvider.getUriForFile(
+                    context,
+                    "${context.packageName}.provider",
+                    file
+                )
+                file.name to uri
+            }
         }
     }
 
@@ -396,4 +464,6 @@ sealed class ExportTransactionsEvent {
     object ShareToWhatsApp : ExportTransactionsEvent()
     object ClearError : ExportTransactionsEvent()
     object ClearSuccess : ExportTransactionsEvent()
+    // --- NEW EVENT ---
+    data class StoragePermissionResult(val isGranted: Boolean) : ExportTransactionsEvent()
 }

@@ -1,6 +1,9 @@
 package com.example.fin_ops.presentation.ledger.export
 
+import android.Manifest
 import android.annotation.SuppressLint
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -21,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fin_ops.R
+import com.example.fin_ops.presentation.profiler.profiles.ProfilesEvent
 import com.example.fin_ops.ui.theme.FinOpsTheme
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -97,6 +101,22 @@ fun ExportTransactionsContent(
     onEvent: (ExportTransactionsEvent) -> Unit,
     snackbarHostState: SnackbarHostState
 ) {
+
+    // 1. Create the Permission Launcher
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Send the result back to the ViewModel
+        onEvent(ExportTransactionsEvent.StoragePermissionResult(isGranted))
+    }
+
+    // 2. Observe the state to trigger the permission request
+    LaunchedEffect(state.showStoragePermissionRequest) {
+        if (state.showStoragePermissionRequest) {
+            permissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
     ) { paddingValues ->
