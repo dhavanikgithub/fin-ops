@@ -304,7 +304,6 @@ fun ProfileScreenContent(
                         ProfileCard(
                             profile = profile,
                             onMarkDoneClick = { onEvent(ProfilesEvent.MarkDone(profile)) },
-                            onEditClick = { onEvent(ProfilesEvent.OpenForm(profile)) },
                             onDeleteClick = { onEvent(ProfilesEvent.DeleteProfile(profile)) },
                             onCardClick = { navController.navigate("${Routes.PF_PROFILES_DETAIL}/${profile.id}") },
                             // --- NEW: Map the new events here ---
@@ -519,7 +518,6 @@ fun ProfileTabRow(
 fun ProfileCard(
     profile: ProfilerProfileDto,
     onMarkDoneClick: () -> Unit,
-    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit,
     // --- NEW PARAMETERS ---
     onExportClick: () -> Unit,
@@ -654,31 +652,33 @@ fun ProfileCard(
                                     }
                                 )
                             }
+                            
+                            val hasTransactions = (profile.transactionCount.toIntOrNull() ?: 0) > 0
                             DropdownMenuItem(
-                                text = { Text("Edit") },
-                                onClick = {
-                                    expanded = false
-                                    onEditClick()
+                                text = { 
+                                    Text(
+                                        "Delete", 
+                                        color = if (hasTransactions) 
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) 
+                                        else 
+                                            MaterialTheme.colorScheme.error
+                                    ) 
                                 },
-                                leadingIcon = {
-                                    Icon(
-                                        painter = painterResource(id = R.drawable.square_pen),
-                                        contentDescription = "Edit",
-                                        modifier = Modifier.size(18.dp)
-                                    )
-                                }
-                            )
-                            DropdownMenuItem(
-                                text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
                                 onClick = {
-                                    expanded = false
-                                    onDeleteClick()
+                                    if (!hasTransactions) {
+                                        expanded = false
+                                        onDeleteClick()
+                                    }
                                 },
+                                enabled = !hasTransactions,
                                 leadingIcon = {
                                     Icon(
                                         painter = painterResource(id = R.drawable.trash_2),
                                         contentDescription = "Delete",
-                                        tint = MaterialTheme.colorScheme.error,
+                                        tint = if (hasTransactions) 
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f) 
+                                        else 
+                                            MaterialTheme.colorScheme.error,
                                         modifier = Modifier.size(18.dp)
                                     )
                                 }
