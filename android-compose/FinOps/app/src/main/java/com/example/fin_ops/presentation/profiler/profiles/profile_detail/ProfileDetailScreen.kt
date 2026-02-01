@@ -1,18 +1,61 @@
-package com.example.fin_ops.presentation.profiler.profile_detail
+package com.example.fin_ops.presentation.profiler.profiles.profile_detail
 
 import android.Manifest
 import android.annotation.SuppressLint
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,17 +74,17 @@ import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
 import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
 import com.example.fin_ops.data.remote.dto.TransactionSummary
-import com.example.fin_ops.presentation.profiler.profiles.profile_detail.ProfileDetailState
+import com.example.fin_ops.presentation.profiler.profile_detail.ProfileDetailEvent
+import com.example.fin_ops.presentation.profiler.profile_detail.ProfileDetailViewModel
 import com.example.fin_ops.ui.theme.FinOpsTheme
-import com.example.fin_ops.utils.formatAmount
-import com.example.fin_ops.utils.formatLongAmount
+import com.example.fin_ops.utils.formatCurrency
 import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import com.example.fin_ops.utils.toCustomDateTimeString
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
-import kotlin.text.format
 
 // --- Main Screen Component ---
 
@@ -481,17 +524,17 @@ fun ProfileHeaderCard(profile: ProfilerProfileDto) {
             ) {
                 FinancialDetailItem(
                     label = "Pre-planned",
-                    value = "₹${formatAmount(profile.prePlannedDepositAmount)}",
+                    value = formatCurrency(profile.prePlannedDepositAmount),
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 FinancialDetailItem(
                     label = "Current",
-                    value = "₹${formatAmount(profile.currentBalance)}",
+                    value = formatCurrency(profile.currentBalance),
                     color = Color(0xFF6366F1)
                 )
                 FinancialDetailItem(
                     label = "Remaining",
-                    value = "₹${formatAmount(profile.remainingBalance)}",
+                    value = formatCurrency(profile.remainingBalance),
                     color = Color(0xFF10B981)
                 )
             }
@@ -689,14 +732,14 @@ fun LoadingProfileHeader() {
 
 // --- Summary Cards Row ---
 @Composable
-fun SummaryCardsRow(summary: com.example.fin_ops.data.remote.dto.TransactionSummary) {
+fun SummaryCardsRow(summary: TransactionSummary) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         SummaryCard(
             label = "Total Deposits",
-            value = "₹${formatLongAmount(summary.totalDeposits)}",
+            value = formatCurrency(summary.totalDeposits),
             icon = R.drawable.arrow_down_left,
             backgroundColor = Color(0xFFF0FDF4),
             textColor = Color(0xFF15803D),
@@ -704,7 +747,7 @@ fun SummaryCardsRow(summary: com.example.fin_ops.data.remote.dto.TransactionSumm
         )
         SummaryCard(
             label = "Total Withdrawals",
-            value = "₹${formatLongAmount(summary.totalWithdrawals)}",
+            value = formatCurrency(summary.totalWithdrawals),
             icon = R.drawable.arrow_up_right,
             backgroundColor = Color(0xFFFEF2F2),
             textColor = Color(0xFFB91C1C),
@@ -883,14 +926,14 @@ fun TransactionItem(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "₹${formatAmount(transaction.amount)}",
+                            text = formatCurrency(transaction.amount),
                             fontWeight = FontWeight.Bold,
                             fontSize = 15.sp,
                             color = iconTint
                         )
                         if (transaction.withdrawChargesAmount != null) {
                             Text(
-                                text = "Charges: ₹${formatAmount(transaction.withdrawChargesAmount)}",
+                                text = "Charges: ${formatCurrency(transaction.withdrawChargesAmount)}",
                                 fontSize = 9.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -1301,7 +1344,7 @@ fun DeleteConfirmationDialog(
                 Text("Are you sure you want to delete this transaction?")
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "${transaction.transactionType.uppercase()} - ₹${formatAmount(transaction.amount)}",
+                    text = "${transaction.transactionType.uppercase()} - ${formatCurrency(transaction.amount)}",
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -1345,9 +1388,9 @@ private fun createMockProfile(): ProfilerProfileDto {// The date formatter for c
         notes = "This is a sample profile for preview purposes.",
         markedDoneAt = null,
         // Corrected this line to use java.util.Date()
-        createdAt = dateFormatter.format(java.util.Date()),
+        createdAt = dateFormatter.format(Date()),
         // Corrected this line to use java.util.Date()
-        updatedAt = dateFormatter.format(java.util.Date()),
+        updatedAt = dateFormatter.format(Date()),
         clientName = "John Doe",
         clientEmail = "john.doe@example.com",
         clientMobile = "+1234567890",

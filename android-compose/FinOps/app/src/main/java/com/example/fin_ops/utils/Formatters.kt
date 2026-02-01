@@ -6,61 +6,8 @@ import com.example.fin_ops.presentation.calculator.simple.SavedScenario
 import java.util.Date
 import java.util.concurrent.TimeUnit
 import java.text.SimpleDateFormat
+import kotlin.math.abs
 
-
-/**
- * Formats a timestamp (Long) into a smart Date/Time string using ICU (API 24+).
- * * @param skeleton A "skeleton" pattern. Examples:
- * - "yMMMd" -> "Jan 25, 2026" (US) or "25 Jan 2026" (UK)
- * - "jm"    -> "10:30 PM" (US) or "22:30" (Germany)
- * - "yMMMdjm" -> Combined Date and Time
- */
-fun Long.toDateTimeString(
-    skeleton: String = "yMMMd",
-    locale: Locale = Locale.getDefault()
-): String {
-    // getInstanceForSkeleton is the "smart" formatter that adjusts order based on Locale
-    val formatter = DateFormat.getInstanceForSkeleton(skeleton, locale)
-    return formatter.format(Date(this))
-}
-
-/**
- * Formats milliseconds into a timer style string (e.g., "05:30" or "01:15:20").
- * Automatically handles hours if the duration is long enough.
- */
-fun Long.toTimerString(): String {
-    val hours = TimeUnit.MILLISECONDS.toHours(this)
-    val minutes = TimeUnit.MILLISECONDS.toMinutes(this) % 60
-    val seconds = TimeUnit.MILLISECONDS.toSeconds(this) % 60
-
-    return if (hours > 0) {
-        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
-    } else {
-        String.format(Locale.getDefault(), "%02d:%02d", minutes, seconds)
-    }
-}
-
-/**
- * Formats a timestamp into the specific format: "18 Jan 2026 • 02:27:54 PM"
- */
-fun Long.toCustomDateTimeString(): String {
-    // Pattern breakdown:
-    // dd    = Day (18)
-    // MMM   = Short Month (Jan)
-    // yyyy  = Year (2026)
-    // '•'   = Literal separator inside quotes
-    // hh    = 12-hour format (02)
-    // mm    = Minutes (27)
-    // ss    = Seconds (54)
-    // a     = AM/PM Marker
-    val pattern = "dd MMM yyyy '•' hh:mm:ss a"
-
-    // We use Locale.US to force "Jan" and "PM".
-    // If you use Locale.getDefault(), a Spanish phone would output "ene" and "p. m."
-    val formatter = SimpleDateFormat(pattern, Locale.US)
-
-    return formatter.format(Date(this))
-}
 
 /**
  * Parses a String date and reformats it to: "18 Jan 2026 • 02:27:54 PM"
@@ -91,9 +38,7 @@ fun String.toCustomDateTimeString(
     }
 }
 
-fun formatCurrency(value: Double): String {
-    return "₹${"%.2f".format(value)}"
-}
+
 
 fun calculateReceivable(scenario: SavedScenario): Double {
     val ourDecimal = scenario.ourCharge / 100
@@ -113,35 +58,58 @@ fun formatPresetDate(timestamp: Long): String {
     return "Added ${dateFormat.format(date)}"
 }
 
-fun formatDate(dateString: String): String {
-    // Simple date formatter - you might want to use a proper date library
-    return try {
-        dateString.split("T").firstOrNull() ?: dateString
-    } catch (e: Exception) {
-        dateString
+
+
+// --- Currency Formatting (Adds Symbol & Handles Negative Sign) ---
+
+fun formatCurrency(amount: Double): String {
+    val isNegative = amount < 0
+    // We format the absolute value to ensure we control the sign placement
+    val formattedNumber = formatAmount(abs(amount))
+
+    return if (isNegative) {
+        "-₹$formattedNumber"
+    } else {
+        "₹$formattedNumber"
     }
 }
 
+fun formatCurrency(amount: Long): String {
+    return formatCurrency(amount.toDouble())
+}
 
-fun formatAmount(amount: String): String {
-    return try {
-        val value = amount.toDoubleOrNull() ?: return amount
-        String.format(Locale.getDefault(), "%,.0f", value)
-    } catch (e: Exception) {
-        amount
+fun formatCurrency(amount: String): String {
+    val value = amount.toDoubleOrNull()
+    return if (value != null) {
+        formatCurrency(value)
+    } else {
+        "₹$amount" // Fallback
     }
+}
+
+// --- Amount Formatting (Trims .00 if whole number) ---
+
+fun formatAmount(amount: Double): String {
+    // 1. Format with 2 decimal places standard
+    var formatted = String.format(Locale.getDefault(), "%,.2f", amount)
+
+    // 2. Trim trailing ".00" or ",00" (depending on locale)
+    if (formatted.endsWith(".00")) {
+        formatted = formatted.dropLast(3)
+    } else if (formatted.endsWith(",00")) {
+        formatted = formatted.dropLast(3)
+    }
+
+    return formatted
 }
 
 fun formatAmount(amount: Long): String {
-    return String.format(Locale.getDefault(), "%,d", amount)
+    return formatAmount(amount.toDouble())
 }
 
-fun formatDoubleAmount(amount: Double): String {
-    return String.format(Locale.getDefault(), "%,.0f", amount)
-}
-
-fun formatLongAmount(amount: Long): String {
-    return String.format(Locale.getDefault(), "%,d", amount)
+fun formatAmount(amount: String): String {
+    val value = amount.toDoubleOrNull() ?: return amount
+    return formatAmount(value)
 }
 
 fun maskCardNumber(cardNumber: String): String {
@@ -150,8 +118,4 @@ fun maskCardNumber(cardNumber: String): String {
     } else {
         cardNumber
     }
-}
-
-fun String.capitalize(): String {
-    return this.replaceFirstChar { it.uppercase() }
 }

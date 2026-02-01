@@ -3,14 +3,51 @@ package com.example.fin_ops.presentation.profiler.transactions
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -18,7 +55,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -29,8 +65,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
 import com.example.fin_ops.ui.theme.FinOpsTheme
-import com.example.fin_ops.utils.formatAmount
-import com.example.fin_ops.utils.formatDoubleAmount
+import com.example.fin_ops.utils.formatCurrency
 import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
 import com.example.fin_ops.utils.toCustomDateTimeString
@@ -189,13 +224,13 @@ fun SummarySection(
         } else {
             CompactSummaryCard(
                 label = "Deposits",
-                amount = "₹${formatAmount(summary?.totalDeposits ?: 0)}",
+                amount = formatCurrency(summary?.totalDeposits ?: 0),
                 isDeposit = true,
                 modifier = Modifier.weight(1f)
             )
             CompactSummaryCard(
                 label = "Withdrawals",
-                amount = "₹${formatAmount(summary?.totalWithdrawals ?: 0)}",
+                amount = formatCurrency(summary?.totalWithdrawals ?: 0),
                 isDeposit = false,
                 modifier = Modifier.weight(1f)
             )
@@ -386,14 +421,14 @@ fun TransactionItem(
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "₹${formatAmount(transaction.amount)}",
+                            text = formatCurrency(transaction.amount),
                             fontWeight = FontWeight.Bold,
                             fontSize = 14.sp,
                             color = iconTint
                         )
                         if (transaction.withdrawChargesAmount != null) {
                             Text(
-                                text = "Charges: ₹${formatAmount(transaction.withdrawChargesAmount)}",
+                                text = "Charges: ${formatCurrency(transaction.withdrawChargesAmount)}",
                                 fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -899,7 +934,7 @@ fun AutocompleteProfileField(
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text = "Balance: ₹${formatDoubleAmount(state.selectedProfile.remainingBalance)}",
+                            text = "Balance: ${formatCurrency(state.selectedProfile.remainingBalance)}",
                             fontSize = 10.sp,
                             color = Color(0xFF16A34A),
                             fontWeight = FontWeight.Medium
@@ -966,7 +1001,7 @@ fun AutocompleteProfileField(
                                         modifier = Modifier.padding(top = 4.dp)
                                     ) {
                                         Text(
-                                            text = "Balance: ₹${formatDoubleAmount(profile.remainingBalance)}",
+                                            text = "Balance: ${formatCurrency(profile.remainingBalance)}",
                                             fontSize = 10.sp,
                                             color = Color(0xFF16A34A),
                                             fontWeight = FontWeight.Medium
@@ -1022,7 +1057,7 @@ fun DeleteConfirmationDialog(
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = "Amount: ₹${formatAmount(transaction.amount)}",
+                    text = "Amount: ${formatCurrency(transaction.amount)}",
                     color = MaterialTheme.colorScheme.error
                 )
             }

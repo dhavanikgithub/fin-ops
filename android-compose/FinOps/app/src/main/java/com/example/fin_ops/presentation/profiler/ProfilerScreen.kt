@@ -1,13 +1,30 @@
 package com.example.fin_ops.presentation.profiler
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -30,9 +47,13 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerProfileDto
+import com.example.fin_ops.data.remote.dto.ProfilerTransactionDto
 import com.example.fin_ops.presentation.navigation.Routes
 import com.example.fin_ops.ui.theme.FinOpsTheme
+import com.example.fin_ops.utils.formatCurrency
+import com.example.fin_ops.utils.maskCardNumber
 import com.example.fin_ops.utils.shimmerEffect
+import com.example.fin_ops.utils.toCustomDateTimeString
 
 // Define a fixed height for the collapsed state.
 private val CollapsedHeaderHeight = 64.dp // Standard TopAppBar height
@@ -201,9 +222,12 @@ fun TopProfileListItem(profile: ProfilerProfileDto, modifier: Modifier = Modifie
     ) {
         TopProfileItem(
             name = profile.clientName,
-            details = profile.bankName,
+            bankName = profile.bankName,
+            creditCardNumber = profile.creditCardNumber,
+            prePlannedAmount = profile.prePlannedDepositAmount,
             transactionCount = profile.transactionCount.toInt(),
             amount = profile.currentBalance,
+            createdAt = profile.createdAt,
             amountColor = if (profile.currentBalance.startsWith("-")) Color(0xFFE7000B) else Color(
                 0xFF00A63E
             ),
@@ -294,7 +318,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Total Deposits",
                     // Fix: Use ?: "0" (or 0 if the data type is a number)
-                    "₹${transactionsState.transactions?.summary?.totalDeposits ?: 0}",
+                    formatCurrency(transactionsState.transactions?.summary?.totalDeposits ?: 0),
                     R.drawable.arrow_down_left,
                     Color(0xFF00A63E),
                     Color(0xFFF0FDF4),
@@ -308,7 +332,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Total Withdrawals",
                     // Fix applied here
-                    "₹${transactionsState.transactions?.summary?.totalWithdrawals ?: 0}",
+                    formatCurrency(transactionsState.transactions?.summary?.totalWithdrawals ?: 0),
                     R.drawable.arrow_up_right,
                     Color(0xFFE7000B),
                     Color(0xFFFEF2F2),
@@ -321,7 +345,7 @@ fun Header(transactionsState: TransactionState, modifier: Modifier = Modifier, p
                 CompactBalanceCard(
                     "Net Balance",
                     // Fix applied here
-                    "₹${transactionsState.transactions?.summary?.creditUncountable ?: 0}",
+                    formatCurrency(transactionsState.transactions?.summary?.creditUncountable ?: 0),
                     R.drawable.wallet,
                     Color(0xFF155DFC),
                     Color(0xFFEFF6FF),
@@ -549,14 +573,12 @@ fun RecentTransactions(transactionsState: TransactionState, navController: NavCo
 
                 RecentTransactionItemShimmer(transactionsState.isLoading)
                 RecentTransactionItemShimmer(transactionsState.isLoading)
-                transactionsState.transactions?.data?.forEach {
+                transactionsState.transactions?.data?.forEach { transaction ->
                     RecentTransactionItem(
-                        it.clientName,
-                        it.bankName,
-                        it.amount,
-                        if (it.transactionType == "deposit") depositFg else withdrawFg,
-                        if (it.transactionType == "deposit") R.drawable.arrow_down_left else R.drawable.arrow_up_right,
-                        if (it.transactionType == "deposit") depositBg else withdrawBg
+                        transaction = transaction,
+                        amountColor = if (transaction.transactionType == "deposit") depositFg else withdrawFg,
+                        icon = if (transaction.transactionType == "deposit") R.drawable.arrow_down_left else R.drawable.arrow_up_right,
+                        iconBgColor = if (transaction.transactionType == "deposit") depositBg else withdrawBg
                     )
                 }
             }
@@ -649,60 +671,125 @@ fun TopProfileItemShimmer(
 @Composable
 fun TopProfileItem(
     name: String,
-    details: String,
+    bankName: String,
+    creditCardNumber: String,
+    prePlannedAmount: String,
     transactionCount: Int,
     amount: String,
+    createdAt: String,
     amountColor: Color,
     icon: Int,
     iconBgColor: Color
 ) {
-    Row(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(vertical = 8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(iconBgColor, CircleShape), contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = null,
-                    tint = amountColor,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column {
-                Text(
-                    text = name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Row {
-                    Text(
-                        text = details,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 4.dp)
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(iconBgColor, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = icon),
+                        contentDescription = null,
+                        tint = amountColor,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Text(
-                        text = "$transactionCount transactions",
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-
-                        )
-
                 }
-
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = name,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.building_2),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = bankName,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.credit_card),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = maskCardNumber(creditCardNumber),
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatCurrency(amount),
+                    color = amountColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = "Pre: ${formatCurrency(prePlannedAmount)}",
+                    fontSize = 10.sp,
+                    color = Color(0xFF6366F1),
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
-        Text(text = amount, color = amountColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.calendar),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = createdAt.toCustomDateTimeString(),
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(
+                text = "$transactionCount txns",
+                fontSize = 10.sp,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 
@@ -749,53 +836,141 @@ fun RecentTransactionItemShimmer(
 
 @Composable
 fun RecentTransactionItem(
-    name: String,
-    details: String,
-    amount: String,
+    transaction: ProfilerTransactionDto,
     amountColor: Color,
     icon: Int,
     iconBgColor: Color
 ) {
-    Row(
+    val isWithdraw = transaction.transactionType == "withdraw"
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+            .padding(vertical = 8.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .background(iconBgColor, CircleShape), contentAlignment = Alignment.Center
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.weight(1f)
             ) {
-                Icon(
-                    painter = painterResource(id = icon),
-                    contentDescription = null,
-                    tint = amountColor,
-                    modifier = Modifier.size(16.dp)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Column {
-                Text(
-                    text = name,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Row {
-                    Text(
-                        text = details,
-                        fontSize = 11.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = 4.dp)
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(iconBgColor, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        painter = painterResource(id = icon),
+                        contentDescription = null,
+                        tint = amountColor,
+                        modifier = Modifier.size(20.dp)
                     )
                 }
-
+                Spacer(modifier = Modifier.width(10.dp))
+                Column {
+                    Text(
+                        text = transaction.clientName,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.building_2),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = transaction.bankName,
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.credit_card),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(12.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = maskCardNumber(transaction.creditCardNumber),
+                            fontSize = 11.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = formatCurrency(transaction.amount),
+                    color = amountColor,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp
+                )
+                if (isWithdraw && transaction.withdrawChargesAmount != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Charges: ${formatCurrency(transaction.withdrawChargesAmount)}",
+                        fontSize = 10.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(modifier = Modifier.height(2.dp))
+                Surface(
+                    shape = RoundedCornerShape(4.dp),
+                    color = if (transaction.transactionType == "deposit")
+                        Color(0xFF10B981).copy(alpha = 0.15f)
+                    else
+                        Color(0xFFEF4444).copy(alpha = 0.15f)
+                ) {
+                    Text(
+                        text = transaction.transactionType.uppercase(),
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = if (transaction.transactionType == "deposit") Color(0xFF10B981) else Color(0xFFEF4444),
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                    )
+                }
             }
         }
-        Text(text = amount, color = amountColor, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+        Spacer(modifier = Modifier.height(6.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    painter = painterResource(id = R.drawable.calendar),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(12.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = transaction.createdAt.toCustomDateTimeString(),
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (!transaction.notes.isNullOrBlank()) {
+                Text(
+                    text = transaction.notes.take(20) + if (transaction.notes.length > 20) "..." else "",
+                    fontSize = 10.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 

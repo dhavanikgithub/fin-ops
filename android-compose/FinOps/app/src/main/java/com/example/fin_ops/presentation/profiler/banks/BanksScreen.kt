@@ -72,7 +72,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fin_ops.R
 import com.example.fin_ops.data.remote.dto.ProfilerBankDto
 import com.example.fin_ops.ui.theme.FinOpsTheme
-import com.example.fin_ops.utils.formatDate
 import com.example.fin_ops.utils.shimmerEffect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged

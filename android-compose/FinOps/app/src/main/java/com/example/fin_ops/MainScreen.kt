@@ -16,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -53,7 +52,7 @@ import com.example.fin_ops.presentation.profiler.ProfilerState
 import com.example.fin_ops.presentation.profiler.TransactionState
 import com.example.fin_ops.presentation.profiler.banks.BanksScreen
 import com.example.fin_ops.presentation.profiler.clients.ClientsScreen
-import com.example.fin_ops.presentation.profiler.profile_detail.ProfileDetailScreen
+import com.example.fin_ops.presentation.profiler.profiles.profile_detail.ProfileDetailScreen
 import com.example.fin_ops.presentation.profiler.profiles.ProfileScreen
 import com.example.fin_ops.presentation.profiler.transactions.TransactionsScreen
 import com.example.fin_ops.presentation.settings.SettingsScreen
