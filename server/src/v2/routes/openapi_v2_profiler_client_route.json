@@ -1,0 +1,680 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Profiler Client API",
+        "version": "2.0.0",
+        "description": "API operations for managing Profiler Clients, including validation, pagination, and autocomplete."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v2",
+            "description": "Local Development v2 API Server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Profiler Clients",
+            "description": "Operations related to client management"
+        }
+    ],
+    "paths": {
+        "/profiler/clients": {
+            "get": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Get all clients (Legacy)",
+                "description": "Retrieve a list of all profiler clients without pagination.",
+                "responses": {
+                    "200": {
+                        "description": "Profiler clients retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetClientsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Create a new client",
+                "description": "Create a new profiler client entry. Validates email, mobile number, and Aadhaar format.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateClientInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Profiler client created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleClientResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error (e.g., Invalid email/mobile format)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Update a client",
+                "description": "Update an existing profiler client. **Note:** The ID must be passed in the request body.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateClientInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profiler client updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleClientResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Delete a client",
+                "description": "Delete a profiler client. Only allowed if no profiles are associated with the client. **Note:** The ID must be passed in the request body.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteClientInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profiler client deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Database Error (e.g., Client has existing profiles)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/clients/paginated": {
+            "get": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Get paginated clients",
+                "description": "Retrieve clients with pagination, search, sorting, and filtering options.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (positive integer)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page (1-100)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 50
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search in name, email, mobile, aadhaar, or notes",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "has_profiles",
+                        "in": "query",
+                        "description": "Filter by clients that have profiles attached",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "email",
+                                "mobile_number",
+                                "created_at",
+                                "profile_count"
+                            ],
+                            "default": "name"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "asc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated clients retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedClientsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/clients/autocomplete": {
+            "get": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Get clients for autocomplete",
+                "description": "Lightweight endpoint for dropdowns/autocomplete.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search term",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results (1-10)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "default": 5
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Autocomplete results retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AutocompleteResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/clients/{id}": {
+            "get": {
+                "tags": [
+                    "Profiler Clients"
+                ],
+                "summary": "Get client by ID",
+                "description": "Retrieve specific profiler client details.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Client ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profiler client retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleClientResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Client not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ProfilerClient": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "email": {
+                        "type": "string",
+                        "nullable": true,
+                        "format": "email"
+                    },
+                    "mobile_number": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "aadhaar_card_number": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "aadhaar_card_image": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "profile_count": {
+                        "type": "integer",
+                        "default": 0
+                    }
+                }
+            },
+            "CreateClientInput": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "mobile_number": {
+                        "type": "string",
+                        "minLength": 10
+                    },
+                    "aadhaar_card_number": {
+                        "type": "string",
+                        "pattern": "^\\d{12}$",
+                        "description": "Exactly 12 digits"
+                    },
+                    "aadhaar_card_image": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string"
+                    }
+                }
+            },
+            "UpdateClientInput": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "name": {
+                        "type": "string",
+                        "minLength": 1
+                    },
+                    "email": {
+                        "type": "string",
+                        "format": "email"
+                    },
+                    "mobile_number": {
+                        "type": "string",
+                        "minLength": 10
+                    },
+                    "aadhaar_card_number": {
+                        "type": "string",
+                        "pattern": "^\\d{12}$"
+                    },
+                    "aadhaar_card_image": {
+                        "type": "string"
+                    },
+                    "notes": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DeleteClientInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "BaseResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "successCode": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "success": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "data": {
+                                "type": "object",
+                                "nullable": true
+                            }
+                        }
+                    }
+                ]
+            },
+            "SingleClientResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "$ref": "#/components/schemas/ProfilerClient"
+                            }
+                        }
+                    }
+                ]
+            },
+            "GetClientsResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ProfilerClient"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "PaginatedClientsResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/ProfilerClient"
+                                        }
+                                    },
+                                    "pagination": {
+                                        "type": "object",
+                                        "properties": {
+                                            "current_page": {
+                                                "type": "integer"
+                                            },
+                                            "per_page": {
+                                                "type": "integer"
+                                            },
+                                            "total_count": {
+                                                "type": "integer"
+                                            },
+                                            "total_pages": {
+                                                "type": "integer"
+                                            },
+                                            "has_next_page": {
+                                                "type": "boolean"
+                                            },
+                                            "has_previous_page": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "search_applied": {
+                                        "type": "string"
+                                    },
+                                    "filters_applied": {
+                                        "type": "object",
+                                        "properties": {
+                                            "has_profiles": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "sort_applied": {
+                                        "type": "object",
+                                        "properties": {
+                                            "sort_by": {
+                                                "type": "string"
+                                            },
+                                            "sort_order": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "AutocompleteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "name": {
+                                                    "type": "string"
+                                                },
+                                                "email": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "mobile_number": {
+                                                    "type": "string",
+                                                    "nullable": true
+                                                },
+                                                "profile_count": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "total_count": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "errorCode": {
+                                "type": "string"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

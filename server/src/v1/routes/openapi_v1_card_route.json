@@ -1,0 +1,598 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Fin-Ops API - Card Module",
+        "version": "1.0.0",
+        "description": "API documentation for the Fin-Ops banking application. This specification details the Card management module, including pagination, search, and autocomplete features.",
+        "contact": {
+            "name": "API Support"
+        }
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v1",
+            "description": "Local Development Server"
+        }
+    ],
+    "paths": {
+        "/cards": {
+            "get": {
+                "summary": "Get all cards (Legacy)",
+                "description": "Retrieve a list of all cards with transaction counts. Note: This endpoint does not support pagination.",
+                "tags": [
+                    "Cards"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cards retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "CARDS_RETRIEVED"
+                                                },
+                                                "data": {
+                                                    "type": "array",
+                                                    "items": {
+                                                        "$ref": "#/components/schemas/Card"
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new card",
+                "tags": [
+                    "Cards"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CardInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Card created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "CARD_CREATED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Card"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "summary": "Update an existing card",
+                "tags": [
+                    "Cards"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CardUpdateInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "CARD_UPDATED"
+                                                },
+                                                "data": {
+                                                    "$ref": "#/components/schemas/Card"
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Card not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "summary": "Delete a card",
+                "description": "Delete a card by ID. Note: This endpoint expects the ID in the request BODY, not the URL path.",
+                "tags": [
+                    "Cards"
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteCardInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Card deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "successCode": {
+                                                    "example": "CARD_DELETED"
+                                                },
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "id": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Card not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cards/paginated": {
+            "get": {
+                "summary": "Get paginated cards",
+                "description": "Retrieve cards with pagination, search, and sorting capabilities.",
+                "tags": [
+                    "Cards"
+                ],
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        },
+                        "description": "Page number (positive integer)"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50,
+                            "minimum": 1,
+                            "maximum": 100
+                        },
+                        "description": "Number of records per page (1-100)"
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search term for card name"
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "name",
+                                "create_date",
+                                "transaction_count"
+                            ],
+                            "default": "name"
+                        },
+                        "description": "Field to sort by"
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "asc"
+                        },
+                        "description": "Sort order"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated cards retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "data": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/Card"
+                                                            }
+                                                        },
+                                                        "pagination": {
+                                                            "$ref": "#/components/schemas/PaginatedMeta"
+                                                        },
+                                                        "search_applied": {
+                                                            "type": "string"
+                                                        },
+                                                        "sort_applied": {
+                                                            "type": "object",
+                                                            "properties": {
+                                                                "sort_by": {
+                                                                    "type": "string"
+                                                                },
+                                                                "sort_order": {
+                                                                    "type": "string"
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/cards/autocomplete": {
+            "get": {
+                "summary": "Get cards for autocomplete",
+                "description": "Lightweight endpoint to search cards for dropdowns.",
+                "tags": [
+                    "Cards"
+                ],
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Search term"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 5,
+                            "maximum": 10
+                        },
+                        "description": "Number of results to return (max 10)"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Autocomplete data retrieved",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "allOf": [
+                                        {
+                                            "$ref": "#/components/schemas/StandardResponse"
+                                        },
+                                        {
+                                            "type": "object",
+                                            "properties": {
+                                                "data": {
+                                                    "type": "object",
+                                                    "properties": {
+                                                        "data": {
+                                                            "type": "array",
+                                                            "items": {
+                                                                "$ref": "#/components/schemas/CardAutocompleteItem"
+                                                            }
+                                                        },
+                                                        "search_query": {
+                                                            "type": "string"
+                                                        },
+                                                        "result_count": {
+                                                            "type": "integer"
+                                                        },
+                                                        "limit_applied": {
+                                                            "type": "integer"
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Card": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 101
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Visa Platinum"
+                    },
+                    "create_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "create_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    },
+                    "modify_date": {
+                        "type": "string",
+                        "format": "date",
+                        "nullable": true
+                    },
+                    "modify_time": {
+                        "type": "string",
+                        "format": "time",
+                        "nullable": true
+                    },
+                    "transaction_count": {
+                        "type": "integer",
+                        "description": "Derived count of transactions associated with this card",
+                        "example": 42
+                    }
+                }
+            },
+            "CardAutocompleteItem": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 101
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Visa Platinum"
+                    }
+                }
+            },
+            "CardInput": {
+                "type": "object",
+                "required": [
+                    "name"
+                ],
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "description": "Name of the card",
+                        "example": "Mastercard Gold"
+                    }
+                }
+            },
+            "CardUpdateInput": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 101
+                    },
+                    "name": {
+                        "type": "string",
+                        "example": "Mastercard Gold Updated"
+                    }
+                }
+            },
+            "DeleteCardInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "example": 101
+                    }
+                }
+            },
+            "StandardResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation completed successfully"
+                    },
+                    "successCode": {
+                        "type": "string",
+                        "example": "OPERATION_SUCCESS"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer",
+                        "example": 200
+                    }
+                }
+            },
+            "PaginatedMeta": {
+                "type": "object",
+                "properties": {
+                    "current_page": {
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "per_page": {
+                        "type": "integer",
+                        "example": 50
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "example": 150
+                    },
+                    "total_pages": {
+                        "type": "integer",
+                        "example": 3
+                    },
+                    "has_next_page": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "has_previous_page": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                }
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer",
+                                "example": 400
+                            },
+                            "message": {
+                                "type": "string",
+                                "example": "Validation failed"
+                            },
+                            "errorCode": {
+                                "type": "string",
+                                "example": "VALIDATION_ERROR"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

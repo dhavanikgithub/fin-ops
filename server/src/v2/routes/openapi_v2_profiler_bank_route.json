@@ -1,0 +1,625 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Profiler Bank API",
+        "version": "2.0.0",
+        "description": "API operations for managing Profiler Banks, including pagination, autocomplete, and CRUD operations."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v2",
+            "description": "Local Development v2 API Server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Profiler Banks",
+            "description": "Operations related to bank management"
+        }
+    ],
+    "paths": {
+        "/profiler/banks": {
+            "get": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Get all banks (Legacy)",
+                "description": "Retrieve a list of all profiler banks without pagination.",
+                "responses": {
+                    "200": {
+                        "description": "Profiler banks retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetBanksResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Create a new bank",
+                "description": "Create a new profiler bank entry.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateBankInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Profiler bank created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleBankResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error (e.g. Bank name exists)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Update a bank",
+                "description": "Update an existing profiler bank. Note: ID is passed in the body.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/UpdateBankInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profiler bank updated successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleBankResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Delete a bank",
+                "description": "Delete a profiler bank. Only allowed if no profiles are associated with the bank. Note: ID is passed in the body.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteBankInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Profiler bank deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Database Error (e.g. Bank has existing profiles)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/banks/paginated": {
+            "get": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Get paginated banks",
+                "description": "Retrieve banks with pagination, search, sorting, and filtering options.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "description": "Page number (must be positive)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Items per page (1-100)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 100,
+                            "default": 50
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search term for bank name",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "has_profiles",
+                        "in": "query",
+                        "description": "Filter by banks that have profiles attached",
+                        "schema": {
+                            "type": "boolean"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "description": "Field to sort by",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "bank_name",
+                                "created_at",
+                                "profile_count"
+                            ],
+                            "default": "bank_name"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "description": "Sort order",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "asc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated banks retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedBanksResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/banks/autocomplete": {
+            "get": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Get banks for autocomplete",
+                "description": "Lightweight endpoint for dropdowns/autocomplete.",
+                "parameters": [
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search term",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "description": "Number of results (1-10)",
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 1,
+                            "maximum": 10,
+                            "default": 5
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Autocomplete results retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/AutocompleteResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/banks/{id}": {
+            "get": {
+                "tags": [
+                    "Profiler Banks"
+                ],
+                "summary": "Get bank by ID",
+                "description": "Retrieve a specific profiler bank details.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "description": "Bank ID",
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Profiler bank retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleBankResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Bank not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ProfilerBank": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "description": "Unique identifier for the bank"
+                    },
+                    "bank_name": {
+                        "type": "string",
+                        "description": "Name of the bank"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "profile_count": {
+                        "type": "integer",
+                        "description": "Number of profiles associated with this bank",
+                        "default": 0
+                    }
+                }
+            },
+            "CreateBankInput": {
+                "type": "object",
+                "required": [
+                    "bank_name"
+                ],
+                "properties": {
+                    "bank_name": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "UpdateBankInput": {
+                "type": "object",
+                "required": [
+                    "id",
+                    "bank_name"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "bank_name": {
+                        "type": "string",
+                        "minLength": 1
+                    }
+                }
+            },
+            "DeleteBankInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "BaseResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "successCode": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "success": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "data": {
+                                "type": "object",
+                                "nullable": true
+                            }
+                        }
+                    }
+                ]
+            },
+            "SingleBankResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "$ref": "#/components/schemas/ProfilerBank"
+                            }
+                        }
+                    }
+                ]
+            },
+            "GetBanksResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ProfilerBank"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "PaginatedBanksResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/ProfilerBank"
+                                        }
+                                    },
+                                    "pagination": {
+                                        "type": "object",
+                                        "properties": {
+                                            "current_page": {
+                                                "type": "integer"
+                                            },
+                                            "per_page": {
+                                                "type": "integer"
+                                            },
+                                            "total_count": {
+                                                "type": "integer"
+                                            },
+                                            "total_pages": {
+                                                "type": "integer"
+                                            },
+                                            "has_next_page": {
+                                                "type": "boolean"
+                                            },
+                                            "has_previous_page": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "search_applied": {
+                                        "type": "string"
+                                    },
+                                    "filters_applied": {
+                                        "type": "object",
+                                        "properties": {
+                                            "has_profiles": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "sort_applied": {
+                                        "type": "object",
+                                        "properties": {
+                                            "sort_by": {
+                                                "type": "string"
+                                            },
+                                            "sort_order": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "AutocompleteResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "object",
+                                            "properties": {
+                                                "id": {
+                                                    "type": "integer"
+                                                },
+                                                "bank_name": {
+                                                    "type": "string"
+                                                },
+                                                "profile_count": {
+                                                    "type": "integer"
+                                                }
+                                            }
+                                        }
+                                    },
+                                    "total_count": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "errorCode": {
+                                "type": "string"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

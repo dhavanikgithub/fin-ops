@@ -1,0 +1,792 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Profiler Transaction API",
+        "version": "2.0.0",
+        "description": "API operations for managing financial transactions (deposits and withdrawals), including PDF generation and statistical summaries."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/api/v2",
+            "description": "Local Development v2 API Server"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Profiler Transactions",
+            "description": "Operations for deposits, withdrawals, and transaction reporting"
+        }
+    ],
+    "paths": {
+        "/profiler/transactions": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Get all transactions (Legacy)",
+                "description": "Retrieve a list of all profiler transactions without pagination.",
+                "responses": {
+                    "200": {
+                        "description": "Transactions retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTransactionsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Delete a transaction",
+                "description": "Delete a transaction by ID. **Note:** The ID must be passed in the request body.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DeleteTransactionInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Transaction deleted successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/paginated": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Get paginated transactions",
+                "description": "Retrieve transactions with pagination, filters (date, amount, type), and calculated summaries.",
+                "parameters": [
+                    {
+                        "name": "page",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 1
+                        }
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "schema": {
+                            "type": "integer",
+                            "default": 50
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "description": "Search in notes, amounts, or joined names",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "profile_id",
+                        "in": "query",
+                        "description": "Filter by Profile ID (comma-separated for multiple)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "client_id",
+                        "in": "query",
+                        "description": "Filter by Client ID (comma-separated)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "bank_id",
+                        "in": "query",
+                        "description": "Filter by Bank ID (comma-separated)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "transaction_type",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "deposit",
+                                "withdraw"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "amount_greater_than",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "amount_less_than",
+                        "in": "query",
+                        "schema": {
+                            "type": "number"
+                        }
+                    },
+                    {
+                        "name": "date_from",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "date_to",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "format": "date"
+                        }
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "created_at",
+                                "amount",
+                                "transaction_type",
+                                "client_name",
+                                "bank_name"
+                            ],
+                            "default": "created_at"
+                        }
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "schema": {
+                            "type": "string",
+                            "enum": [
+                                "asc",
+                                "desc"
+                            ],
+                            "default": "desc"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Paginated transactions retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PaginatedTransactionsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/deposit": {
+            "post": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Create deposit",
+                "description": "Record a new deposit transaction.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateDepositInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Deposit created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleTransactionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error (e.g. invalid amount)",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/withdraw": {
+            "post": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Create withdraw",
+                "description": "Record a new withdrawal transaction with optional charges.",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/CreateWithdrawInput"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Withdrawal created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleTransactionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/profile/{profileId}": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Get transactions by profile",
+                "description": "Retrieve all transactions for a specific profile ID.",
+                "parameters": [
+                    {
+                        "name": "profileId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transactions retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/GetTransactionsResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/profile/{profileId}/summary": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Get profile summary",
+                "description": "Get financial summary (deposits vs withdrawals, charges) for a specific profile.",
+                "parameters": [
+                    {
+                        "name": "profileId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Summary retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/TransactionSummaryResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/profile/{profileId}/export-pdf": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Export PDF",
+                "description": "Download a PDF report of transactions for a specific profile.",
+                "parameters": [
+                    {
+                        "name": "profileId",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "PDF file",
+                        "content": {
+                            "application/pdf": {
+                                "schema": {
+                                    "type": "string",
+                                    "format": "binary"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Profile not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/profiler/transactions/{id}": {
+            "get": {
+                "tags": [
+                    "Profiler Transactions"
+                ],
+                "summary": "Get transaction by ID",
+                "description": "Retrieve a specific transaction detail.",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transaction retrieved successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SingleTransactionResponse"
+                                }
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Transaction not found",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ProfilerTransaction": {
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    },
+                    "profile_id": {
+                        "type": "integer"
+                    },
+                    "transaction_type": {
+                        "type": "string",
+                        "enum": [
+                            "deposit",
+                            "withdraw"
+                        ]
+                    },
+                    "amount": {
+                        "type": "number"
+                    },
+                    "withdraw_charges_percentage": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "withdraw_charges_amount": {
+                        "type": "number",
+                        "nullable": true
+                    },
+                    "notes": {
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "client_name": {
+                        "type": "string"
+                    },
+                    "bank_name": {
+                        "type": "string"
+                    },
+                    "credit_card_number": {
+                        "type": "string"
+                    },
+                    "profile_status": {
+                        "type": "string"
+                    }
+                }
+            },
+            "CreateDepositInput": {
+                "type": "object",
+                "required": [
+                    "profile_id",
+                    "amount"
+                ],
+                "properties": {
+                    "profile_id": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "notes": {
+                        "type": "string"
+                    }
+                }
+            },
+            "CreateWithdrawInput": {
+                "type": "object",
+                "required": [
+                    "profile_id",
+                    "amount"
+                ],
+                "properties": {
+                    "profile_id": {
+                        "type": "integer"
+                    },
+                    "amount": {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "withdraw_charges_percentage": {
+                        "type": "number",
+                        "minimum": 0
+                    },
+                    "notes": {
+                        "type": "string"
+                    }
+                }
+            },
+            "DeleteTransactionInput": {
+                "type": "object",
+                "required": [
+                    "id"
+                ],
+                "properties": {
+                    "id": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "BaseResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean"
+                    },
+                    "successCode": {
+                        "type": "string"
+                    },
+                    "message": {
+                        "type": "string"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "statusCode": {
+                        "type": "integer"
+                    }
+                }
+            },
+            "SuccessResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "success": {
+                                "type": "boolean",
+                                "example": true
+                            },
+                            "data": {
+                                "type": "object",
+                                "nullable": true
+                            }
+                        }
+                    }
+                ]
+            },
+            "SingleTransactionResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "$ref": "#/components/schemas/ProfilerTransaction"
+                            }
+                        }
+                    }
+                ]
+            },
+            "GetTransactionsResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "array",
+                                "items": {
+                                    "$ref": "#/components/schemas/ProfilerTransaction"
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "TransactionSummaryResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "total_deposits": {
+                                        "type": "number"
+                                    },
+                                    "total_withdrawals": {
+                                        "type": "number"
+                                    },
+                                    "total_charges": {
+                                        "type": "number"
+                                    },
+                                    "net_amount": {
+                                        "type": "number"
+                                    },
+                                    "transaction_difference": {
+                                        "type": "number"
+                                    },
+                                    "credit_uncountable": {
+                                        "type": "number"
+                                    },
+                                    "transaction_count": {
+                                        "type": "integer"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "PaginatedTransactionsResponse": {
+                "allOf": [
+                    {
+                        "$ref": "#/components/schemas/BaseResponse"
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "data": {
+                                "type": "object",
+                                "properties": {
+                                    "data": {
+                                        "type": "array",
+                                        "items": {
+                                            "$ref": "#/components/schemas/ProfilerTransaction"
+                                        }
+                                    },
+                                    "pagination": {
+                                        "type": "object",
+                                        "properties": {
+                                            "current_page": {
+                                                "type": "integer"
+                                            },
+                                            "per_page": {
+                                                "type": "integer"
+                                            },
+                                            "total_count": {
+                                                "type": "integer"
+                                            },
+                                            "total_pages": {
+                                                "type": "integer"
+                                            },
+                                            "has_next_page": {
+                                                "type": "boolean"
+                                            },
+                                            "has_previous_page": {
+                                                "type": "boolean"
+                                            }
+                                        }
+                                    },
+                                    "summary": {
+                                        "type": "object",
+                                        "properties": {
+                                            "total_deposits": {
+                                                "type": "number"
+                                            },
+                                            "total_withdrawals": {
+                                                "type": "number"
+                                            },
+                                            "total_charges": {
+                                                "type": "number"
+                                            },
+                                            "net_amount": {
+                                                "type": "number"
+                                            },
+                                            "transaction_difference": {
+                                                "type": "number"
+                                            },
+                                            "credit_uncountable": {
+                                                "type": "number"
+                                            }
+                                        }
+                                    },
+                                    "search_applied": {
+                                        "type": "string"
+                                    },
+                                    "filters_applied": {
+                                        "type": "object"
+                                    },
+                                    "sort_applied": {
+                                        "type": "object",
+                                        "properties": {
+                                            "sort_by": {
+                                                "type": "string"
+                                            },
+                                            "sort_order": {
+                                                "type": "string"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                ]
+            },
+            "ErrorResponse": {
+                "type": "object",
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "error": {
+                        "type": "object",
+                        "properties": {
+                            "statusCode": {
+                                "type": "integer"
+                            },
+                            "message": {
+                                "type": "string"
+                            },
+                            "errorCode": {
+                                "type": "string"
+                            },
+                            "timestamp": {
+                                "type": "string",
+                                "format": "date-time"
+                            },
+                            "details": {
+                                "type": "object"
+                            },
+                            "path": {
+                                "type": "string"
+                            },
+                            "method": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

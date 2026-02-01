@@ -1,0 +1,115 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Fin-Ops API",
+        "version": "1.0.0",
+        "description": "API documentation for the Fin-Ops platform, covering Core Health services and the Profiler Bank module."
+    },
+    "servers": [
+        {
+            "url": "http://localhost:3000/",
+            "description": "Main Server Root"
+        }
+    ],
+    "tags": [
+        {
+            "name": "Core",
+            "description": "System health and information endpoints"
+        },
+        {
+            "name": "Profiler Banks",
+            "description": "Operations for managing bank entities"
+        }
+    ],
+    "paths": {
+        "/": {
+            "get": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Get API Info",
+                "description": "Returns general application information and available endpoint roots.",
+                "responses": {
+                    "200": {
+                        "description": "API Information",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ApiInfoResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/health": {
+            "get": {
+                "tags": [
+                    "Core"
+                ],
+                "summary": "Health Check",
+                "description": "Returns system status, uptime, and environment info.",
+                "responses": {
+                    "200": {
+                        "description": "System is healthy",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HealthResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ApiInfoResponse": {
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "environment": {
+                        "type": "string"
+                    },
+                    "endpoints": {
+                        "type": "object"
+                    }
+                }
+            },
+            "HealthResponse": {
+                "type": "object",
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "example": "OK"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "format": "date-time"
+                    },
+                    "uptime": {
+                        "type": "number"
+                    },
+                    "environment": {
+                        "type": "string"
+                    },
+                    "version": {
+                        "type": "string"
+                    },
+                    "apiVersion": {
+                        "type": "string",
+                        "example": "v1"
+                    }
+                }
+            }
+        }
+    }
+}

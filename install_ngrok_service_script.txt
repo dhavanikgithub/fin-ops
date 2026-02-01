@@ -21,7 +21,7 @@ set DOMAIN=[YOUR_NGROK_DOMAIN]
 echo [INFO] Ngrok Domain set to %DOMAIN%
 
 :: The Local Port you want to expose
-set PORT=3000
+set PORT=3002
 echo [INFO] Local Port set to %PORT%
 
 :: Path to NSSM executable

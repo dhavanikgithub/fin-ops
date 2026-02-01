@@ -1,0 +1,340 @@
+package com.example.fin_ops.presentation.profiler.clients
+
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.fin_ops.data.remote.dto.*
+import com.example.fin_ops.domain.use_case.client.*
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+import com.example.fin_ops.data.remote.dto.AutocompleteProfilerClientItem
+import com.example.fin_ops.data.remote.dto.Pagination
+import com.example.fin_ops.data.remote.dto.ProfilerClientDto
+
+
+@HiltViewModel
+class ClientsViewModel @Inject constructor(
+    private val getClientsUseCase: GetClientsUseCase,
+    private val createClientUseCase: CreateClientUseCase,
+    private val updateClientUseCase: UpdateClientUseCase,
+    private val deleteClientUseCase: DeleteClientUseCase,
+    private val searchClientsUseCase: SearchClientsUseCase
+) : ViewModel() {
+
+    private val _state = mutableStateOf(ClientsState())
+    val state: State<ClientsState> = _state
+
+    private var searchJob: Job? = null
+    private var loadJob: Job? = null
+
+    init {
+        loadClients()
+    }
+
+    fun onEvent(event: ClientsEvent) {
+        when (event) {
+            is ClientsEvent.LoadClients -> loadClients(event.page)
+
+            is ClientsEvent.LoadNextPage -> {
+                val pagination = state.value.pagination
+                if (pagination != null &&
+                    pagination.hasNextPage &&
+                    !state.value.isLoading &&
+                    !state.value.isLoadingMore
+                ) {
+                    loadClients(pagination.currentPage + 1)
+                }
+            }
+
+            is ClientsEvent.Search -> {
+                _state.value = _state.value.copy(searchQuery = event.query)
+                searchDebounced(event.query)
+            }
+
+            is ClientsEvent.SaveClient -> saveClient()
+
+            is ClientsEvent.DeleteClient -> confirmDelete(event.client)
+
+            is ClientsEvent.ConfirmDelete -> deleteClient()
+
+            is ClientsEvent.CancelDelete -> {
+                _state.value = _state.value.copy(
+                    showDeleteDialog = false,
+                    clientToDelete = null
+                )
+            }
+
+            is ClientsEvent.OpenForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = true,
+                    editingClient = event.clientToEdit,
+                    formName = event.clientToEdit?.name ?: "",
+                    formEmail = event.clientToEdit?.email ?: "",
+                    formMobile = event.clientToEdit?.mobileNumber ?: "",
+                    formAadhaar = event.clientToEdit?.aadhaarCardNumber ?: "",
+                    formNotes = event.clientToEdit?.notes ?: "",
+                    formError = null
+                )
+            }
+
+            is ClientsEvent.CloseForm -> {
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingClient = null,
+                    formName = "",
+                    formEmail = "",
+                    formMobile = "",
+                    formAadhaar = "",
+                    formNotes = "",
+                    formError = null
+                )
+            }
+
+            is ClientsEvent.UpdateFormName -> {
+                _state.value = _state.value.copy(formName = event.value, formError = null)
+            }
+
+            is ClientsEvent.UpdateFormEmail -> {
+                _state.value = _state.value.copy(formEmail = event.value, formError = null)
+            }
+
+            is ClientsEvent.UpdateFormMobile -> {
+                _state.value = _state.value.copy(formMobile = event.value, formError = null)
+            }
+
+            is ClientsEvent.UpdateFormAadhaar -> {
+                _state.value = _state.value.copy(formAadhaar = event.value, formError = null)
+            }
+
+            is ClientsEvent.UpdateFormNotes -> {
+                _state.value = _state.value.copy(formNotes = event.value, formError = null)
+            }
+
+
+            is ClientsEvent.RefreshClients -> {
+                _state.value = _state.value.copy(searchQuery = "")
+                loadClients(1)
+            }
+        }
+    }
+
+    private fun loadClients(page: Int = 1) {
+        viewModelScope.launch {
+            val isFirstPage = page == 1
+
+            if (isFirstPage) {
+                loadJob?.cancel()
+                _state.value = _state.value.copy(isLoading = true, isLoadingMore = false, error = null)
+            } else {
+                _state.value = _state.value.copy(isLoadingMore = true, error = null)
+            }
+            try {
+                val result = getClientsUseCase(
+                    page = page,
+                    limit = 50,
+                    search = _state.value.searchQuery.ifBlank { null },
+                    hasProfiles = null,
+                    sortBy = "name",
+                    sortOrder = "asc"
+                )
+                val updatedList = if (isFirstPage) {
+                    result.data
+                } else {
+                    state.value.clients + result.data
+                }
+
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    clients = updatedList,
+                    pagination = result.pagination
+                )
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    isLoadingMore = false,
+                    error = e.message ?: "An unexpected error occurred"
+                )
+            }
+        }
+    }
+
+    private fun searchDebounced(query: String) {
+        searchJob?.cancel()
+        searchJob = viewModelScope.launch {
+            if (query.isNotBlank()) {
+                _state.value = _state.value.copy(clients = emptyList(), isLoading = true)
+            }
+            delay(500L)
+            if (query.isBlank()) {
+                loadClients(1)
+                _state.value = _state.value.copy(autocompleteSuggestions = emptyList())
+                return@launch
+            }
+
+            loadClients(1)
+
+            try {
+                val suggestions = searchClientsUseCase(query)
+                _state.value = _state.value.copy(autocompleteSuggestions = suggestions)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(autocompleteSuggestions = emptyList())
+            }
+        }
+    }
+
+    private fun saveClient() {
+        val name = _state.value.formName.trim()
+        val email = _state.value.formEmail.trim()
+        val mobile = _state.value.formMobile.trim()
+        val aadhaar = _state.value.formAadhaar.trim()
+        val notes = _state.value.formNotes.trim()
+
+        // Validation
+        if (name.isBlank()) {
+            _state.value = _state.value.copy(formError = "Name is required")
+            return
+        }
+
+        if (name.length < 2) {
+            _state.value = _state.value.copy(formError = "Name must be at least 2 characters")
+            return
+        }
+
+        if (email.isBlank()) {
+            _state.value = _state.value.copy(formError = "Email is required")
+            return
+        }
+
+        if (!isValidEmail(email)) {
+            _state.value = _state.value.copy(formError = "Invalid email format")
+            return
+        }
+
+        if (mobile.isBlank()) {
+            _state.value = _state.value.copy(formError = "Mobile number is required")
+            return
+        }
+
+        if (mobile.length < 10) {
+            _state.value = _state.value.copy(formError = "Mobile number must be at least 10 digits")
+            return
+        }
+
+        if (aadhaar.isNotBlank() && aadhaar.length != 12) {
+            _state.value = _state.value.copy(formError = "Aadhaar must be 12 digits")
+            return
+        }
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, formError = null)
+            try {
+                val editingClient = _state.value.editingClient
+                if (editingClient != null) {
+                    // Update existing client
+                    val request = UpdateProfilerClientRequest(
+                        id = editingClient.id,
+                        name = name,
+                        email = email,
+                        mobileNumber = mobile,
+                        aadhaarCardNumber = aadhaar.ifBlank { null },
+                        aadhaarCardImage = null,
+                        notes = notes.ifBlank { null }
+                    )
+                    updateClientUseCase(request)
+                } else {
+                    // Create new client
+                    val request = CreateProfilerClientRequest(
+                        name = name,
+                        email = email,
+                        mobileNumber = mobile,
+                        aadhaarCardNumber = aadhaar.ifBlank { null },
+                        aadhaarCardImage = null,
+                        notes = notes.ifBlank { null }
+                    )
+                    createClientUseCase(request)
+                }
+
+                _state.value = _state.value.copy(
+                    isFormVisible = false,
+                    editingClient = null,
+                    formName = "",
+                    formEmail = "",
+                    formMobile = "",
+                    formAadhaar = "",
+                    formNotes = "",
+                    formError = null
+                )
+
+                loadClients(_state.value.pagination?.currentPage ?: 1)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    formError = e.message ?: "Failed to save client"
+                )
+            }
+        }
+    }
+
+    private fun confirmDelete(client: ProfilerClientDto) {
+        _state.value = _state.value.copy(
+            showDeleteDialog = true,
+            clientToDelete = client
+        )
+    }
+
+    private fun deleteClient() {
+        val clientToDelete = _state.value.clientToDelete ?: return
+
+        viewModelScope.launch {
+            _state.value = _state.value.copy(
+                isLoading = true,
+                showDeleteDialog = false
+            )
+            try {
+                deleteClientUseCase(clientToDelete.id)
+
+                _state.value = _state.value.copy(
+                    clientToDelete = null
+                )
+
+                loadClients(_state.value.pagination?.currentPage ?: 1)
+            } catch (e: Exception) {
+                _state.value = _state.value.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to delete client",
+                    showDeleteDialog = false,
+                    clientToDelete = null
+                )
+            }
+        }
+    }
+
+    private fun isValidEmail(email: String): Boolean {
+        return email.contains("@") && email.contains(".")
+    }
+}
+
+// Events sealed class for UI interactions
+sealed class ClientsEvent {
+    data class LoadClients(val page: Int) : ClientsEvent()
+    object LoadNextPage : ClientsEvent()
+
+    data class Search(val query: String) : ClientsEvent()
+    object SaveClient : ClientsEvent()
+    data class DeleteClient(val client: ProfilerClientDto) : ClientsEvent()
+    object ConfirmDelete : ClientsEvent()
+    object CancelDelete : ClientsEvent()
+    data class OpenForm(val clientToEdit: ProfilerClientDto? = null) : ClientsEvent()
+    object CloseForm : ClientsEvent()
+    data class UpdateFormName(val value: String) : ClientsEvent()
+    data class UpdateFormEmail(val value: String) : ClientsEvent()
+    data class UpdateFormMobile(val value: String) : ClientsEvent()
+    data class UpdateFormAadhaar(val value: String) : ClientsEvent()
+    data class UpdateFormNotes(val value: String) : ClientsEvent()
+    object RefreshClients : ClientsEvent()
+}
